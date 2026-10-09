@@ -27,9 +27,9 @@ export default function Footer() {
             <Link href="/" className="flex items-center gap-2 mb-6 group">
               <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-[#4285f4] to-[#9b72cb] flex items-center justify-center flex-shrink-0 group-hover:shadow-md transition-all">
                 <svg width="18" height="18" viewBox="0 0 40 40" fill="none">
-                  <path d="M20 8L32 15V25L20 32L8 25V15L20 8Z" fill="white" opacity="0.9"/>
-                  <path d="M20 14L26 17.5V24.5L20 28L14 24.5V17.5L20 14Z" fill="white"/>
-                  <circle cx="20" cy="21" r="3" fill="white"/>
+                  <path d="M20 8L32 15V25L20 32L8 25V15L20 8Z" fill="white" opacity="0.9" />
+                  <path d="M20 14L26 17.5V24.5L20 28L14 24.5V17.5L20 14Z" fill="white" />
+                  <circle cx="20" cy="21" r="3" fill="white" />
                 </svg>
               </div>
               <span className="font-[var(--font-outfit)] font-medium text-[1.0625rem] tracking-tight text-[var(--text-primary)]">
@@ -48,7 +48,7 @@ export default function Footer() {
                 <a key={s.label} href="#" aria-label={s.label} rel="noopener noreferrer"
                   className="w-10 h-10 rounded-full border border-[var(--border-color)] bg-white flex items-center justify-center text-[var(--text-tertiary)] hover:text-[var(--text-primary)] hover:border-[var(--text-primary)] transition-colors">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d={s.path}/>
+                    <path d={s.path} />
                   </svg>
                 </a>
               ))}
@@ -95,7 +95,7 @@ export default function Footer() {
                 <li key={i} className="flex gap-3 items-start group">
                   <div className="w-8 h-8 rounded-full bg-white border border-[var(--border-color)] flex items-center justify-center flex-shrink-0 group-hover:border-[var(--accent-blue)] transition-colors">
                     <svg className="w-3.5 h-3.5 text-[var(--text-tertiary)] group-hover:text-[var(--accent-blue)] transition-colors" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                      <path d={item.icon}/>
+                      <path d={item.icon} />
                     </svg>
                   </div>
                   <span className="text-[0.9375rem] text-[var(--text-secondary)] pt-1">{item.text}</span>
