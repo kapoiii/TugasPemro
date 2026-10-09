@@ -1,0 +1,126 @@
+@import "tailwindcss";
+
+:root {
+  --bg-primary: #FFFFFF;
+  --bg-secondary: #F0F4F8; /* Subtle blueish gray like Gemini */
+  --bg-tertiary: #F8F9FA;
+  
+  --text-primary: #1F1F1F;
+  --text-secondary: #444746;
+  --text-tertiary: #5F6368;
+  
+  --border-color: #DADCE0;
+  --border-light: #E3E3E3;
+  
+  /* Gemini-like gradient and accents */
+  --accent-blue: #1A73E8;
+  --accent-purple: #A152F9;
+  --accent-pink: #F748A5;
+  --accent-orange: #FF8D50;
+  
+  --shadow-subtle: 0 1px 2px 0 rgba(60,64,67,0.1), 0 1px 3px 1px rgba(60,64,67,0.06);
+  --shadow-medium: 0 4px 6px -1px rgba(60,64,67,0.1), 0 2px 4px -1px rgba(60,64,67,0.06);
+  --shadow-elevated: 0 10px 20px rgba(60,64,67,0.15);
+}
+
+html { 
+  scroll-behavior: smooth; 
+  background-color: var(--bg-secondary);
+}
+
+body { 
+  font-family: var(--font-inter), system-ui, sans-serif; 
+  color: var(--text-primary); 
+  background-color: var(--bg-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+}
+
+/* Gemini gradient text utility */
+.gemini-text-gradient {
+  background: linear-gradient(74deg, #4285f4 0, #9b72cb 9%, #d96570 20%, #d96570 24%, #9b72cb 35%, #4285f4 44%, #9b72cb 50%, #d96570 56%, #131314 75%, #131314 100%);
+  background-size: 400% 100%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Subtle border utility */
+.gemini-border {
+  border: 1px solid var(--border-color);
+}
+
+/* Card hover effect */
+.gemini-card-hover {
+  transition: all 0.25s cubic-bezier(0.2, 0, 0, 1);
+}
+.gemini-card-hover:hover {
+  box-shadow: var(--shadow-medium);
+  transform: translateY(-2px);
+}
+
+/* Glass effect for headers */
+.glass-effect {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border-light);
+}
+
+/* Custom rounded corners */
+.rounded-gemini {
+  border-radius: 24px;
+}
+.rounded-gemini-sm {
+  border-radius: 12px;
+}
+.rounded-gemini-full {
+  border-radius: 9999px;
+}
+
+/* Buttons */
+.btn-gemini {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1.5rem;
+  font-weight: 500;
+  font-size: 0.9375rem;
+  border-radius: 9999px;
+  transition: all 0.2s ease;
+}
+.btn-gemini-primary {
+  background-color: var(--text-primary);
+  color: white;
+}
+.btn-gemini-primary:hover {
+  background-color: #3C4043;
+  box-shadow: var(--shadow-subtle);
+}
+.btn-gemini-secondary {
+  background-color: transparent;
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+}
+.btn-gemini-secondary:hover {
+  background-color: var(--bg-tertiary);
+}
+
+/* gallery & lightbox */
+.lb-open { overflow: hidden; }
+
+/* animate fade-up */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-up { animation: fadeUp 0.6s cubic-bezier(0.2, 0, 0, 1) both; }
+.animation-delay-100 { animation-delay: .1s; }
+.animation-delay-200 { animation-delay: .2s; }
+.animation-delay-300 { animation-delay: .3s; }
