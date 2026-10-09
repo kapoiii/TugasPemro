@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 
 const footerMain = [
@@ -20,6 +21,12 @@ const footerInfo = [
 ];
 
 export default function Footer() {
+  const [year, setYear] = useState<number>(2026);
+
+  useEffect(() => {
+    setYear(new Date().getFullYear());
+  }, []);
+
   return (
     <footer className="bg-[var(--bg-secondary)] pt-20 pb-8 mt-auto border-t border-[var(--border-light)]">
       <div className="max-w-[1200px] mx-auto px-6">
@@ -108,7 +115,7 @@ export default function Footer() {
         </div>
 
         <div className="border-t border-[var(--border-light)] pt-8 flex flex-col sm:flex-row justify-between items-center gap-4 text-[0.8125rem] text-[var(--text-tertiary)]">
-          <p>&copy; {new Date().getFullYear()} SMA Nusantara Bangsa. Hak cipta dilindungi.</p>
+          <p>&copy; {year} SMA Nusantara Bangsa. Hak cipta dilindungi.</p>
           <div className="flex gap-4">
             <Link href="/kebijakan-privasi" className="hover:text-[var(--text-primary)] hover:underline">Privasi</Link>
             <Link href="/syarat-ketentuan" className="hover:text-[var(--text-primary)] hover:underline">Syarat &amp; Ketentuan</Link>
