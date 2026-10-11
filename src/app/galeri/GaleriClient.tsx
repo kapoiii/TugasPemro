@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 
 type GaleriItem = { id: number; judul: string; album: string; foto: string };
@@ -7,8 +7,19 @@ type GaleriItem = { id: number; judul: string; album: string; foto: string };
 export default function GaleriClient({ items }: { items: GaleriItem[] }) {
   const [lightboxIdx, setLightboxIdx] = useState<number | null>(null);
 
-  const open  = (i: number) => { setLightboxIdx(i); document.body.style.overflow = "hidden"; };
-  const close = () => { setLightboxIdx(null); document.body.style.overflow = ""; };
+  useEffect(() => {
+    if (lightboxIdx !== null) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [lightboxIdx]);
+
+  const open  = (i: number) => setLightboxIdx(i);
+  const close = () => setLightboxIdx(null);
   const prev  = () => setLightboxIdx((i) => ((i ?? 0) - 1 + items.length) % items.length);
   const next  = () => setLightboxIdx((i) => ((i ?? 0) + 1) % items.length);
 

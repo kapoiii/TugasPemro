@@ -179,7 +179,7 @@ export default function BerandaPage() {
             </div>
             <div>
               <h2 className="text-[2rem] font-[var(--font-outfit)] font-medium text-[var(--text-primary)] mb-6">
-                "Kami hadir untuk mendukung setiap siswa meraih potensi terbaiknya."
+                &quot;Kami hadir untuk mendukung setiap siswa meraih potensi terbaiknya.&quot;
               </h2>
               <p className="text-[var(--text-secondary)] text-[1.0625rem] leading-relaxed mb-8 max-w-2xl">
                 Selamat datang di SMA Nusantara Bangsa. Kami berkomitmen untuk mencetak generasi muda yang tidak hanya cerdas secara intelektual, tetapi juga memiliki karakter mulia dan siap menghadapi tantangan global melalui lingkungan belajar yang inovatif.

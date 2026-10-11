@@ -32,9 +32,11 @@ export default function Header() {
   }, []);
 
   useEffect(() => {
-    setMenuOpen(false);
-    document.body.style.overflow = "";
-  }, [pathname]);
+    if (menuOpen) {
+      setMenuOpen(false);
+      document.body.style.overflow = "";
+    }
+  }, [pathname, menuOpen]);
 
   const toggleMenu = () => {
     const next = !menuOpen;

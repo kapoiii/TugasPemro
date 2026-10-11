@@ -21,11 +21,7 @@ const footerInfo = [
 ];
 
 export default function Footer() {
-  const [year, setYear] = useState<number>(2026);
-
-  useEffect(() => {
-    setYear(new Date().getFullYear());
-  }, []);
+  const [year] = useState<number>(() => new Date().getFullYear());
 
   return (
     <footer className="bg-[var(--bg-secondary)] pt-20 pb-8 mt-auto border-t border-[var(--border-light)]">

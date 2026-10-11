@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import Image from "next/image";
-import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "Profil Sekolah",
@@ -74,7 +73,7 @@ export default function ProfilPage() {
               </div>
               <h3 className="text-[1.75rem] font-medium font-[var(--font-outfit)] text-[var(--text-primary)] mb-4">Visi</h3>
               <p className="text-[var(--text-secondary)] text-[1.125rem] leading-relaxed italic">
-                "Menjadi sekolah unggul yang melahirkan generasi cerdas, berkarakter mulia, berwawasan global, dan berdaya saing tinggi."
+                &quot;Menjadi sekolah unggul yang melahirkan generasi cerdas, berkarakter mulia, berwawasan global, dan berdaya saing tinggi.&quot;
               </p>
             </div>
             <div className="bg-white p-10 rounded-gemini gemini-border gemini-card-hover">

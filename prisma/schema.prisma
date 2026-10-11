@@ -1,0 +1,224 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  GURU
+  SISWA
+}
+
+enum PPDBStatus {
+  PENDING
+  DITERIMA
+  DITOLAK
+}
+
+enum StatusAbsensi {
+  HADIR
+  IZIN
+  SAKIT
+  ALFA
+}
+
+enum RaportStatus {
+  DRAFT
+  PUBLISHED
+}
+
+model User {
+  id           String        @id @default(uuid())
+  username     String        @unique
+  email        String        @unique
+  passwordHash String
+  role         Role          @default(SISWA)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  siswaProfile SiswaProfile?
+  guruProfile  GuruProfile?
+  auditLogs    AuditLog[]
+  ppdbVerified PPDB[]        @relation("PPDBVerifier")
+}
+
+model Kelas {
+  id          String   @id @default(uuid())
+  namaKelas   String   @unique // Contoh: X IPA 1, XI IPS 2
+  tingkat     String   // 10, 11, 12
+  waliKelasId String?  @unique
+
+  waliKelas   GuruProfile?   @relation("WaliKelas", fields: [waliKelasId], references: [id])
+  siswas      SiswaProfile[]
+  sesiAbsensi SesiAbsensi[]
+  nilais      Nilai[]
+  raports     Raport[]
+}
+
+model SiswaProfile {
+  id           String        @id @default(uuid())
+  userId       String        @unique
+  nis          String        @unique
+  nisn         String        @unique
+  namaLengkap  String
+  kelasId      String?
+  jenisKelamin String        // L / P
+  tempatLahir  String?
+  tanggalLahir DateTime?
+  alamat       String?
+  namaOrangTua String?
+  noHp         String?
+
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  kelas        Kelas?        @relation(fields: [kelasId], references: [id])
+  absensis     DetailAbsensi[]
+  nilais       Nilai[]
+  raports      Raport[]
+}
+
+model GuruProfile {
+  id                 String        @id @default(uuid())
+  userId             String        @unique
+  nip                String        @unique
+  namaLengkap        String
+  mataPelajaranUtama String?
+  noHp               String?
+
+  user               User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  kelasWali          Kelas?        @relation("WaliKelas")
+  sesiAbsensi        SesiAbsensi[]
+  nilaisInputed      Nilai[]
+}
+
+model MataPelajaran {
+  id          String   @id @default(uuid())
+  kodeMapel   String   @unique // Contoh: MTK-10, BIN-10
+  namaMapel   String
+  kkm         Float    @default(75.0)
+
+  sesiAbsensi SesiAbsensi[]
+  nilais      Nilai[]
+}
+
+model PPDB {
+  id             String     @id @default(uuid())
+  noPendaftaran  String     @unique
+  namaLengkap    String
+  nisn           String     @unique
+  tempatLahir    String
+  tanggalLahir   DateTime
+  jenisKelamin   String     // L / P
+  agama          String
+  alamat         String
+  namaAyah       String
+  namaIbu        String
+  noHp           String
+  pilihanJurusan String
+  berkasIjazahUrl String?
+  berkasKkUrl     String?
+  berkasAkteUrl   String?
+  status         PPDBStatus @default(PENDING)
+  catatan        String?
+  verifierId     String?
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+
+  verifier       User?      @relation("PPDBVerifier", fields: [verifierId], references: [id])
+}
+
+model SesiAbsensi {
+  id           String          @id @default(uuid())
+  kelasId      String
+  mapelId      String
+  guruId       String
+  tanggal      DateTime        @default(now())
+  pertemuanKe  Int
+  keterangan   String?
+  createdAt    DateTime        @default(now())
+
+  kelas        Kelas           @relation(fields: [kelasId], references: [id])
+  mapel        MataPelajaran   @relation(fields: [mapelId], references: [id])
+  guru         GuruProfile     @relation(fields: [guruId], references: [id])
+  details      DetailAbsensi[]
+}
+
+model DetailAbsensi {
+  id            String        @id @default(uuid())
+  sesiAbsensiId String
+  siswaId       String
+  status        StatusAbsensi @default(HADIR)
+  catatan       String?
+
+  sesi          SesiAbsensi   @relation(fields: [sesiAbsensiId], references: [id], onDelete: Cascade)
+  siswa         SiswaProfile  @relation(fields: [siswaId], references: [id], onDelete: Cascade)
+
+  @@unique([sesiAbsensiId, siswaId])
+}
+
+model Nilai {
+  id           String        @id @default(uuid())
+  siswaId      String
+  mapelId      String
+  kelasId      String
+  guruId       String
+  semester     String        // 1 (Ganjil) / 2 (Genap)
+  tahunAjaran  String        // 2025/2026
+  nilaiTugas   Float         @default(0)
+  nilaiUts     Float         @default(0)
+  nilaiUas     Float         @default(0)
+  nilaiPraktik Float         @default(0)
+  nilaiSikap   Float         @default(0)
+  nilaiAkhir   Float         @default(0)
+  predikat     String        @default("C") // A, B, C, D
+  catatan      String?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  siswa        SiswaProfile  @relation(fields: [siswaId], references: [id], onDelete: Cascade)
+  mapel        MataPelajaran @relation(fields: [mapelId], references: [id])
+  kelas        Kelas         @relation(fields: [kelasId], references: [id])
+  guru         GuruProfile   @relation(fields: [guruId], references: [id])
+
+  @@unique([siswaId, mapelId, semester, tahunAjaran])
+}
+
+model Raport {
+  id               String       @id @default(uuid())
+  siswaId          String
+  kelasId          String
+  semester         String       // 1 (Ganjil) / 2 (Genap)
+  tahunAjaran      String       // 2025/2026
+  totalHadir       Int          @default(0)
+  totalIzin        Int          @default(0)
+  totalSakit       Int          @default(0)
+  totalAlfa        Int          @default(0)
+  rataRataNilai    Float        @default(0)
+  catatanWaliKelas String?
+  status           RaportStatus @default(DRAFT)
+  pdfUrl           String?
+  generatedAt      DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+
+  siswa            SiswaProfile @relation(fields: [siswaId], references: [id], onDelete: Cascade)
+  kelas            Kelas        @relation(fields: [kelasId], references: [id])
+
+  @@unique([siswaId, semester, tahunAjaran])
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  userId    String?
+  action    String
+  detail    String?
+  ipAddress String?
+  createdAt DateTime @default(now())
+
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+}
