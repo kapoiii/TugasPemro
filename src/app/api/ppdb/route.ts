@@ -28,8 +28,9 @@ export async function GET(request: NextRequest) {
     })
 
     return NextResponse.json({ success: true, data: listPPDB })
-  } catch (error: any) {
-    return NextResponse.json({ success: false, message: error.message || 'Server error' }, { status: 500 })
+  } catch (error: unknown) {
+    const errMessage = error instanceof Error ? error.message : 'Server error'
+    return NextResponse.json({ success: false, message: errMessage }, { status: 500 })
   }
 }
 
@@ -92,7 +93,8 @@ export async function POST(request: NextRequest) {
       message: 'Pendaftaran PPDB berhasil diajukan',
       data: newPPDB,
     })
-  } catch (error: any) {
-    return NextResponse.json({ success: false, message: error.message || 'Server error' }, { status: 500 })
+  } catch (error: unknown) {
+    const errMessage = error instanceof Error ? error.message : 'Server error'
+    return NextResponse.json({ success: false, message: errMessage }, { status: 500 })
   }
 }

@@ -42,7 +42,8 @@ export async function PATCH(
       message: `Status pendaftaran berhasil diubah menjadi ${status}`,
       data: updated,
     })
-  } catch (error: any) {
-    return NextResponse.json({ success: false, message: error.message || 'Server error' }, { status: 500 })
+  } catch (error: unknown) {
+    const errMessage = error instanceof Error ? error.message : 'Server error'
+    return NextResponse.json({ success: false, message: errMessage }, { status: 500 })
   }
 }

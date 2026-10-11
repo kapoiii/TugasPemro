@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { galeri } from "@/lib/data";
 import GaleriClient from "./GaleriClient";
 

@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Calendar, Save, Plus } from 'lucide-react'
 
 interface DetailAbsensiItem {
@@ -47,24 +47,23 @@ export default function GuruAbsensiPage() {
     'siswa-5': 'ALFA',
   })
 
-  const fetchAbsensi = useCallback(async () => {
-    setLoading(true)
-    try {
-      const res = await fetch('/api/absensi')
-      const data = await res.json()
-      if (data.success) {
-        setSesiList(data.data)
-      }
-    } catch {
-      // ignore error
-    } finally {
-      setLoading(false)
+  useEffect(() => {
+    let isMounted = true
+    fetch('/api/absensi')
+      .then((res) => res.json())
+      .then((data) => {
+        if (isMounted && data.success) {
+          setSesiList(data.data)
+        }
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (isMounted) setLoading(false)
+      })
+    return () => {
+      isMounted = false
     }
   }, [])
-
-  useEffect(() => {
-    fetchAbsensi()
-  }, [fetchAbsensi])
 
   const handleSaveAbsensi = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -86,7 +85,11 @@ export default function GuruAbsensiPage() {
       const data = await res.json()
       if (data.success) {
         setShowModal(false)
-        fetchAbsensi()
+        const updatedRes = await fetch('/api/absensi')
+        const updatedData = await updatedRes.json()
+        if (updatedData.success) {
+          setSesiList(updatedData.data)
+        }
       } else {
         alert(data.message)
       }

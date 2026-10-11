@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Check, X, Clock, Search } from 'lucide-react'
 
 interface PPDBItem {
@@ -28,24 +28,23 @@ export default function GuruPPDBPage() {
   const [actionLoading, setActionLoading] = useState(false)
   const [catatan, setCatatan] = useState('')
 
-  const fetchPPDB = useCallback(async () => {
-    setLoading(true)
-    try {
-      const res = await fetch('/api/ppdb')
-      const data = await res.json()
-      if (data.success) {
-        setListPPDB(data.data)
-      }
-    } catch {
-      // ignore fetch error
-    } finally {
-      setLoading(false)
+  useEffect(() => {
+    let isMounted = true
+    fetch('/api/ppdb')
+      .then((res) => res.json())
+      .then((data) => {
+        if (isMounted && data.success) {
+          setListPPDB(data.data)
+        }
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (isMounted) setLoading(false)
+      })
+    return () => {
+      isMounted = false
     }
   }, [])
-
-  useEffect(() => {
-    fetchPPDB()
-  }, [fetchPPDB])
 
   const handleVerify = async (id: string, status: 'DITERIMA' | 'DITOLAK') => {
     setActionLoading(true)
@@ -59,7 +58,11 @@ export default function GuruPPDBPage() {
       if (data.success) {
         setSelectedItem(null)
         setCatatan('')
-        fetchPPDB()
+        const updatedRes = await fetch('/api/ppdb')
+        const updatedData = await updatedRes.json()
+        if (updatedData.success) {
+          setListPPDB(updatedData.data)
+        }
       } else {
         alert(data.message)
       }

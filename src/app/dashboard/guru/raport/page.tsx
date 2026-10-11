@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect } from 'react'
 import { FileCheck, Printer, Plus, Award } from 'lucide-react'
 
 interface RaportItem {
@@ -32,24 +32,23 @@ export default function GuruRaportPage() {
     catatanWaliKelas: 'Pertahankan prestasi dan tingkatkan keaktifan di kelas.',
   })
 
-  const fetchRaport = useCallback(async () => {
-    setLoading(true)
-    try {
-      const res = await fetch('/api/raport')
-      const data = await res.json()
-      if (data.success) {
-        setRaportList(data.data)
-      }
-    } catch {
-      // ignore
-    } finally {
-      setLoading(false)
+  useEffect(() => {
+    let isMounted = true
+    fetch('/api/raport')
+      .then((res) => res.json())
+      .then((data) => {
+        if (isMounted && data.success) {
+          setRaportList(data.data)
+        }
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (isMounted) setLoading(false)
+      })
+    return () => {
+      isMounted = false
     }
   }, [])
-
-  useEffect(() => {
-    fetchRaport()
-  }, [fetchRaport])
 
   const handleGenerate = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -62,7 +61,11 @@ export default function GuruRaportPage() {
       const data = await res.json()
       if (data.success) {
         setShowModal(false)
-        fetchRaport()
+        const updatedRes = await fetch('/api/raport')
+        const updatedData = await updatedRes.json()
+        if (updatedData.success) {
+          setRaportList(updatedData.data)
+        }
       } else {
         alert(data.message)
       }

@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Calculator, Save, Plus } from 'lucide-react'
 
 interface NilaiRecord {
@@ -37,24 +37,23 @@ export default function GuruNilaiPage() {
     catatan: 'Sangat baik dalam pemahaman aljabar',
   })
 
-  const fetchNilai = useCallback(async () => {
-    setLoading(true)
-    try {
-      const res = await fetch('/api/nilai')
-      const data = await res.json()
-      if (data.success) {
-        setNilaiList(data.data)
-      }
-    } catch {
-      // ignore
-    } finally {
-      setLoading(false)
+  useEffect(() => {
+    let isMounted = true
+    fetch('/api/nilai')
+      .then((res) => res.json())
+      .then((data) => {
+        if (isMounted && data.success) {
+          setNilaiList(data.data)
+        }
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (isMounted) setLoading(false)
+      })
+    return () => {
+      isMounted = false
     }
   }, [])
-
-  useEffect(() => {
-    fetchNilai()
-  }, [fetchNilai])
 
   const handleSaveNilai = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -67,7 +66,11 @@ export default function GuruNilaiPage() {
       const data = await res.json()
       if (data.success) {
         setShowModal(false)
-        fetchNilai()
+        const updatedRes = await fetch('/api/nilai')
+        const updatedData = await updatedRes.json()
+        if (updatedData.success) {
+          setNilaiList(updatedData.data)
+        }
       } else {
         alert(data.message)
       }

@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { agenda } from "@/lib/data";
 
 export const metadata: Metadata = {
@@ -38,7 +37,6 @@ export default function AgendaPage() {
             const d = new Date(a.tanggal);
             const day = d.toLocaleDateString("id-ID", { day: "numeric" });
             const month = d.toLocaleDateString("id-ID", { month: "short" });
-            const year = d.getFullYear();
             return (
               <div key={a.id} className="flex gap-6 items-center bg-white rounded-gemini p-5 gemini-border gemini-card-hover group">
                 {/* Date Box */}

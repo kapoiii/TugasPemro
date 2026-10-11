@@ -1,13 +1,10 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import Link from 'next/link'
 import {
   Users,
-  CheckCircle,
-  FileText,
   TrendingUp,
-  AlertTriangle,
   Calendar,
   LogOut,
   ChevronRight,
@@ -19,7 +16,7 @@ import { useRouter } from 'next/navigation'
 
 export default function GuruDashboardPage() {
   const router = useRouter()
-  const [stats, setStats] = useState({
+  const [stats] = useState({
     totalPendaftarPPDB: 12,
     pendingPPDB: 4,
     totalSiswaAktif: 120,

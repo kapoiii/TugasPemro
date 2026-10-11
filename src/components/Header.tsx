@@ -31,12 +31,7 @@ export default function Header() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  useEffect(() => {
-    if (menuOpen) {
-      setMenuOpen(false);
-      document.body.style.overflow = "";
-    }
-  }, [pathname, menuOpen]);
+
 
   const toggleMenu = () => {
     const next = !menuOpen;
