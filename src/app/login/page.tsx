@@ -162,6 +162,47 @@ export default function LoginPage() {
           </button>
         </form>
 
+        <div className="mt-6 p-3 bg-slate-50 border border-slate-200/80 rounded-xl">
+          <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-2 text-center">
+            Akun Demo (Klik untuk auto-fill):
+          </p>
+          <div className="grid grid-cols-3 gap-1.5 text-xs">
+            <button
+              type="button"
+              onClick={() => {
+                setRole('ADMIN')
+                setUsername('admin')
+                setPassword('admin123')
+              }}
+              className="py-1 px-2 bg-white hover:bg-rose-50 hover:text-rose-600 border border-slate-200 rounded text-slate-700 font-medium text-center transition-colors"
+            >
+              Admin<br /><span className="text-[10px] text-slate-400">admin / admin123</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setRole('GURU')
+                setUsername('guru1')
+                setPassword('guru123')
+              }}
+              className="py-1 px-2 bg-white hover:bg-blue-50 hover:text-blue-600 border border-slate-200 rounded text-slate-700 font-medium text-center transition-colors"
+            >
+              Guru<br /><span className="text-[10px] text-slate-400">guru1 / guru123</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setRole('SISWA')
+                setUsername('siswa1')
+                setPassword('siswa123')
+              }}
+              className="py-1 px-2 bg-white hover:bg-emerald-50 hover:text-emerald-600 border border-slate-200 rounded text-slate-700 font-medium text-center transition-colors"
+            >
+              Siswa<br /><span className="text-[10px] text-slate-400">siswa1 / siswa123</span>
+            </button>
+          </div>
+        </div>
+
         <div className="mt-8 pt-6 border-t border-slate-100 text-center space-y-2">
           <p className="text-xs text-slate-500">
             Belum mendaftar sebagai Siswa Baru?{' '}
