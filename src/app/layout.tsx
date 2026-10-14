@@ -1,9 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
-import BackToTop from "@/components/BackToTop";
-import WhatsAppFloat from "@/components/WhatsAppFloat";
+import PublicChrome from "@/components/PublicChrome";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://smanusantarabangsa.sch.id"),
@@ -31,11 +28,7 @@ export default function RootLayout({
         />
       </head>
       <body className="bg-[var(--bg-primary)] text-[var(--text-primary)] selection:bg-[#E8F0FE] selection:text-[#1A73E8]">
-        <Header />
-        <main>{children}</main>
-        <Footer />
-        <BackToTop />
-        <WhatsAppFloat />
+        <PublicChrome>{children}</PublicChrome>
       </body>
     </html>
   );
