@@ -21,6 +21,11 @@ import {
   Activity,
   ArrowRight,
   ExternalLink,
+  LayoutDashboard,
+  Save,
+  Award,
+  Calendar,
+  Sparkles,
 } from 'lucide-react'
 
 interface UserItem {
@@ -30,6 +35,7 @@ interface UserItem {
   role: 'ADMIN' | 'GURU' | 'SISWA'
   createdAt: string
   siswaProfile?: {
+    id: string
     nis: string
     nisn: string
     namaLengkap: string
@@ -85,9 +91,30 @@ interface AuditLogItem {
   user?: { username: string; role: string }
 }
 
+interface SiswaSelectorItem {
+  id: string
+  namaLengkap: string
+  nis: string
+  nisn: string
+  kelas?: { namaKelas: string }
+}
+
+interface GradeEditorItem {
+  mapelId: string
+  mapelName: string
+  nilaiTugas: number
+  nilaiUts: number
+  nilaiUas: number
+  nilaiPraktik: number
+  nilaiSikap: number
+  nilaiAkhir: number
+  predikat: string
+  catatan?: string
+}
+
 export default function AdminDashboardPage() {
   const router = useRouter()
-  const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'master' | 'logs'>('overview')
+  const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'user-dashboard' | 'master' | 'logs'>('overview')
   const [loading, setLoading] = useState(true)
 
   // Data states
@@ -110,6 +137,37 @@ export default function AdminDashboardPage() {
 
   // Notification message
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
+
+  // Siswa Dashboard Manager States
+  const [allSiswaList, setAllSiswaList] = useState<SiswaSelectorItem[]>([])
+  const [selectedSiswaId, setSelectedSiswaId] = useState<string>('')
+  const [siswaDetailLoading, setSiswaDetailLoading] = useState(false)
+  const [saveLoading, setSaveLoading] = useState(false)
+
+  const [editorProfile, setEditorProfile] = useState({
+    namaLengkap: '',
+    nisn: '',
+    nis: '',
+    kelasId: '',
+    alamat: '',
+    noHp: '',
+  })
+
+  const [editorAttendance, setEditorAttendance] = useState({
+    HADIR: 18,
+    IZIN: 1,
+    SAKIT: 1,
+    ALFA: 0,
+  })
+
+  const [editorGrades, setEditorGrades] = useState<GradeEditorItem[]>([])
+
+  const [editorRaport, setEditorRaport] = useState({
+    catatanWaliKelas: 'Pertahankan prestasi belajar dan tingkatkan keaktifan di kelas.',
+    status: 'PUBLISHED',
+  })
+
+  const [newMapelSelection, setNewMapelSelection] = useState('')
 
   // Form states
   const [userForm, setUserForm] = useState({
@@ -144,21 +202,95 @@ export default function AdminDashboardPage() {
     kkm: 75,
   })
 
+  // Fetch Siswa Dashboard Details
+  const fetchSiswaDashboardData = useCallback(async (siswaId: string) => {
+    if (!siswaId) return
+    setSiswaDetailLoading(true)
+    try {
+      const res = await fetch(`/api/admin/siswa-dashboard?siswaId=${siswaId}`)
+      const json = await res.json()
+      if (json.success && json.data) {
+        const { siswa, attendanceSummary, nilais, raport } = json.data
+
+        setEditorProfile({
+          namaLengkap: siswa.namaLengkap || '',
+          nisn: siswa.nisn || '',
+          nis: siswa.nis || '',
+          kelasId: siswa.kelasId || '',
+          alamat: siswa.alamat || '',
+          noHp: siswa.noHp || '',
+        })
+
+        if (attendanceSummary) {
+          setEditorAttendance({
+            HADIR: Number(attendanceSummary.HADIR || 0),
+            IZIN: Number(attendanceSummary.IZIN || 0),
+            SAKIT: Number(attendanceSummary.SAKIT || 0),
+            ALFA: Number(attendanceSummary.ALFA || 0),
+          })
+        }
+
+        if (nilais && Array.isArray(nilais)) {
+          interface RawNilai {
+            mapelId: string
+            mapel?: { namaMapel: string }
+            nilaiTugas: number
+            nilaiUts: number
+            nilaiUas: number
+            nilaiPraktik: number
+            nilaiSikap: number
+            nilaiAkhir: number
+            predikat: string
+            catatan?: string
+          }
+          const mappedGrades: GradeEditorItem[] = nilais.map((n: RawNilai) => ({
+            mapelId: n.mapelId,
+            mapelName: n.mapel?.namaMapel || n.mapelId,
+            nilaiTugas: n.nilaiTugas,
+            nilaiUts: n.nilaiUts,
+            nilaiUas: n.nilaiUas,
+            nilaiPraktik: n.nilaiPraktik,
+            nilaiSikap: n.nilaiSikap,
+            nilaiAkhir: n.nilaiAkhir,
+            predikat: n.predikat,
+            catatan: n.catatan || '',
+          }))
+          setEditorGrades(mappedGrades)
+        } else {
+          setEditorGrades([])
+        }
+
+        if (raport) {
+          setEditorRaport({
+            catatanWaliKelas: raport.catatanWaliKelas || 'Pertahankan prestasi belajar.',
+            status: raport.status || 'PUBLISHED',
+          })
+        }
+      }
+    } catch {
+      setFeedback({ type: 'error', message: 'Gagal memuat detail dashboard siswa' })
+    } finally {
+      setSiswaDetailLoading(false)
+    }
+  }, [])
+
   // Load All Data
   const loadData = useCallback(async () => {
     setLoading(true)
     try {
-      const [resStats, resUsers, resMaster, resLogs] = await Promise.all([
+      const [resStats, resUsers, resMaster, resLogs, resAllSiswa] = await Promise.all([
         fetch('/api/admin/stats'),
         fetch('/api/admin/users'),
         fetch('/api/admin/master'),
         fetch('/api/admin/logs?limit=50'),
+        fetch('/api/admin/siswa-dashboard'),
       ])
 
       const dataStats = await resStats.json()
       const dataUsers = await resUsers.json()
       const dataMaster = await resMaster.json()
       const dataLogs = await resLogs.json()
+      const dataAllSiswa = await resAllSiswa.json()
 
       if (dataStats.success) setStats(dataStats.data)
       if (dataUsers.success) setUsers(dataUsers.data)
@@ -168,28 +300,37 @@ export default function AdminDashboardPage() {
         setGuruList(dataMaster.data.guru || [])
       }
       if (dataLogs.success) setLogs(dataLogs.data)
+      if (dataAllSiswa.success && Array.isArray(dataAllSiswa.data)) {
+        setAllSiswaList(dataAllSiswa.data)
+        if (!selectedSiswaId && dataAllSiswa.data.length > 0) {
+          setSelectedSiswaId(dataAllSiswa.data[0].id)
+          fetchSiswaDashboardData(dataAllSiswa.data[0].id)
+        }
+      }
     } catch {
       setFeedback({ type: 'error', message: 'Gagal memuat data admin dashboard' })
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [selectedSiswaId, fetchSiswaDashboardData])
 
   useEffect(() => {
     let ignore = false
     const initData = async () => {
       try {
-        const [resStats, resUsers, resMaster, resLogs] = await Promise.all([
+        const [resStats, resUsers, resMaster, resLogs, resAllSiswa] = await Promise.all([
           fetch('/api/admin/stats'),
           fetch('/api/admin/users'),
           fetch('/api/admin/master'),
           fetch('/api/admin/logs?limit=50'),
+          fetch('/api/admin/siswa-dashboard'),
         ])
 
         const dataStats = await resStats.json()
         const dataUsers = await resUsers.json()
         const dataMaster = await resMaster.json()
         const dataLogs = await resLogs.json()
+        const dataAllSiswa = await resAllSiswa.json()
 
         if (!ignore) {
           if (dataStats.success) setStats(dataStats.data)
@@ -200,6 +341,14 @@ export default function AdminDashboardPage() {
             setGuruList(dataMaster.data.guru || [])
           }
           if (dataLogs.success) setLogs(dataLogs.data)
+          if (dataAllSiswa.success && Array.isArray(dataAllSiswa.data)) {
+            setAllSiswaList(dataAllSiswa.data)
+            if (dataAllSiswa.data.length > 0) {
+              const firstId = dataAllSiswa.data[0].id
+              setSelectedSiswaId(firstId)
+              fetchSiswaDashboardData(firstId)
+            }
+          }
           setLoading(false)
         }
       } catch {
@@ -213,7 +362,7 @@ export default function AdminDashboardPage() {
     return () => {
       ignore = true
     }
-  }, [])
+  }, [fetchSiswaDashboardData])
 
   const handleLogout = async () => {
     await fetch('/api/auth/logout', { method: 'POST' })
@@ -342,6 +491,111 @@ export default function AdminDashboardPage() {
     }
   }
 
+  // Recalculate grade in state
+  const handleGradeChange = (
+    index: number,
+    field: 'nilaiTugas' | 'nilaiUts' | 'nilaiUas' | 'nilaiPraktik' | 'nilaiSikap',
+    val: number
+  ) => {
+    const updated = [...editorGrades]
+    updated[index][field] = Number(val)
+
+    const t = updated[index].nilaiTugas || 0
+    const uts = updated[index].nilaiUts || 0
+    const uas = updated[index].nilaiUas || 0
+    const prk = updated[index].nilaiPraktik || 0
+    const skp = updated[index].nilaiSikap || 0
+
+    const finalScore = Number((t * 0.2 + uts * 0.25 + uas * 0.3 + prk * 0.15 + skp * 0.1).toFixed(2))
+    updated[index].nilaiAkhir = finalScore
+
+    let predikat = 'D'
+    if (finalScore >= 88) predikat = 'A'
+    else if (finalScore >= 78) predikat = 'B'
+    else if (finalScore >= 68) predikat = 'C'
+    updated[index].predikat = predikat
+
+    setEditorGrades(updated)
+  }
+
+  // Add new subject grade to this student
+  const handleAddNewMapelGrade = () => {
+    if (!newMapelSelection) return
+    const mapel = mapelList.find((m) => m.id === newMapelSelection)
+    if (!mapel) return
+
+    // check if already added
+    const exists = editorGrades.some((g) => g.mapelId === mapel.id)
+    if (exists) {
+      alert('Mata pelajaran ini sudah ada dalam daftar nilai.')
+      return
+    }
+
+    setEditorGrades([
+      ...editorGrades,
+      {
+        mapelId: mapel.id,
+        mapelName: mapel.namaMapel,
+        nilaiTugas: 85,
+        nilaiUts: 80,
+        nilaiUas: 85,
+        nilaiPraktik: 85,
+        nilaiSikap: 90,
+        nilaiAkhir: 84.5,
+        predikat: 'B',
+      },
+    ])
+    setNewMapelSelection('')
+  }
+
+  // Remove subject grade
+  const handleRemoveGrade = (index: number) => {
+    const updated = editorGrades.filter((_, i) => i !== index)
+    setEditorGrades(updated)
+  }
+
+  // Save Siswa Dashboard Changes
+  const handleSaveSiswaDashboard = async () => {
+    if (!selectedSiswaId) {
+      alert('Pilih siswa terlebih dahulu.')
+      return
+    }
+
+    setSaveLoading(true)
+    try {
+      const payload = {
+        siswaId: selectedSiswaId,
+        namaLengkap: editorProfile.namaLengkap,
+        nisn: editorProfile.nisn,
+        nis: editorProfile.nis,
+        kelasId: editorProfile.kelasId,
+        alamat: editorProfile.alamat,
+        noHp: editorProfile.noHp,
+        attendance: editorAttendance,
+        grades: editorGrades,
+        catatanWaliKelas: editorRaport.catatanWaliKelas,
+        raportStatus: editorRaport.status,
+      }
+
+      const res = await fetch('/api/admin/siswa-dashboard', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      })
+      const data = await res.json()
+      if (data.success) {
+        setFeedback({ type: 'success', message: data.message })
+        loadData()
+      } else {
+        setFeedback({ type: 'error', message: data.message })
+      }
+    } catch {
+      setFeedback({ type: 'error', message: 'Gagal menyimpan perubahan dashboard siswa' })
+    } finally {
+      setSaveLoading(false)
+    }
+  }
+
   // Filtered users
   const filteredUsers = users.filter((u) => {
     const matchSearch =
@@ -352,6 +606,11 @@ export default function AdminDashboardPage() {
     const matchRole = roleFilter === 'ALL' || u.role === roleFilter
     return matchSearch && matchRole
   })
+
+  const totalHadirPertemuan =
+    editorAttendance.HADIR + editorAttendance.IZIN + editorAttendance.SAKIT + editorAttendance.ALFA
+  const persentaseHadir =
+    totalHadirPertemuan > 0 ? Math.round((editorAttendance.HADIR / totalHadirPertemuan) * 100) : 100
 
   return (
     <div className="min-h-screen bg-slate-900 text-slate-100 flex flex-col md:flex-row font-sans">
@@ -385,6 +644,23 @@ export default function AdminDashboardPage() {
               }`}
             >
               <Activity className="w-4 h-4" /> Ringkasan Sistem
+            </button>
+
+            {/* NEW TAB: Kelola Dashboard Siswa / User */}
+            <button
+              onClick={() => setActiveTab('user-dashboard')}
+              className={`w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-semibold transition-all ${
+                activeTab === 'user-dashboard'
+                  ? 'bg-rose-600 text-white shadow-lg shadow-rose-600/30'
+                  : 'text-slate-400 hover:text-white hover:bg-slate-900'
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                <LayoutDashboard className="w-4 h-4 text-amber-400" /> Kelola Dashboard Siswa
+              </div>
+              <span className="px-1.5 py-0.5 bg-amber-500/20 text-amber-300 text-[10px] font-bold rounded">
+                LIVE
+              </span>
             </button>
 
             <button
@@ -479,11 +755,14 @@ export default function AdminDashboardPage() {
             <h1 className="text-2xl md:text-3xl font-extrabold text-white tracking-tight">
               {activeTab === 'overview' && 'Ringkasan Sistem & Infrastruktur'}
               {activeTab === 'users' && 'Manajemen Akun & Hak Akses (RBAC)'}
+              {activeTab === 'user-dashboard' && 'Kelola Seluruh Komponen Dashboard Siswa'}
               {activeTab === 'master' && 'Master Data Kelas & Mata Pelajaran'}
               {activeTab === 'logs' && 'Audit Trail & Rekam Jejak Keamanan'}
             </h1>
             <p className="text-sm text-slate-400 mt-1">
-              Pusat konfigurasi akun, hak akses role, data master akademik, dan audit log Vercel.
+              {activeTab === 'user-dashboard'
+                ? 'Admin dapat langsung mengedit dan mengubah seluruh isi profil, kehadiran, nilai mata pelajaran, dan raport siswa.'
+                : 'Pusat konfigurasi akun, hak akses role, data master akademik, dan audit log Vercel.'}
             </p>
           </div>
 
@@ -528,7 +807,6 @@ export default function AdminDashboardPage() {
         {/* TAB 1: OVERVIEW */}
         {activeTab === 'overview' && stats && (
           <div className="space-y-8">
-            {/* Stat Cards 4 Column */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
               <div className="bg-slate-950 p-6 rounded-2xl border border-slate-800 space-y-3">
                 <div className="flex items-center justify-between text-slate-400">
@@ -579,10 +857,19 @@ export default function AdminDashboardPage() {
 
             {/* Quick Actions & Recent Activity */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              {/* Quick Actions */}
               <div className="bg-slate-950 p-6 rounded-2xl border border-slate-800 space-y-4">
                 <h3 className="font-bold text-white text-base">Tindakan Cepat Administrator</h3>
                 <div className="space-y-3">
+                  <button
+                    onClick={() => setActiveTab('user-dashboard')}
+                    className="w-full flex items-center justify-between p-3.5 bg-gradient-to-r from-rose-950/60 to-slate-900 hover:border-rose-500 border border-rose-900/40 rounded-xl text-sm font-semibold transition-all group"
+                  >
+                    <span className="flex items-center gap-3">
+                      <LayoutDashboard className="w-4 h-4 text-rose-400" /> Kelola Dashboard Siswa
+                    </span>
+                    <ArrowRight className="w-4 h-4 text-slate-600 group-hover:translate-x-1 transition-transform" />
+                  </button>
+
                   <button
                     onClick={() => {
                       setActiveTab('users')
@@ -608,23 +895,9 @@ export default function AdminDashboardPage() {
                     </span>
                     <ArrowRight className="w-4 h-4 text-slate-600 group-hover:translate-x-1 transition-transform" />
                   </button>
-
-                  <button
-                    onClick={() => {
-                      setActiveTab('master')
-                      setShowAddMapelModal(true)
-                    }}
-                    className="w-full flex items-center justify-between p-3.5 bg-slate-900 hover:bg-slate-850 hover:border-emerald-500 border border-slate-800 rounded-xl text-sm font-semibold transition-all group"
-                  >
-                    <span className="flex items-center gap-3">
-                      <BookOpen className="w-4 h-4 text-emerald-500" /> Tambah Mata Pelajaran
-                    </span>
-                    <ArrowRight className="w-4 h-4 text-slate-600 group-hover:translate-x-1 transition-transform" />
-                  </button>
                 </div>
               </div>
 
-              {/* Recent Audit Logs Mini */}
               <div className="lg:col-span-2 bg-slate-950 p-6 rounded-2xl border border-slate-800 space-y-4">
                 <div className="flex items-center justify-between border-b border-slate-800 pb-3">
                   <h3 className="font-bold text-white text-base">Aktivitas Terakhir Sistem</h3>
@@ -672,10 +945,406 @@ export default function AdminDashboardPage() {
           </div>
         )}
 
-        {/* TAB 2: MANAJEMEN AKUN & USER */}
+        {/* TAB 2: KELOLA DASHBOARD SISWA / USER (MAIN REQUEST) */}
+        {activeTab === 'user-dashboard' && (
+          <div className="space-y-8">
+            {/* Siswa Selector Bar */}
+            <div className="bg-slate-950 border border-slate-800 p-6 rounded-3xl space-y-4">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div className="space-y-1">
+                  <span className="text-xs font-bold uppercase tracking-wider text-rose-400 flex items-center gap-1.5">
+                    <Sparkles className="w-3.5 h-3.5" /> Pilih Akun Siswa yang Ingin Dikelola:
+                  </span>
+                  <h3 className="text-lg font-extrabold text-white">
+                    {editorProfile.namaLengkap || 'Pilih Siswa'} ({editorProfile.nisn || '-'})
+                  </h3>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <select
+                    value={selectedSiswaId}
+                    onChange={(e) => {
+                      setSelectedSiswaId(e.target.value)
+                      fetchSiswaDashboardData(e.target.value)
+                    }}
+                    className="px-4 py-2.5 bg-slate-900 border border-slate-700 rounded-xl text-xs font-semibold text-white focus:ring-2 focus:ring-rose-500 focus:outline-none min-w-[260px]"
+                  >
+                    {allSiswaList.length === 0 ? (
+                      <option value="">Belum ada siswa terdaftar</option>
+                    ) : (
+                      allSiswaList.map((s) => (
+                        <option key={s.id} value={s.id}>
+                          {s.namaLengkap} - {s.kelas?.namaKelas || 'Tanpa Kelas'} (NISN: {s.nisn})
+                        </option>
+                      ))
+                    )}
+                  </select>
+
+                  <Link
+                    href="/dashboard/siswa"
+                    target="_blank"
+                    className="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold rounded-xl text-xs flex items-center gap-2 border border-slate-700 transition-all shrink-0"
+                  >
+                    <ExternalLink className="w-3.5 h-3.5" /> Buka Live Portal Siswa
+                  </Link>
+
+                  <button
+                    onClick={handleSaveSiswaDashboard}
+                    disabled={saveLoading || !selectedSiswaId}
+                    className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-bold rounded-xl shadow-lg shadow-emerald-600/30 text-xs flex items-center gap-2 transition-all disabled:opacity-50 shrink-0"
+                  >
+                    <Save className="w-4 h-4" />
+                    {saveLoading ? 'Menyimpan...' : 'Terapkan Perubahan'}
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {siswaDetailLoading ? (
+              <div className="p-12 text-center text-slate-400 text-sm">Memuat data dashboard siswa...</div>
+            ) : !selectedSiswaId ? (
+              <div className="p-12 text-center text-slate-400 text-sm">
+                Silakan pilih siswa dari menu dropdown di atas.
+              </div>
+            ) : (
+              <div className="space-y-8">
+                {/* 1. Profil & Identitas Siswa */}
+                <div className="bg-slate-950 border border-slate-800 p-6 rounded-3xl space-y-4">
+                  <div className="flex items-center justify-between border-b border-slate-850 pb-3">
+                    <h3 className="font-bold text-white text-base flex items-center gap-2">
+                      <Users className="w-4 h-4 text-blue-400" /> 1. Pengaturan Identitas & Kelas Siswa
+                    </h3>
+                    <span className="text-xs text-slate-500">Tampil pada banner sambutan portal siswa</span>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-xs">
+                    <div>
+                      <label className="block text-slate-400 font-semibold mb-1">Nama Lengkap Siswa</label>
+                      <input
+                        type="text"
+                        value={editorProfile.namaLengkap}
+                        onChange={(e) => setEditorProfile({ ...editorProfile, namaLengkap: e.target.value })}
+                        className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-white font-semibold focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-slate-400 font-semibold mb-1">NISN</label>
+                      <input
+                        type="text"
+                        value={editorProfile.nisn}
+                        onChange={(e) => setEditorProfile({ ...editorProfile, nisn: e.target.value })}
+                        className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-white font-mono focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-slate-400 font-semibold mb-1">NIS</label>
+                      <input
+                        type="text"
+                        value={editorProfile.nis}
+                        onChange={(e) => setEditorProfile({ ...editorProfile, nis: e.target.value })}
+                        className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-white font-mono focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-slate-400 font-semibold mb-1">Kelas Akademik</label>
+                      <select
+                        value={editorProfile.kelasId}
+                        onChange={(e) => setEditorProfile({ ...editorProfile, kelasId: e.target.value })}
+                        className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-white font-semibold focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                      >
+                        <option value="">Pilih Kelas...</option>
+                        {kelasList.map((k) => (
+                          <option key={k.id} value={k.id}>
+                            {k.namaKelas} (Tingkat {k.tingkat})
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 2. Rekap Absensi Siswa */}
+                <div className="bg-slate-950 border border-slate-800 p-6 rounded-3xl space-y-4">
+                  <div className="flex items-center justify-between border-b border-slate-850 pb-3">
+                    <div>
+                      <h3 className="font-bold text-white text-base flex items-center gap-2">
+                        <Calendar className="w-4 h-4 text-emerald-400" /> 2. Rekapitulasi Kehadiran Siswa
+                      </h3>
+                      <p className="text-xs text-slate-400">
+                        Admin dapat langsung mengedit jumlah Hadir, Izin, Sakit, dan Alfa
+                      </p>
+                    </div>
+                    <span className="px-3 py-1 bg-emerald-500/20 text-emerald-300 font-bold text-xs rounded-full font-mono">
+                      Kalkulasi: {persentaseHadir}% Kehadiran
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div className="bg-slate-900 p-4 rounded-2xl border border-slate-800 space-y-2">
+                      <span className="text-xs font-bold text-emerald-400 uppercase tracking-wider block">
+                        Jumlah Hadir
+                      </span>
+                      <input
+                        type="number"
+                        min={0}
+                        value={editorAttendance.HADIR}
+                        onChange={(e) =>
+                          setEditorAttendance({ ...editorAttendance, HADIR: Number(e.target.value) })
+                        }
+                        className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-white font-extrabold text-xl focus:ring-2 focus:ring-emerald-500"
+                      />
+                    </div>
+
+                    <div className="bg-slate-900 p-4 rounded-2xl border border-slate-800 space-y-2">
+                      <span className="text-xs font-bold text-blue-400 uppercase tracking-wider block">
+                        Jumlah Izin
+                      </span>
+                      <input
+                        type="number"
+                        min={0}
+                        value={editorAttendance.IZIN}
+                        onChange={(e) =>
+                          setEditorAttendance({ ...editorAttendance, IZIN: Number(e.target.value) })
+                        }
+                        className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-white font-extrabold text-xl focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+
+                    <div className="bg-slate-900 p-4 rounded-2xl border border-slate-800 space-y-2">
+                      <span className="text-xs font-bold text-amber-400 uppercase tracking-wider block">
+                        Jumlah Sakit
+                      </span>
+                      <input
+                        type="number"
+                        min={0}
+                        value={editorAttendance.SAKIT}
+                        onChange={(e) =>
+                          setEditorAttendance({ ...editorAttendance, SAKIT: Number(e.target.value) })
+                        }
+                        className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-white font-extrabold text-xl focus:ring-2 focus:ring-amber-500"
+                      />
+                    </div>
+
+                    <div className="bg-slate-900 p-4 rounded-2xl border border-slate-800 space-y-2">
+                      <span className="text-xs font-bold text-rose-400 uppercase tracking-wider block">
+                        Jumlah Alfa
+                      </span>
+                      <input
+                        type="number"
+                        min={0}
+                        value={editorAttendance.ALFA}
+                        onChange={(e) =>
+                          setEditorAttendance({ ...editorAttendance, ALFA: Number(e.target.value) })
+                        }
+                        className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-white font-extrabold text-xl focus:ring-2 focus:ring-rose-500"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* 3. Nilai Mata Pelajaran Siswa */}
+                <div className="bg-slate-950 border border-slate-800 p-6 rounded-3xl space-y-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-850 pb-4">
+                    <div>
+                      <h3 className="font-bold text-white text-base flex items-center gap-2">
+                        <Award className="w-4 h-4 text-amber-400" /> 3. Kelola Nilai Akademik Siswa
+                      </h3>
+                      <p className="text-xs text-slate-400">
+                        Bobot otomatis: Tugas (20%), UTS (25%), UAS (30%), Praktik (15%), Sikap (10%)
+                      </p>
+                    </div>
+
+                    {/* Add subject grade selector */}
+                    <div className="flex items-center gap-2">
+                      <select
+                        value={newMapelSelection}
+                        onChange={(e) => setNewMapelSelection(e.target.value)}
+                        className="px-3 py-1.5 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white"
+                      >
+                        <option value="">Pilih Mapel untuk Ditambahkan...</option>
+                        {mapelList.map((m) => (
+                          <option key={m.id} value={m.id}>
+                            {m.namaMapel} ({m.kodeMapel})
+                          </option>
+                        ))}
+                      </select>
+                      <button
+                        type="button"
+                        onClick={handleAddNewMapelGrade}
+                        className="px-3 py-1.5 bg-rose-600 hover:bg-rose-500 text-white font-bold rounded-xl text-xs flex items-center gap-1 shrink-0"
+                      >
+                        <Plus className="w-3.5 h-3.5" /> Tambah
+                      </button>
+                    </div>
+                  </div>
+
+                  {editorGrades.length === 0 ? (
+                    <p className="text-xs text-slate-500 py-6 text-center">
+                      Belum ada nilai mata pelajaran untuk siswa ini. Pilih mata pelajaran di atas lalu klik Tambah.
+                    </p>
+                  ) : (
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left border-collapse text-xs">
+                        <thead>
+                          <tr className="bg-slate-900 border-b border-slate-800 text-slate-400 uppercase font-semibold">
+                            <th className="py-2.5 px-3">Mata Pelajaran</th>
+                            <th className="py-2.5 px-2 w-20">Tugas (20%)</th>
+                            <th className="py-2.5 px-2 w-20">UTS (25%)</th>
+                            <th className="py-2.5 px-2 w-20">UAS (30%)</th>
+                            <th className="py-2.5 px-2 w-20">Praktik (15%)</th>
+                            <th className="py-2.5 px-2 w-20">Sikap (10%)</th>
+                            <th className="py-2.5 px-3">Nilai Akhir</th>
+                            <th className="py-2.5 px-3">Predikat</th>
+                            <th className="py-2.5 px-3 text-right">Aksi</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-850">
+                          {editorGrades.map((g, idx) => (
+                            <tr key={g.mapelId} className="hover:bg-slate-900/60">
+                              <td className="py-2.5 px-3 font-bold text-white">{g.mapelName}</td>
+                              <td className="py-2.5 px-2">
+                                <input
+                                  type="number"
+                                  min={0}
+                                  max={100}
+                                  value={g.nilaiTugas}
+                                  onChange={(e) => handleGradeChange(idx, 'nilaiTugas', Number(e.target.value))}
+                                  className="w-16 px-2 py-1 bg-slate-900 border border-slate-700 rounded-lg text-white font-mono text-xs"
+                                />
+                              </td>
+                              <td className="py-2.5 px-2">
+                                <input
+                                  type="number"
+                                  min={0}
+                                  max={100}
+                                  value={g.nilaiUts}
+                                  onChange={(e) => handleGradeChange(idx, 'nilaiUts', Number(e.target.value))}
+                                  className="w-16 px-2 py-1 bg-slate-900 border border-slate-700 rounded-lg text-white font-mono text-xs"
+                                />
+                              </td>
+                              <td className="py-2.5 px-2">
+                                <input
+                                  type="number"
+                                  min={0}
+                                  max={100}
+                                  value={g.nilaiUas}
+                                  onChange={(e) => handleGradeChange(idx, 'nilaiUas', Number(e.target.value))}
+                                  className="w-16 px-2 py-1 bg-slate-900 border border-slate-700 rounded-lg text-white font-mono text-xs"
+                                />
+                              </td>
+                              <td className="py-2.5 px-2">
+                                <input
+                                  type="number"
+                                  min={0}
+                                  max={100}
+                                  value={g.nilaiPraktik}
+                                  onChange={(e) => handleGradeChange(idx, 'nilaiPraktik', Number(e.target.value))}
+                                  className="w-16 px-2 py-1 bg-slate-900 border border-slate-700 rounded-lg text-white font-mono text-xs"
+                                />
+                              </td>
+                              <td className="py-2.5 px-2">
+                                <input
+                                  type="number"
+                                  min={0}
+                                  max={100}
+                                  value={g.nilaiSikap}
+                                  onChange={(e) => handleGradeChange(idx, 'nilaiSikap', Number(e.target.value))}
+                                  className="w-16 px-2 py-1 bg-slate-900 border border-slate-700 rounded-lg text-white font-mono text-xs"
+                                />
+                              </td>
+                              <td className="py-2.5 px-3 font-extrabold text-blue-400 text-sm font-mono">
+                                {g.nilaiAkhir}
+                              </td>
+                              <td className="py-2.5 px-3">
+                                <span
+                                  className={`px-2 py-0.5 rounded-full font-bold text-[10px] ${
+                                    g.predikat === 'A'
+                                      ? 'bg-emerald-500/20 text-emerald-400'
+                                      : g.predikat === 'B'
+                                      ? 'bg-blue-500/20 text-blue-400'
+                                      : g.predikat === 'C'
+                                      ? 'bg-amber-500/20 text-amber-400'
+                                      : 'bg-rose-500/20 text-rose-400'
+                                  }`}
+                                >
+                                  Predikat {g.predikat}
+                                </span>
+                              </td>
+                              <td className="py-2.5 px-3 text-right">
+                                <button
+                                  type="button"
+                                  onClick={() => handleRemoveGrade(idx)}
+                                  className="p-1 text-slate-500 hover:text-red-400 transition-colors"
+                                  title="Hapus Nilai Mapel Ini"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
+
+                {/* 4. Raport Digital & Catatan Wali Kelas */}
+                <div className="bg-slate-950 border border-slate-800 p-6 rounded-3xl space-y-4">
+                  <div className="flex items-center justify-between border-b border-slate-850 pb-3">
+                    <h3 className="font-bold text-white text-base flex items-center gap-2">
+                      <ClipboardList className="w-4 h-4 text-purple-400" /> 4. Raport Digital & Catatan
+                    </h3>
+                    <div className="flex items-center gap-2 text-xs">
+                      <span className="text-slate-400">Status Raport:</span>
+                      <select
+                        value={editorRaport.status}
+                        onChange={(e) => setEditorRaport({ ...editorRaport, status: e.target.value })}
+                        className="px-2.5 py-1 bg-slate-900 border border-slate-700 rounded-lg text-white font-bold"
+                      >
+                        <option value="PUBLISHED">PUBLISHED (Dapat Diunduh)</option>
+                        <option value="DRAFT">DRAFT (Disembunyikan)</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-slate-400 text-xs font-semibold mb-1">
+                      Catatan Wali Kelas (Muncul di Banner Alert Dashboard Siswa)
+                    </label>
+                    <textarea
+                      rows={3}
+                      value={editorRaport.catatanWaliKelas}
+                      onChange={(e) =>
+                        setEditorRaport({ ...editorRaport, catatanWaliKelas: e.target.value })
+                      }
+                      className="w-full p-3 bg-slate-900 border border-slate-800 rounded-xl text-white text-xs focus:ring-2 focus:ring-purple-500 focus:outline-none"
+                    />
+                  </div>
+                </div>
+
+                {/* Floating Bottom Action */}
+                <div className="sticky bottom-6 p-4 bg-slate-950/90 backdrop-blur-md border border-slate-700 rounded-2xl flex items-center justify-between shadow-2xl">
+                  <div className="text-xs text-slate-300">
+                    Mengedit dashboard untuk:{' '}
+                    <strong className="text-white">{editorProfile.namaLengkap}</strong>
+                  </div>
+                  <button
+                    onClick={handleSaveSiswaDashboard}
+                    disabled={saveLoading}
+                    className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-bold rounded-xl shadow-lg shadow-emerald-600/30 text-xs flex items-center gap-2 transition-all disabled:opacity-50"
+                  >
+                    <Save className="w-4 h-4" />
+                    {saveLoading ? 'Menyimpan Perubahan...' : 'Simpan & Terapkan ke Dashboard Siswa'}
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* TAB 3: MANAJEMEN AKUN & USER */}
         {activeTab === 'users' && (
           <div className="space-y-6">
-            {/* Toolbar */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div className="flex flex-wrap items-center gap-3">
                 <div className="relative">
@@ -689,7 +1358,6 @@ export default function AdminDashboardPage() {
                   />
                 </div>
 
-                {/* Role Filter */}
                 <div className="flex bg-slate-950 border border-slate-800 p-1 rounded-xl text-xs">
                   {(['ALL', 'ADMIN', 'GURU', 'SISWA'] as const).map((r) => (
                     <button
@@ -713,7 +1381,6 @@ export default function AdminDashboardPage() {
               </button>
             </div>
 
-            {/* Users Table */}
             <div className="bg-slate-950 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse text-xs">
@@ -779,6 +1446,21 @@ export default function AdminDashboardPage() {
                           </td>
                           <td className="py-3 px-4 text-right">
                             <div className="flex items-center justify-end gap-2">
+                              {/* Quick Button to manage student dashboard */}
+                              {u.role === 'SISWA' && u.siswaProfile && (
+                                <button
+                                  onClick={() => {
+                                    setSelectedSiswaId(u.siswaProfile!.id)
+                                    setActiveTab('user-dashboard')
+                                    fetchSiswaDashboardData(u.siswaProfile!.id)
+                                  }}
+                                  className="px-2.5 py-1.5 bg-rose-600/20 hover:bg-rose-600/40 text-rose-300 font-semibold rounded-lg flex items-center gap-1.5 transition-all text-xs border border-rose-500/30"
+                                  title="Kelola Tampilan Dashboard Siswa Ini"
+                                >
+                                  <LayoutDashboard className="w-3.5 h-3.5 text-rose-400" /> Kelola Dashboard
+                                </button>
+                              )}
+
                               <button
                                 onClick={() => {
                                   setEditUserForm({
@@ -812,10 +1494,9 @@ export default function AdminDashboardPage() {
           </div>
         )}
 
-        {/* TAB 3: MASTER AKADEMIK */}
+        {/* TAB 4: MASTER AKADEMIK */}
         {activeTab === 'master' && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* Kelas Master */}
             <div className="bg-slate-950 border border-slate-800 rounded-2xl p-6 space-y-4">
               <div className="flex items-center justify-between border-b border-slate-800 pb-4">
                 <div>
@@ -854,7 +1535,6 @@ export default function AdminDashboardPage() {
               </div>
             </div>
 
-            {/* Mapel Master */}
             <div className="bg-slate-950 border border-slate-800 rounded-2xl p-6 space-y-4">
               <div className="flex items-center justify-between border-b border-slate-800 pb-4">
                 <div>
@@ -894,7 +1574,7 @@ export default function AdminDashboardPage() {
           </div>
         )}
 
-        {/* TAB 4: AUDIT LOGS */}
+        {/* TAB 5: AUDIT LOGS */}
         {activeTab === 'logs' && (
           <div className="space-y-4">
             <div className="bg-slate-950 border border-slate-800 rounded-2xl p-6 space-y-4">
@@ -1017,7 +1697,6 @@ export default function AdminDashboardPage() {
                 />
               </div>
 
-              {/* Conditional Guru / Siswa fields */}
               {userForm.role === 'GURU' && (
                 <div>
                   <label className="block text-slate-400 font-semibold mb-1">NIP (Nomor Induk Pegawai)</label>
