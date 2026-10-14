@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { berita, pengumuman } from "@/lib/data";
+import { getSiteContent } from "@/lib/siteContent";
 
 export const metadata: Metadata = {
   title: "SMA Nusantara Bangsa – Website Resmi Sekolah",
@@ -9,16 +9,12 @@ export const metadata: Metadata = {
     "Website resmi SMA Nusantara Bangsa: profil, PPDB, berita, pengumuman, akademik, dan kontak sekolah.",
 };
 
-const stats = [
-  { num: "1.240+", label: "Siswa Aktif" },
-  { num: "78", label: "Guru & Staf" },
-  { num: "156+", label: "Prestasi Diraih" },
-  { num: "25", label: "Ekstrakurikuler" },
-];
-
 export default function BerandaPage() {
-  const latestBerita = berita.slice(0, 3);
-  const latestAnn = pengumuman.slice(0, 3);
+  const content = getSiteContent();
+  const stats = content.general.stats;
+  const latestBerita = content.berita.slice(0, 3);
+  const latestAnn = content.pengumuman.slice(0, 3);
+  const kepsek = content.guru.find((g) => g.jabatan.toLowerCase().includes("kepala sekolah")) || content.guru[0];
 
   return (
     <>
@@ -29,16 +25,15 @@ export default function BerandaPage() {
         <div className="relative max-w-[1200px] mx-auto px-6 text-center animate-fade-up">
           <div className="inline-flex items-center gap-2 bg-white border border-[var(--border-light)] px-4 py-1.5 rounded-full shadow-sm mb-8">
             <svg className="w-4 h-4 text-[var(--accent-blue)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="8" r="6" /><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11" /></svg>
-            <span className="text-sm font-medium text-[var(--text-secondary)]">Sekolah Terbaik Kota 2025</span>
+            <span className="text-sm font-medium text-[var(--text-secondary)]">{content.general.heroBadge}</span>
           </div>
 
           <h1 className="font-[var(--font-outfit)] text-[2.75rem] md:text-[4rem] lg:text-[5rem] font-medium leading-[1.1] tracking-tight text-[var(--text-primary)] mb-6 max-w-4xl mx-auto">
-            Mewujudkan Generasi <br className="hidden md:block" />
-            <span className="gemini-text-gradient">Cerdas &amp; Berkarakter</span>
+            {content.general.heroTitle}
           </h1>
 
           <p className="text-[var(--text-secondary)] text-[1.125rem] leading-relaxed mb-10 max-w-2xl mx-auto">
-            SMA Nusantara Bangsa berkomitmen menghadirkan pendidikan berkualitas tinggi yang membangun karakter, kreativitas, dan kompetensi siswa untuk menghadapi masa depan.
+            {content.general.heroSubtitle}
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-16">
@@ -50,14 +45,14 @@ export default function BerandaPage() {
             </Link>
           </div>
 
-          <div className="relative max-w-5xl mx-auto rounded-gemini overflow-hidden border border-[var(--border-light)] shadow-elevated group">
+          <div className="relative max-w-5xl mx-auto rounded-gemini overflow-hidden border border-[var(--border-light)] shadow-elevated group aspect-[2/1]">
             <Image
-              src="https://prinsipbisnis.com/wp-content/uploads/2025/03/Gedung-Kelas-Ikhwan-scaled-1.jpg"
-              alt="Gedung SMA Nusantara Bangsa"
-              width={1200}
-              height={600}
-              className="w-full object-cover group-hover:scale-[1.02] transition-transform duration-700 ease-in-out"
+              src={content.general.heroImage}
+              alt={content.general.schoolName}
+              fill
+              className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-700 ease-in-out"
               priority
+              unoptimized
             />
           </div>
         </div>
@@ -170,11 +165,12 @@ export default function BerandaPage() {
           <div className="grid md:grid-cols-[auto_1fr] gap-12 lg:gap-20 items-center">
             <div className="mx-auto md:mx-0 w-64 h-64 md:w-80 md:h-80 relative rounded-gemini-full overflow-hidden gemini-border shadow-elevated">
               <Image
-                src="https://placehold.co/400x400/DADCE0/1F1F1F?text=Foto+Kepsek"
-                alt="Drs. H. Ahmad Hidayat, M.Pd."
+                src={kepsek.foto}
+                alt={kepsek.nama}
                 width={400}
                 height={400}
                 className="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-700"
+                unoptimized
               />
             </div>
             <div>
@@ -185,8 +181,8 @@ export default function BerandaPage() {
                 Selamat datang di SMA Nusantara Bangsa. Kami berkomitmen untuk mencetak generasi muda yang tidak hanya cerdas secara intelektual, tetapi juga memiliki karakter mulia dan siap menghadapi tantangan global melalui lingkungan belajar yang inovatif.
               </p>
               <div>
-                <p className="font-semibold text-[var(--text-primary)] text-lg">Drs. H. Ahmad Hidayat, M.Pd.</p>
-                <p className="text-[var(--text-tertiary)]">Kepala Sekolah</p>
+                <p className="font-semibold text-[var(--text-primary)] text-lg">{kepsek.nama}</p>
+                <p className="text-[var(--text-tertiary)]">{kepsek.jabatan}</p>
               </div>
             </div>
           </div>

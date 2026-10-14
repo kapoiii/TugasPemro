@@ -50,13 +50,22 @@ export default function LoginPage() {
     <div className="min-h-screen bg-slate-50 flex flex-col justify-center items-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full bg-white rounded-2xl shadow-xl p-8 border border-slate-100">
         <div className="text-center mb-6">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-blue-50 text-blue-600 mb-4">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-blue-50 text-blue-600 mb-4 shadow-xs">
             <School className="w-8 h-8" />
           </div>
           <h2 className="text-2xl font-bold text-slate-800">Portal Akademik Terpadu</h2>
           <p className="text-sm text-slate-500 mt-1">
             Masuk sesuai dengan hak akses Anda (Siswa, Guru, atau Admin)
           </p>
+        </div>
+
+        {/* Kebijakan Akun Resmi Sekolah */}
+        <div className="mb-5 p-3.5 bg-amber-50/80 border border-amber-200/90 rounded-xl flex items-start gap-2.5 text-xs text-amber-900 leading-relaxed">
+          <Lock className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" />
+          <div>
+            <span className="font-semibold block text-amber-800">Kebijakan Akun Resmi Sekolah:</span>
+            Pembuatan akun baru (Admin, Guru, Siswa) <strong>hanya dapat diterbitkan secara resmi oleh Administrator Sekolah</strong> di dalam sistem. Publik/orang luar tidak dapat membuat akun secara mandiri demi menjaga integritas data akademik.
+          </div>
         </div>
 
         {/* Role Selector Tabs (3 Roles) */}
@@ -203,13 +212,21 @@ export default function LoginPage() {
           </div>
         </div>
 
-        <div className="mt-8 pt-6 border-t border-slate-100 text-center space-y-2">
+        <div className="mt-8 pt-6 border-t border-slate-100 text-center space-y-3">
           <p className="text-xs text-slate-500">
-            Belum mendaftar sebagai Siswa Baru?{' '}
+            Calon Siswa Baru?{' '}
             <a href="/ppdb/daftar" className="text-blue-600 font-semibold hover:underline">
-              Daftar PPDB Online
+              Pendaftaran PPDB Online
             </a>
+            <span className="block text-[11px] text-slate-400 mt-0.5">
+              (Akun portal akademik akan diterbitkan resmi oleh Admin Sekolah setelah dinyatakan lolos seleksi)
+            </span>
           </p>
+          <div className="pt-2">
+            <a href="/" className="inline-flex items-center gap-1.5 text-xs text-slate-600 hover:text-slate-900 font-medium transition-colors">
+              ← Kembali ke Website Utama
+            </a>
+          </div>
           <p className="text-[11px] text-slate-400">
             Protected by Role-Based Access Control (RBAC) & Next.js Secure Cookies
           </p>

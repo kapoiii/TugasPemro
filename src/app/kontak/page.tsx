@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { getSiteContent } from "@/lib/siteContent";
 
 export const metadata: Metadata = {
   title: "Kontak",
@@ -6,6 +7,7 @@ export const metadata: Metadata = {
 };
 
 export default function KontakPage() {
+  const { kontak } = getSiteContent();
   return (
     <>
       <div className="pt-32 pb-16 bg-[var(--bg-secondary)] border-b border-[var(--border-light)]">
@@ -63,9 +65,9 @@ export default function KontakPage() {
             <h2 className="text-[2rem] font-[var(--font-outfit)] font-medium text-[var(--text-primary)]">Kontak & Lokasi</h2>
             <div className="flex flex-col gap-6">
               {[
-                { label: "Alamat Sekolah", value: "Jl. Pendidikan No. 1, Kec. Maju Jaya, Kota Cerdas 12345", icon: "M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z M12 10a3 3 0 100-6 3 3 0 000 6z" },
-                { label: "Telepon / WhatsApp", value: "(021) 1234-5678 / 0812-3456-7890", icon: "M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81a19.79 19.79 0 01-3.07-8.68A2 2 0 012.18 1h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.91 8.15a16 16 0 006.92 6.92l1.52-1.52a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z" },
-                { label: "Email", value: "info@smanusantarabangsa.sch.id", icon: "M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z M22 6l-10 7L2 6" }
+                { label: "Alamat Sekolah", value: kontak.alamat, icon: "M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z M12 10a3 3 0 100-6 3 3 0 000 6z" },
+                { label: "Telepon / WhatsApp", value: `${kontak.telepon} / ${kontak.whatsapp}`, icon: "M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81a19.79 19.79 0 01-3.07-8.68A2 2 0 012.18 1h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.91 8.15a16 16 0 006.92 6.92l1.52-1.52a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z" },
+                { label: "Email", value: kontak.email, icon: "M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z M22 6l-10 7L2 6" }
               ].map((c) => (
                 <div key={c.label} className="flex gap-4">
                   <div className="w-12 h-12 rounded-full bg-[var(--bg-secondary)] flex items-center justify-center flex-shrink-0 text-[var(--accent-blue)]">

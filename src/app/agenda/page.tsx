@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { agenda } from "@/lib/data";
+import { getSiteContent } from "@/lib/siteContent";
 
 export const metadata: Metadata = {
   title: "Agenda",
@@ -14,6 +14,7 @@ const catColors: Record<string, string> = {
 };
 
 export default function AgendaPage() {
+  const { agenda } = getSiteContent();
   return (
     <>
       <div className="pt-32 pb-16 bg-[var(--bg-secondary)] border-b border-[var(--border-light)]">

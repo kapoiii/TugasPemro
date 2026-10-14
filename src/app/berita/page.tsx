@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { berita } from "@/lib/data";
+import { getSiteContent } from "@/lib/siteContent";
 import BeritaClient from "./BeritaClient";
 
 export const metadata: Metadata = {
@@ -8,6 +8,7 @@ export const metadata: Metadata = {
 };
 
 export default function BeritaPage() {
+  const { berita } = getSiteContent();
   return (
     <>
       <div className="pt-32 pb-16 bg-[var(--bg-secondary)] border-b border-[var(--border-light)]">

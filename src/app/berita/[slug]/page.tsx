@@ -2,14 +2,16 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { berita } from "@/lib/data";
+import { getSiteContent } from "@/lib/siteContent";
 
 export function generateStaticParams() {
+  const { berita } = getSiteContent();
   return berita.map((b) => ({ slug: b.id }));
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
+  const { berita } = getSiteContent();
   const article = berita.find((b) => b.id === slug);
   if (!article) return { title: "Berita tidak ditemukan" };
   return {
@@ -20,6 +22,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
 export default async function BeritaDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
+  const { berita } = getSiteContent();
   const article = berita.find((b) => b.id === slug);
   if (!article) notFound();
 
@@ -46,7 +49,7 @@ export default async function BeritaDetailPage({ params }: { params: Promise<{ s
           {/* Article */}
           <article>
             <div className="rounded-gemini overflow-hidden mb-10 gemini-border shadow-subtle bg-[var(--bg-tertiary)]">
-              <Image src={article.gambar} alt={article.judul} width={800} height={450} className="w-full object-cover aspect-video" />
+              <Image src={article.gambar} alt={article.judul} width={800} height={450} className="w-full object-cover aspect-video" unoptimized />
             </div>
             <div className="prose prose-slate max-w-none prose-headings:font-[var(--font-outfit)] prose-headings:font-medium prose-p:text-[var(--text-secondary)] prose-p:leading-relaxed prose-a:text-[var(--accent-blue)] prose-img:rounded-gemini">
               <p className="text-[1.125rem] text-[var(--text-primary)] font-medium leading-relaxed mb-6">{article.ringkasan}</p>

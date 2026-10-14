@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Image from "next/image";
-import { guru } from "@/lib/data";
+import { getSiteContent } from "@/lib/siteContent";
 
 export const metadata: Metadata = {
   title: "Guru & Staf",
@@ -8,9 +8,10 @@ export const metadata: Metadata = {
 };
 
 export default function GuruPage() {
-  const kepala = guru.filter((g) => g.jabatan === "Kepala Sekolah");
-  const wakil  = guru.filter((g) => g.jabatan.startsWith("Wakil"));
-  const guruBiasa = guru.filter((g) => g.jabatan === "Guru");
+  const { guru } = getSiteContent();
+  const kepala = guru.filter((g) => g.jabatan.toLowerCase().includes("kepala sekolah"));
+  const wakil  = guru.filter((g) => g.jabatan.toLowerCase().startsWith("wakil"));
+  const guruBiasa = guru.filter((g) => !g.jabatan.toLowerCase().includes("kepala sekolah") && !g.jabatan.toLowerCase().startsWith("wakil"));
 
   return (
     <>
@@ -36,10 +37,10 @@ export default function GuruPage() {
             <h2 className="text-[2rem] font-[var(--font-outfit)] font-medium text-[var(--text-primary)]">Pimpinan Sekolah</h2>
           </div>
           <div className="flex flex-col sm:flex-row gap-8 justify-center items-center sm:items-stretch">
-            {[...kepala, ...wakil].map((g) => (
-              <div key={g.id} className="bg-white rounded-gemini gemini-border shadow-subtle p-6 w-full max-w-[280px] text-center flex flex-col items-center gemini-card-hover group">
+            {[...kepala, ...wakil].map((g, idx) => (
+              <div key={g.id || idx} className="bg-white rounded-gemini gemini-border shadow-subtle p-6 w-full max-w-[280px] text-center flex flex-col items-center gemini-card-hover group">
                 <div className="w-32 h-32 rounded-full overflow-hidden mb-6 border-4 border-[var(--bg-secondary)] group-hover:border-[var(--accent-blue)] transition-colors">
-                  <Image src={g.foto} alt={g.nama} width={128} height={128} className="w-full h-full object-cover" />
+                  <Image src={g.foto} alt={g.nama} width={128} height={128} className="w-full h-full object-cover" unoptimized />
                 </div>
                 <h3 className="font-medium text-[1.125rem] text-[var(--text-primary)] mb-1 leading-snug">{g.nama}</h3>
                 <p className="text-[var(--accent-blue)] text-[0.9375rem] font-medium mb-1">{g.jabatan}</p>
@@ -55,10 +56,10 @@ export default function GuruPage() {
             <h2 className="text-[2rem] font-[var(--font-outfit)] font-medium text-[var(--text-primary)]">Dewan Guru</h2>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
-            {guruBiasa.map((g) => (
-              <div key={g.id} className="bg-white rounded-gemini gemini-border p-5 text-center flex flex-col items-center gemini-card-hover group">
+            {guruBiasa.map((g, idx) => (
+              <div key={g.id || idx} className="bg-white rounded-gemini gemini-border p-5 text-center flex flex-col items-center gemini-card-hover group">
                 <div className="w-24 h-24 rounded-full overflow-hidden mb-4 border-4 border-[var(--bg-secondary)] group-hover:border-[#E8F0FE] transition-colors">
-                  <Image src={g.foto} alt={g.nama} width={96} height={96} className="w-full h-full object-cover" />
+                  <Image src={g.foto} alt={g.nama} width={96} height={96} className="w-full h-full object-cover" unoptimized />
                 </div>
                 <h3 className="font-medium text-[1.0625rem] text-[var(--text-primary)] mb-1 leading-snug">{g.nama}</h3>
                 <p className="text-[var(--text-secondary)] text-sm mb-1">{g.jabatan}</p>

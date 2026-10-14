@@ -1,0 +1,341 @@
+{
+  "general": {
+    "schoolName": "SMA Nusantara Bangsa",
+    "heroBadge": "Sekolah Terbaik Kota 2025",
+    "heroTitle": "Mewujudkan Generasi Cerdas & Berkarakter",
+    "heroSubtitle": "SMA Nusantara Bangsa berkomitmen menghadirkan pendidikan berkualitas tinggi yang membangun karakter, kreativitas, dan kompetensi siswa untuk menghadapi masa depan.",
+    "heroImage": "https://prinsipbisnis.com/wp-content/uploads/2025/03/Gedung-Kelas-Ikhwan-scaled-1.jpg",
+    "stats": [
+      { "num": "1.240+", "label": "Siswa Aktif" },
+      { "num": "78", "label": "Guru & Staf" },
+      { "num": "156+", "label": "Prestasi Diraih" },
+      { "num": "25", "label": "Ekstrakurikuler" }
+    ]
+  },
+  "fasilitas": [
+    {
+      "id": "fas-1",
+      "nama": "Laboratorium IPA",
+      "desc": "3 lab lengkap: Fisika, Kimia, dan Biologi dengan peralatan berstandar internasional",
+      "img": "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?q=80&w=800"
+    },
+    {
+      "id": "fas-2",
+      "nama": "Laboratorium Komputer",
+      "desc": "2 lab dengan 60 unit komputer berkecepatan tinggi dan akses internet dedicated",
+      "img": "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=800"
+    },
+    {
+      "id": "fas-3",
+      "nama": "Perpustakaan Digital",
+      "desc": "15.000+ buku fisik, katalog digital, dan ruang baca ber-AC yang nyaman",
+      "img": "https://images.unsplash.com/photo-1521587760476-6c12a4b040da?q=80&w=800"
+    },
+    {
+      "id": "fas-4",
+      "nama": "Aula Serbaguna",
+      "desc": "Kapasitas 800 orang dengan panggung seni, sound system modern, dan pencahayaan studio",
+      "img": "https://images.unsplash.com/photo-1517457373958-b7bdd4587205?q=80&w=800"
+    },
+    {
+      "id": "fas-5",
+      "nama": "Lapangan Olahraga",
+      "desc": "Fasilitas basket, voli, badminton, futsal indoor dan lintasan atletik",
+      "img": "https://images.unsplash.com/photo-1546519638-68e109498ffc?q=80&w=800"
+    },
+    {
+      "id": "fas-6",
+      "nama": "Kantin Sehat",
+      "desc": "Kantin higienis binaan BPOM dengan menu bergizi seimbang dan pembayaran non-tunai",
+      "img": "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?q=80&w=800"
+    }
+  ],
+  "berita": [
+    {
+      "id": "juara-olimpiade-sains",
+      "judul": "Siswa Raih Juara 1 Olimpiade Sains Tingkat Nasional",
+      "tanggal": "2026-10-09",
+      "kategori": "Prestasi",
+      "gambar": "https://images.unsplash.com/photo-1567168544813-cc03465b4fa8?q=80&w=800",
+      "ringkasan": "Tim Olimpiade Sains SMA Nusantara Bangsa berhasil meraih juara pertama bidang Matematika dalam ajang bergengsi tingkat nasional.",
+      "isi": "Tim Olimpiade Sains SMA Nusantara Bangsa berhasil meraih juara pertama bidang Matematika dalam ajang bergengsi tingkat nasional yang diselenggarakan di Jakarta pada 5–7 Oktober 2026. Prestasi gemilang ini merupakan hasil dari persiapan intensif selama enam bulan di bawah bimbingan guru pembimbing berpengalaman."
+    },
+    {
+      "id": "hut-sekolah-ke-30",
+      "judul": "Peringatan HUT Ke-30 SMA Nusantara Bangsa Berlangsung Meriah",
+      "tanggal": "2026-10-02",
+      "kategori": "Kegiatan",
+      "gambar": "https://images.unsplash.com/photo-1511556532299-8f662fc26c06?q=80&w=800",
+      "ringkasan": "Seluruh civitas akademika mengikuti serangkaian kegiatan perayaan hari ulang tahun sekolah dengan pentas seni dan pameran karya.",
+      "isi": "Bertepatan dengan hari jadi sekolah yang ke-30, SMA Nusantara Bangsa menyelenggarakan serangkaian kegiatan perayaan selama tiga hari, 30 September – 2 Oktober 2026. Acara meliputi pentas seni, pameran karya siswa, lomba antar kelas, dan malam puncak yang dihadiri oleh ratusan alumni."
+    },
+    {
+      "id": "workshop-kurikulum-merdeka",
+      "judul": "Workshop Implementasi Kurikulum Merdeka untuk Guru",
+      "tanggal": "2026-09-28",
+      "kategori": "Akademik",
+      "gambar": "https://images.unsplash.com/photo-1524178232363-1fb2b075b655?q=80&w=800",
+      "ringkasan": "Sebanyak 78 guru mengikuti workshop intensif selama dua hari untuk implementasi Kurikulum Merdeka.",
+      "isi": "Workshop dua hari intensif tentang Kurikulum Merdeka diselenggarakan pada 26–27 September 2026. Seluruh guru SMA Nusantara Bangsa hadir untuk memperbarui pemahaman mereka tentang pendekatan pembelajaran berbasis proyek, asesmen formatif, dan pembelajaran berdiferensiasi."
+    },
+    {
+      "id": "program-beasiswa-baru",
+      "judul": "SMA Nusantara Bangsa Luncurkan Program Beasiswa Prestasi",
+      "tanggal": "2026-09-20",
+      "kategori": "Prestasi",
+      "gambar": "https://images.unsplash.com/photo-1427504494785-3a9ca7044f45?q=80&w=800",
+      "ringkasan": "Sekolah meluncurkan program beasiswa bagi siswa berprestasi dari keluarga kurang mampu.",
+      "isi": "Program Beasiswa Prestasi SMA Nusantara Bangsa resmi diluncurkan pada 20 September 2026. Program ini memberikan keringanan biaya hingga 100% bagi siswa berprestasi yang berasal dari keluarga kurang mampu. Pendaftaran beasiswa dibuka setiap awal tahun ajaran."
+    },
+    {
+      "id": "kerjasama-universitas",
+      "judul": "MoU dengan 5 Universitas Negeri Terkemuka Ditandatangani",
+      "tanggal": "2026-09-15",
+      "kategori": "Kegiatan",
+      "gambar": "https://images.unsplash.com/photo-1556761175-4b46a572b786?q=80&w=800",
+      "ringkasan": "Sekolah menandatangani kerja sama dengan lima universitas negeri untuk program percepatan studi.",
+      "isi": "SMA Nusantara Bangsa resmi menandatangani Memorandum of Understanding (MoU) dengan lima universitas negeri terkemuka di Indonesia. Kerja sama ini membuka jalur khusus bagi siswa berprestasi untuk mendapatkan rekomendasi masuk perguruan tinggi."
+    },
+    {
+      "id": "juara-lomba-debat",
+      "judul": "Tim Debat Raih Juara 2 Tingkat Provinsi",
+      "tanggal": "2026-09-10",
+      "kategori": "Prestasi",
+      "gambar": "https://images.unsplash.com/photo-1528605248644-14dd04022da1?q=80&w=800",
+      "ringkasan": "Tim debat bahasa Indonesia SMA Nusantara Bangsa berhasil meraih juara 2 tingkat provinsi.",
+      "isi": "Tim Debat Bahasa Indonesia SMA Nusantara Bangsa mengharumkan nama sekolah dengan meraih juara 2 pada kompetisi debat tingkat provinsi yang diselenggarakan di Kota Bandung pada 8–9 September 2026."
+    }
+  ],
+  "pengumuman": [
+    {
+      "id": 1,
+      "judul": "Jadwal Ujian Akhir Semester Ganjil 2025/2026",
+      "tanggal": "2026-10-09",
+      "penting": true,
+      "isi": "Ujian Akhir Semester (UAS) Ganjil akan dilaksanakan pada 2–13 Desember 2026. Seluruh siswa diwajibkan hadir tepat waktu. Ketidakhadiran tanpa keterangan akan dianggap tidak mengikuti ujian."
+    },
+    {
+      "id": 2,
+      "judul": "Pembagian Rapor Mid Semester – 15 Oktober 2026",
+      "tanggal": "2026-10-07",
+      "penting": false,
+      "isi": "Pembagian rapor mid semester akan dilaksanakan pada Rabu, 15 Oktober 2026 pukul 08.00–12.00 WIB. Orang tua/wali diwajibkan hadir untuk mengambil rapor."
+    },
+    {
+      "id": 3,
+      "judul": "Pendaftaran Seleksi Olimpiade Sains Nasional Dibuka",
+      "tanggal": "2026-10-05",
+      "penting": false,
+      "isi": "Pendaftaran seleksi internal untuk Olimpiade Sains Nasional (OSN) 2027 dibuka mulai 5–20 Oktober 2026. Formulir tersedia di ruang BK."
+    },
+    {
+      "id": 4,
+      "judul": "Libur Nasional Hari Pahlawan 10 November 2026",
+      "tanggal": "2026-10-01",
+      "penting": false,
+      "isi": "Sehubungan dengan peringatan Hari Pahlawan, seluruh kegiatan belajar mengajar diliburkan pada 10 November 2026."
+    },
+    {
+      "id": 5,
+      "judul": "Penggalangan Dana untuk Siswa Kurang Mampu",
+      "tanggal": "2026-09-28",
+      "penting": false,
+      "isi": "OSIS SMA Nusantara Bangsa mengadakan kegiatan penggalangan dana untuk membantu siswa kurang mampu. Donasi dapat diserahkan kepada pengurus OSIS."
+    }
+  ],
+  "agenda": [
+    {
+      "id": 1,
+      "tanggal": "2026-10-15",
+      "judul": "Pembagian Rapor Mid Semester",
+      "lokasi": "Aula Sekolah",
+      "waktu": "08.00–12.00 WIB",
+      "kategori": "Akademik"
+    },
+    {
+      "id": 2,
+      "tanggal": "2026-10-20",
+      "judul": "Pelatihan Olimpiade Sains",
+      "lokasi": "Lab IPA",
+      "waktu": "14.00–17.00 WIB",
+      "kategori": "Akademik"
+    },
+    {
+      "id": 3,
+      "tanggal": "2026-10-28",
+      "judul": "Peringatan Hari Sumpah Pemuda",
+      "lokasi": "Lapangan Upacara",
+      "waktu": "07.00–09.00 WIB",
+      "kategori": "Kegiatan"
+    },
+    {
+      "id": 4,
+      "tanggal": "2026-11-01",
+      "judul": "Pembukaan PPDB Gelombang 1",
+      "lokasi": "Online & Kantor TU",
+      "waktu": "08.00 WIB",
+      "kategori": "PPDB"
+    },
+    {
+      "id": 5,
+      "tanggal": "2026-11-10",
+      "judul": "Hari Pahlawan – Libur Nasional",
+      "lokasi": "-",
+      "waktu": "Seharian",
+      "kategori": "Libur"
+    },
+    {
+      "id": 6,
+      "tanggal": "2026-11-25",
+      "judul": "Hari Guru Nasional",
+      "lokasi": "Seluruh Kelas",
+      "waktu": "08.00–12.00 WIB",
+      "kategori": "Kegiatan"
+    },
+    {
+      "id": 7,
+      "tanggal": "2026-12-02",
+      "judul": "Ujian Akhir Semester Ganjil (Mulai)",
+      "lokasi": "Kelas Masing-masing",
+      "waktu": "07.30–11.30 WIB",
+      "kategori": "Akademik"
+    }
+  ],
+  "galeri": [
+    {
+      "id": 1,
+      "judul": "Upacara Bendera Senin Pagi",
+      "album": "Kegiatan Rutin",
+      "foto": "https://images.unsplash.com/photo-1541339907198-e08756dedf3f?q=80&w=800"
+    },
+    {
+      "id": 2,
+      "judul": "Ekstrakurikuler Pramuka",
+      "album": "Kegiatan Ekskul",
+      "foto": "https://images.unsplash.com/photo-1526976668912-1a811878dd37?q=80&w=800"
+    },
+    {
+      "id": 3,
+      "judul": "Lomba Olimpiade Sains",
+      "album": "Prestasi",
+      "foto": "https://images.unsplash.com/photo-1532094349884-543bc11b234d?q=80&w=800"
+    },
+    {
+      "id": 4,
+      "judul": "Pentas Seni Tahunan",
+      "album": "Kegiatan",
+      "foto": "https://images.unsplash.com/photo-1465847899084-d164df4dedc6?q=80&w=800"
+    },
+    {
+      "id": 5,
+      "judul": "Turnamen Futsal & Basket",
+      "album": "Olahraga",
+      "foto": "https://images.unsplash.com/photo-1574629810360-7efbbe195018?q=80&w=800"
+    },
+    {
+      "id": 6,
+      "judul": "Kunjungan Industri & Edukasi",
+      "album": "Akademik",
+      "foto": "https://images.unsplash.com/photo-1531482615713-2afd69097998?q=80&w=800"
+    },
+    {
+      "id": 7,
+      "judul": "Latihan Dasar Kepemimpinan OSIS",
+      "album": "OSIS",
+      "foto": "https://images.unsplash.com/photo-1523240795612-9a054b0db644?q=80&w=800"
+    },
+    {
+      "id": 8,
+      "judul": "HUT Sekolah Ke-30",
+      "album": "Kegiatan",
+      "foto": "https://images.unsplash.com/photo-1511556532299-8f662fc26c06?q=80&w=800"
+    },
+    {
+      "id": 9,
+      "judul": "Wisuda & Pelepasan Kelas XII",
+      "album": "Wisuda",
+      "foto": "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?q=80&w=800"
+    }
+  ],
+  "guru": [
+    {
+      "id": 1,
+      "nama": "Drs. H. Ahmad Hidayat, M.Pd.",
+      "jabatan": "Kepala Sekolah",
+      "mapel": "Manajemen Pendidikan",
+      "foto": "https://images.unsplash.com/photo-1560250097-0b93528c311a?q=80&w=400"
+    },
+    {
+      "id": 2,
+      "nama": "Sri Wahyuni, S.Pd., M.Si.",
+      "jabatan": "Wakil Kesiswaan",
+      "mapel": "Biologi",
+      "foto": "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=400"
+    },
+    {
+      "id": 3,
+      "nama": "Budi Santoso, S.Pd.",
+      "jabatan": "Wakil Kurikulum",
+      "mapel": "Matematika",
+      "foto": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=400"
+    },
+    {
+      "id": 4,
+      "nama": "Ratna Dewi, S.Pd., M.Hum.",
+      "jabatan": "Guru",
+      "mapel": "Bahasa Indonesia",
+      "foto": "https://images.unsplash.com/photo-1580894732470-3490aa5f0532?q=80&w=400"
+    },
+    {
+      "id": 5,
+      "nama": "Hendra Kusuma, S.T., M.Pd.",
+      "jabatan": "Guru",
+      "mapel": "Fisika",
+      "foto": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=400"
+    },
+    {
+      "id": 6,
+      "nama": "Dewi Rahayu, S.Sos., M.Pd.",
+      "jabatan": "Guru",
+      "mapel": "Sosiologi",
+      "foto": "https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=400"
+    },
+    {
+      "id": 7,
+      "nama": "Agus Prasetyo, S.Kom., M.T.",
+      "jabatan": "Guru",
+      "mapel": "Informatika",
+      "foto": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=400"
+    },
+    {
+      "id": 8,
+      "nama": "Nita Sari, S.Pd.",
+      "jabatan": "Guru",
+      "mapel": "Kimia",
+      "foto": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=400"
+    }
+  ],
+  "profil": {
+    "sejarahP1": "SMA Nusantara Bangsa didirikan pada tahun 1996 oleh Yayasan Pendidikan Nusantara sebagai respons atas kebutuhan masyarakat akan lembaga pendidikan menengah berkualitas di Kota Cerdas. Berawal dari 3 kelas dan 87 siswa, kini sekolah ini telah berkembang pesat.",
+    "sejarahP2": "Selama 30 tahun perjalanannya, kami telah menghasilkan ribuan alumni yang tersebar di berbagai penjuru Indonesia dan mancanegara, berkiprah di bidang pemerintahan, pendidikan, industri, dan kewirausahaan.",
+    "gedungFoto": "https://prinsipbisnis.com/wp-content/uploads/2025/03/Gedung-Kelas-Ikhwan-scaled-1.jpg",
+    "visi": "Menjadi sekolah unggul yang melahirkan generasi cerdas, berkarakter mulia, berwawasan global, dan berdaya saing tinggi.",
+    "misi": [
+      "Menyelenggarakan pembelajaran inovatif berbasis Kurikulum Merdeka.",
+      "Mengembangkan karakter dan akhlak mulia seluruh warga sekolah.",
+      "Memfasilitasi pengembangan bakat dan minat melalui ekstrakurikuler.",
+      "Menjalin kemitraan dengan dunia industri dan perguruan tinggi.",
+      "Menciptakan lingkungan belajar yang aman, nyaman, dan inklusif."
+    ],
+    "tahunBerdiri": "1996",
+    "akreditasi": "A",
+    "totalAlumni": "5000+"
+  },
+  "kontak": {
+    "alamat": "Jl. Pendidikan No. 45, Kompleks Pelajar Cerdas, Kota Nusantara, 12345",
+    "telepon": "(021) 7890-1234",
+    "whatsapp": "+62 812-3456-7890",
+    "email": "info@sekolah.sch.id",
+    "jamKerja": "Senin – Jumat: 07.00 – 15.30 WIB"
+  }
+}

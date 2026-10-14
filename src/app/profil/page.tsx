@@ -1,21 +1,16 @@
 import type { Metadata } from "next";
 import Image from "next/image";
+import { getSiteContent } from "@/lib/siteContent";
 
 export const metadata: Metadata = {
   title: "Profil Sekolah",
   description: "Profil SMA Nusantara Bangsa: sejarah, visi misi, sambutan kepala sekolah, struktur organisasi, dan fasilitas.",
 };
 
-const fasilitas = [
-  { nama: "Laboratorium IPA", desc: "3 lab lengkap: Fisika, Kimia, dan Biologi", img: "https://placehold.co/400x300/1A73E8/FFFFFF?text=Lab+IPA" },
-  { nama: "Laboratorium Komputer", desc: "2 lab dengan 60 unit komputer ber-internet", img: "https://placehold.co/400x300/A152F9/FFFFFF?text=Lab+Komputer" },
-  { nama: "Perpustakaan Digital", desc: "15.000+ buku fisik dan akses e-book", img: "https://placehold.co/400x300/F748A5/FFFFFF?text=Perpus" },
-  { nama: "Aula Serbaguna", desc: "Kapasitas 800 orang dengan AV modern", img: "https://placehold.co/400x300/FF8D50/FFFFFF?text=Aula" },
-  { nama: "Lapangan Olahraga", desc: "Basket, voli, badminton, futsal indoor", img: "https://placehold.co/400x300/34A853/FFFFFF?text=Olahraga" },
-  { nama: "Kantin Sehat", desc: "Kantin bersih dengan menu bergizi terjangkau", img: "https://placehold.co/400x300/EA4335/FFFFFF?text=Kantin" },
-];
-
 export default function ProfilPage() {
+  const content = getSiteContent();
+  const { profil, fasilitas } = content;
+
   return (
     <>
       {/* Page Header */}
@@ -37,19 +32,29 @@ export default function ProfilPage() {
       {/* Sejarah */}
       <section className="py-20 bg-white">
         <div className="max-w-[1200px] mx-auto px-6 grid lg:grid-cols-2 gap-16 items-center">
-          <div className="rounded-gemini overflow-hidden shadow-elevated">
-            <Image src="https://prinsipbisnis.com/wp-content/uploads/2025/03/Gedung-Kelas-Ikhwan-scaled-1.jpg" alt="Gedung SMA Nusantara Bangsa" width={800} height={600} className="w-full object-cover aspect-[4/3]" />
+          <div className="rounded-gemini overflow-hidden shadow-elevated relative aspect-[4/3] w-full">
+            <Image
+              src={profil.gedungFoto || content.general.heroImage}
+              alt="Gedung SMA Nusantara Bangsa"
+              fill
+              className="w-full h-full object-cover"
+              unoptimized
+            />
           </div>
           <div>
             <h2 className="text-[2rem] font-[var(--font-outfit)] font-medium text-[var(--text-primary)] mb-6">Sejarah Singkat</h2>
             <p className="text-[var(--text-secondary)] leading-relaxed text-[1.0625rem] mb-4">
-              SMA Nusantara Bangsa didirikan pada tahun 1996 oleh Yayasan Pendidikan Nusantara sebagai respons atas kebutuhan masyarakat akan lembaga pendidikan menengah berkualitas di Kota Cerdas. Berawal dari 3 kelas dan 87 siswa, kini sekolah ini telah berkembang pesat.
+              {profil.sejarahP1}
             </p>
             <p className="text-[var(--text-secondary)] leading-relaxed text-[1.0625rem] mb-10">
-              Selama 30 tahun perjalanannya, kami telah menghasilkan ribuan alumni yang tersebar di berbagai penjuru Indonesia dan mancanegara, berkiprah di bidang pemerintahan, pendidikan, industri, dan kewirausahaan.
+              {profil.sejarahP2}
             </p>
             <div className="grid grid-cols-3 gap-6 pt-6 border-t border-[var(--border-light)]">
-              {[["1996", "Didirikan"], ["A", "Akreditasi"], ["5000+", "Alumni"]].map(([num, lbl]) => (
+              {[
+                [profil.tahunBerdiri, "Didirikan"],
+                [profil.akreditasi, "Akreditasi"],
+                [profil.totalAlumni, "Alumni"],
+              ].map(([num, lbl]) => (
                 <div key={lbl}>
                   <div className="text-[2rem] font-medium font-[var(--font-outfit)] text-[var(--accent-blue)] leading-tight">{num}</div>
                   <div className="text-sm font-medium text-[var(--text-tertiary)] uppercase tracking-wider mt-1">{lbl}</div>
@@ -73,7 +78,7 @@ export default function ProfilPage() {
               </div>
               <h3 className="text-[1.75rem] font-medium font-[var(--font-outfit)] text-[var(--text-primary)] mb-4">Visi</h3>
               <p className="text-[var(--text-secondary)] text-[1.125rem] leading-relaxed italic">
-                &quot;Menjadi sekolah unggul yang melahirkan generasi cerdas, berkarakter mulia, berwawasan global, dan berdaya saing tinggi.&quot;
+                &quot;{profil.visi}&quot;
               </p>
             </div>
             <div className="bg-white p-10 rounded-gemini gemini-border gemini-card-hover">
@@ -84,8 +89,8 @@ export default function ProfilPage() {
                 Misi
               </h3>
               <ul className="space-y-4">
-                {["Menyelenggarakan pembelajaran inovatif berbasis Kurikulum Merdeka.", "Mengembangkan karakter dan akhlak mulia seluruh warga sekolah.", "Memfasilitasi pengembangan bakat dan minat melalui ekstrakurikuler.", "Menjalin kemitraan dengan dunia industri dan perguruan tinggi.", "Menciptakan lingkungan belajar yang aman, nyaman, dan inklusif."].map((m) => (
-                  <li key={m} className="flex gap-4 items-start">
+                {profil.misi.map((m, idx) => (
+                  <li key={idx} className="flex gap-4 items-start">
                     <div className="w-6 h-6 rounded-full bg-[#E8F0FE] flex items-center justify-center flex-shrink-0 mt-0.5">
                       <svg className="w-4 h-4 text-[var(--accent-blue)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M20 6L9 17l-5-5" /></svg>
                     </div>
@@ -105,10 +110,10 @@ export default function ProfilPage() {
             <h2 className="text-[2.5rem] font-[var(--font-outfit)] font-medium text-[var(--text-primary)]">Fasilitas Unggulan</h2>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {fasilitas.map((f) => (
-              <div key={f.nama} className="bg-[var(--bg-secondary)] rounded-gemini overflow-hidden border border-[var(--border-light)] gemini-card-hover group">
+            {fasilitas.map((f, idx) => (
+              <div key={f.id || idx} className="bg-[var(--bg-secondary)] rounded-gemini overflow-hidden border border-[var(--border-light)] gemini-card-hover group">
                 <div className="aspect-[4/3] relative overflow-hidden bg-white">
-                  <Image src={f.img} alt={f.nama} fill className="object-cover group-hover:scale-105 transition-transform duration-500" />
+                  <Image src={f.img} alt={f.nama} fill className="object-cover group-hover:scale-105 transition-transform duration-500" unoptimized />
                 </div>
                 <div className="p-6">
                   <h3 className="font-medium text-lg text-[var(--text-primary)] mb-2 group-hover:text-[var(--accent-blue)] transition-colors">{f.nama}</h3>

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { galeri } from "@/lib/data";
+import { getSiteContent } from "@/lib/siteContent";
 import GaleriClient from "./GaleriClient";
 
 export const metadata: Metadata = {
@@ -8,6 +8,7 @@ export const metadata: Metadata = {
 };
 
 export default function GaleriPage() {
+  const { galeri } = getSiteContent();
   return (
     <>
       <div className="pt-32 pb-16 bg-[var(--bg-secondary)] border-b border-[var(--border-light)]">

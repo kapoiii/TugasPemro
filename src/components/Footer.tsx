@@ -6,6 +6,7 @@ const footerMain = [
   { href: "/akademik", label: "Akademik" },
   { href: "/kesiswaan", label: "Kesiswaan" },
   { href: "/ppdb", label: "PPDB" },
+  { href: "/login", label: "Portal Login" },
 ];
 
 const footerInfo = [

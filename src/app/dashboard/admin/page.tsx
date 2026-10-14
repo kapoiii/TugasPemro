@@ -26,7 +26,9 @@ import {
   Award,
   Calendar,
   Sparkles,
+  Globe,
 } from 'lucide-react'
+import WebsiteContentManager from '@/components/admin/WebsiteContentManager'
 
 interface UserItem {
   id: string
@@ -114,7 +116,7 @@ interface GradeEditorItem {
 
 export default function AdminDashboardPage() {
   const router = useRouter()
-  const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'user-dashboard' | 'master' | 'logs'>('overview')
+  const [activeTab, setActiveTab] = useState<'overview' | 'website-content' | 'users' | 'user-dashboard' | 'master' | 'logs'>('overview')
   const [loading, setLoading] = useState(true)
 
   // Data states
@@ -646,6 +648,23 @@ export default function AdminDashboardPage() {
               <Activity className="w-4 h-4" /> Ringkasan Sistem
             </button>
 
+            {/* TAB CMS: Kelola Konten & Foto Website */}
+            <button
+              onClick={() => setActiveTab('website-content')}
+              className={`w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-semibold transition-all ${
+                activeTab === 'website-content'
+                  ? 'bg-rose-600 text-white shadow-lg shadow-rose-600/30'
+                  : 'text-slate-400 hover:text-white hover:bg-slate-900'
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                <Globe className="w-4 h-4 text-emerald-400" /> Konten &amp; Foto Website
+              </div>
+              <span className="px-1.5 py-0.5 bg-emerald-500/20 text-emerald-300 text-[10px] font-bold rounded">
+                CMS
+              </span>
+            </button>
+
             {/* NEW TAB: Kelola Dashboard Siswa / User */}
             <button
               onClick={() => setActiveTab('user-dashboard')}
@@ -861,6 +880,16 @@ export default function AdminDashboardPage() {
                 <h3 className="font-bold text-white text-base">Tindakan Cepat Administrator</h3>
                 <div className="space-y-3">
                   <button
+                    onClick={() => setActiveTab('website-content')}
+                    className="w-full flex items-center justify-between p-3.5 bg-gradient-to-r from-emerald-950/60 to-slate-900 hover:border-emerald-500 border border-emerald-900/40 rounded-xl text-sm font-semibold transition-all group"
+                  >
+                    <span className="flex items-center gap-3">
+                      <Globe className="w-4 h-4 text-emerald-400" /> Kelola Konten &amp; Foto Website
+                    </span>
+                    <ArrowRight className="w-4 h-4 text-slate-600 group-hover:translate-x-1 transition-transform" />
+                  </button>
+
+                  <button
                     onClick={() => setActiveTab('user-dashboard')}
                     className="w-full flex items-center justify-between p-3.5 bg-gradient-to-r from-rose-950/60 to-slate-900 hover:border-rose-500 border border-rose-900/40 rounded-xl text-sm font-semibold transition-all group"
                   >
@@ -943,6 +972,11 @@ export default function AdminDashboardPage() {
               </div>
             </div>
           </div>
+        )}
+
+        {/* TAB CMS: KELOLA KONTEN & FOTO WEBSITE */}
+        {activeTab === 'website-content' && (
+          <WebsiteContentManager />
         )}
 
         {/* TAB 2: KELOLA DASHBOARD SISWA / USER (MAIN REQUEST) */}
@@ -1345,6 +1379,19 @@ export default function AdminDashboardPage() {
         {/* TAB 3: MANAJEMEN AKUN & USER */}
         {activeTab === 'users' && (
           <div className="space-y-6">
+            {/* Kebijakan Pembuatan Akun Resmi */}
+            <div className="bg-slate-950 border border-amber-500/40 p-4 rounded-2xl flex items-start gap-3 shadow-lg">
+              <div className="p-2 bg-amber-500/20 text-amber-400 rounded-xl shrink-0 mt-0.5">
+                <ShieldAlert className="w-4 h-4" />
+              </div>
+              <div className="space-y-0.5 text-xs">
+                <h4 className="font-bold text-amber-300">Pusat Penerbitan Akun Resmi Sekolah (Eksklusif Administrator)</h4>
+                <p className="text-slate-300 leading-relaxed">
+                  Sesuai kebijakan resmi sekolah, <strong>orang luar/pengguna publik tidak dapat membuat akun sendiri</strong> di website maupun portal dashboard. Semua akun Guru, Siswa, dan Tenaga Kependidikan wajib diterbitkan secara resmi melalui panel ini oleh Administrator Sekolah.
+                </p>
+              </div>
+            </div>
+
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div className="flex flex-wrap items-center gap-3">
                 <div className="relative">
@@ -1377,7 +1424,7 @@ export default function AdminDashboardPage() {
                 onClick={() => setShowAddUserModal(true)}
                 className="px-4 py-2.5 bg-rose-600 hover:bg-rose-500 active:scale-95 text-white font-bold rounded-xl shadow-lg shadow-rose-600/30 flex items-center gap-2 text-xs transition-all"
               >
-                <UserPlus className="w-4 h-4" /> Tambah Pengguna Baru
+                <UserPlus className="w-4 h-4" /> + Terbitkan Akun Resmi Baru
               </button>
             </div>
 

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { pengumuman } from "@/lib/data";
+import { getSiteContent } from "@/lib/siteContent";
 
 export const metadata: Metadata = {
   title: "Pengumuman",
@@ -7,6 +7,7 @@ export const metadata: Metadata = {
 };
 
 export default function PengumumanPage() {
+  const { pengumuman } = getSiteContent();
   return (
     <>
       <div className="pt-32 pb-16 bg-[var(--bg-secondary)] border-b border-[var(--border-light)]">
