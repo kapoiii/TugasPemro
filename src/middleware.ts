@@ -10,7 +10,7 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
   // Protect /dashboard and API endpoints
-  if (pathname.startsWith('/dashboard') || pathname.startsWith('/api/protected')) {
+  if (pathname.startsWith('/dashboard') || pathname.startsWith('/api/protected') || pathname.startsWith('/api/admin')) {
     const token = request.cookies.get('auth_token')?.value
 
     if (!token) {
@@ -25,10 +25,30 @@ export async function middleware(request: NextRequest) {
       const role = payload.role as string
 
       // Route RBAC Check
+      // 1. Strict protection for Admin path
+      if (pathname.startsWith('/dashboard/admin')) {
+        if (role !== 'ADMIN') {
+          // Non-admin trying to access admin dashboard
+          if (role === 'GURU') {
+            return NextResponse.redirect(new URL('/dashboard/guru', request.url))
+          }
+          return NextResponse.redirect(new URL('/dashboard/siswa', request.url))
+        }
+      }
+
+      // 2. Strict protection for Admin API endpoints
+      if (pathname.startsWith('/api/admin')) {
+        if (role !== 'ADMIN') {
+          return NextResponse.json({ success: false, message: 'Akses ditolak: Memerlukan role ADMIN' }, { status: 403 })
+        }
+      }
+
+      // 3. Protection for Guru path
       if (pathname.startsWith('/dashboard/guru') && role !== 'GURU' && role !== 'ADMIN') {
         return NextResponse.redirect(new URL('/dashboard/siswa', request.url))
       }
 
+      // 4. Protection for Siswa path
       if (pathname.startsWith('/dashboard/siswa') && role !== 'SISWA' && role !== 'ADMIN') {
         return NextResponse.redirect(new URL('/dashboard/guru', request.url))
       }
@@ -55,5 +75,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/dashboard/:path*', '/api/protected/:path*'],
+  matcher: ['/dashboard/:path*', '/api/protected/:path*', '/api/admin/:path*'],
 }

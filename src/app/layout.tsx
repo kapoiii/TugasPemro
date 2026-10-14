@@ -1,22 +1,9 @@
 import type { Metadata } from "next";
-import { Inter, Outfit } from "next/font/google";
 import "./globals.css";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import BackToTop from "@/components/BackToTop";
 import WhatsAppFloat from "@/components/WhatsAppFloat";
-
-const inter = Inter({
-  subsets: ["latin"],
-  variable: "--font-inter",
-  display: "swap",
-});
-
-const outfit = Outfit({
-  subsets: ["latin"],
-  variable: "--font-outfit", // Replaces poppins
-  display: "swap",
-});
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://smanusantarabangsa.sch.id"),
@@ -34,8 +21,16 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="id" className={`${inter.variable} ${outfit.variable}`}>
-      <body className="bg-[var(--bg-primary)] text-[var(--text-primary)] font-[var(--font-inter)] selection:bg-[#E8F0FE] selection:text-[#1A73E8]">
+    <html lang="id">
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap"
+          rel="stylesheet"
+        />
+      </head>
+      <body className="bg-[var(--bg-primary)] text-[var(--text-primary)] selection:bg-[#E8F0FE] selection:text-[#1A73E8]">
         <Header />
         <main>{children}</main>
         <Footer />

@@ -1,6 +1,9 @@
 @import "tailwindcss";
 
 :root {
+  --font-inter: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-outfit: 'Outfit', system-ui, -apple-system, sans-serif;
+  
   --bg-primary: #FFFFFF;
   --bg-secondary: #F0F4F8; /* Subtle blueish gray like Gemini */
   --bg-tertiary: #F8F9FA;

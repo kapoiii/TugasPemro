@@ -11,6 +11,7 @@ import {
   School,
   ClipboardList,
   Award,
+  ShieldAlert,
 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 
@@ -81,6 +82,14 @@ export default function GuruDashboardPage() {
             >
               <Award className="w-4 h-4" /> Raport Digital
             </Link>
+            <div className="pt-2 border-t border-slate-800">
+              <Link
+                href="/dashboard/admin"
+                className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-rose-400 hover:text-white hover:bg-rose-950/40 text-xs font-bold transition-all border border-rose-900/40"
+              >
+                <ShieldAlert className="w-4 h-4 text-rose-500" /> Admin Root Panel
+              </Link>
+            </div>
           </nav>
         </div>
 
