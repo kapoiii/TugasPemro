@@ -65,7 +65,7 @@ export async function POST(request: NextRequest) {
                   userId: prismaUser.id,
                   nip: prismaUser.guruProfile.nip,
                   namaLengkap: prismaUser.guruProfile.namaLengkap,
-                  mataPelajaranUtama: prismaUser.guruProfile.mataPelajaranUtama,
+                  mataPelajaranUtama: prismaUser.guruProfile.mataPelajaranUtama || 'Umum',
                   noHp: prismaUser.guruProfile.noHp || undefined,
                 }
               : undefined,
@@ -76,7 +76,7 @@ export async function POST(request: NextRequest) {
                   nis: prismaUser.siswaProfile.nis,
                   nisn: prismaUser.siswaProfile.nisn,
                   namaLengkap: prismaUser.siswaProfile.namaLengkap,
-                  kelasId: prismaUser.siswaProfile.kelasId,
+                  kelasId: prismaUser.siswaProfile.kelasId || 'kelas-10-mipa1',
                   jenisKelamin: (prismaUser.siswaProfile.jenisKelamin as 'L' | 'P') || 'L',
                 }
               : undefined,
