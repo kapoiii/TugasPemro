@@ -593,31 +593,27 @@ const DEFAULT_DATABASE: SchoolDatabase = {
   ],
 }
 
-// In-memory cache
-let inMemoryDb: SchoolDatabase | null = null
-
+// Persistent File Database
 export function getSchoolDb(): SchoolDatabase {
-  if (inMemoryDb) return inMemoryDb
-
   try {
     if (fs.existsSync(DB_FILE_PATH)) {
       const fileData = fs.readFileSync(DB_FILE_PATH, 'utf-8')
-      inMemoryDb = JSON.parse(fileData)
-      return inMemoryDb!
+      if (fileData && fileData.trim().length > 0) {
+        return JSON.parse(fileData) as SchoolDatabase
+      }
     }
   } catch (err) {
-    console.warn('Failed to read school-store.json from disk, initializing default:', err)
+    console.warn('Failed to read school-store.json from disk, falling back to default:', err)
   }
 
-  // Initialize file if not found
-  inMemoryDb = JSON.parse(JSON.stringify(DEFAULT_DATABASE))
-  saveSchoolDb(inMemoryDb!)
-  return inMemoryDb!
+  // Initialize file with default data if missing or empty
+  const defaultCopy: SchoolDatabase = JSON.parse(JSON.stringify(DEFAULT_DATABASE))
+  saveSchoolDb(defaultCopy)
+  return defaultCopy
 }
 
 export function saveSchoolDb(db: SchoolDatabase): boolean {
   try {
-    inMemoryDb = db
     const dir = path.dirname(DB_FILE_PATH)
     if (!fs.existsSync(dir)) {
       fs.mkdirSync(dir, { recursive: true })

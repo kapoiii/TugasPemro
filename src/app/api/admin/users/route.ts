@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSchoolDb, saveSchoolDb, UserAccount } from '@/lib/schoolStore'
 import { getSession } from '@/lib/auth'
+import bcrypt from 'bcryptjs'
+import { prisma } from '@/lib/prisma'
 
 export async function GET() {
   try {
@@ -74,18 +76,23 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    const cleanUsername = String(username).trim()
+    const cleanEmail = String(email).trim()
+    const cleanPassword = String(password).trim()
+    const cleanRole = (['ADMIN', 'GURU', 'SISWA'].includes(role) ? role : 'GURU') as 'ADMIN' | 'GURU' | 'SISWA'
+
     const db = getSchoolDb()
 
-    // Check duplicate
+    // Check duplicate username or email
     const existing = db.users.find(
       (u) =>
-        u.username.toLowerCase() === username.trim().toLowerCase() ||
-        u.email.toLowerCase() === email.trim().toLowerCase()
+        u.username.toLowerCase() === cleanUsername.toLowerCase() ||
+        u.email.toLowerCase() === cleanEmail.toLowerCase()
     )
 
     if (existing) {
       return NextResponse.json(
-        { success: false, message: 'Username atau Email sudah terdaftar' },
+        { success: false, message: `Username "${cleanUsername}" atau Email "${cleanEmail}" sudah terdaftar` },
         { status: 400 }
       )
     }
@@ -95,48 +102,88 @@ export async function POST(request: NextRequest) {
 
     const newUser: UserAccount = {
       id: newUserId,
-      username: username.trim(),
-      email: email.trim(),
-      password: password.trim(),
-      role: role as 'ADMIN' | 'GURU' | 'SISWA',
+      username: cleanUsername,
+      email: cleanEmail,
+      password: cleanPassword,
+      role: cleanRole,
       createdAt: nowStr,
       updatedAt: nowStr,
     }
 
-    if (role === 'GURU') {
+    if (cleanRole === 'GURU') {
       newUser.guruProfile = {
         id: `guru-profile-${newUserId}`,
         userId: newUserId,
-        nip: nip || `199${Date.now().toString().slice(-10)}`,
-        namaLengkap: namaLengkap || username,
+        nip: nip ? String(nip).trim() : `199${Date.now().toString().slice(-10)}`,
+        namaLengkap: namaLengkap ? String(namaLengkap).trim() : cleanUsername,
         mataPelajaranUtama: 'Umum',
       }
-    } else if (role === 'SISWA') {
+    } else if (cleanRole === 'SISWA') {
       newUser.siswaProfile = {
         id: `siswa-profile-${newUserId}`,
         userId: newUserId,
-        nis: nis || `${Date.now().toString().slice(-4)}`,
-        nisn: nisn || `00${Date.now().toString().slice(-8)}`,
-        namaLengkap: namaLengkap || username,
+        nis: nis ? String(nis).trim() : `${Date.now().toString().slice(-4)}`,
+        nisn: nisn ? String(nisn).trim() : `00${Date.now().toString().slice(-8)}`,
+        namaLengkap: namaLengkap ? String(namaLengkap).trim() : cleanUsername,
         kelasId: kelasId || 'kelas-10-mipa1',
         jenisKelamin: jenisKelamin === 'P' ? 'P' : 'L',
       }
     }
 
+    // Save immediately to persistent store
     db.users.push(newUser)
     db.auditLogs.unshift({
       id: `log-${Date.now()}`,
       userId: session.userId,
       action: 'CREATE_USER',
-      detail: `Admin membuat user baru: ${username} (${role} - ${namaLengkap || username})`,
+      detail: `Admin membuat user baru: ${cleanUsername} (${cleanRole} - ${namaLengkap || cleanUsername})`,
       createdAt: nowStr,
     })
 
     saveSchoolDb(db)
 
+    // Optional background sync to Prisma database if connected
+    try {
+      const passwordHash = bcrypt.hashSync(cleanPassword, 10)
+      await prisma.user.create({
+        data: {
+          id: newUserId,
+          username: cleanUsername,
+          email: cleanEmail,
+          passwordHash: passwordHash,
+          role: cleanRole,
+          ...(cleanRole === 'GURU' && newUser.guruProfile
+            ? {
+                guruProfile: {
+                  create: {
+                    nip: newUser.guruProfile.nip,
+                    namaLengkap: newUser.guruProfile.namaLengkap,
+                    mataPelajaranUtama: newUser.guruProfile.mataPelajaranUtama,
+                  },
+                },
+              }
+            : cleanRole === 'SISWA' && newUser.siswaProfile
+            ? {
+                siswaProfile: {
+                  create: {
+                    nis: newUser.siswaProfile.nis,
+                    nisn: newUser.siswaProfile.nisn,
+                    namaLengkap: newUser.siswaProfile.namaLengkap,
+                    kelasId: newUser.siswaProfile.kelasId,
+                    jenisKelamin: newUser.siswaProfile.jenisKelamin,
+                  },
+                },
+              }
+            : {}),
+        },
+      })
+    } catch {
+      // Prisma sync is best-effort fallback
+    }
+
     return NextResponse.json({
       success: true,
-      message: `Akun ${username} (${role}) berhasil dibuat dan dapat langsung digunakan`,
+      message: `Akun ${cleanUsername} (${cleanRole}) berhasil disimpan ke database dan langsung dapat digunakan untuk login!`,
       data: newUser,
     })
   } catch (error: unknown) {
@@ -174,8 +221,8 @@ export async function PATCH(request: NextRequest) {
       )
     }
 
-    if (newPassword && newPassword.trim().length >= 4) {
-      target.password = newPassword.trim()
+    if (newPassword && String(newPassword).trim().length >= 4) {
+      target.password = String(newPassword).trim()
     }
 
     if (newRole && ['ADMIN', 'GURU', 'SISWA'].includes(newRole)) {
@@ -194,9 +241,22 @@ export async function PATCH(request: NextRequest) {
 
     saveSchoolDb(db)
 
+    // Optional Prisma sync
+    try {
+      const updateData: { role?: 'ADMIN' | 'GURU' | 'SISWA'; passwordHash?: string } = {}
+      if (newRole) updateData.role = newRole
+      if (newPassword) updateData.passwordHash = bcrypt.hashSync(String(newPassword).trim(), 10)
+      await prisma.user.update({
+        where: { id: userId },
+        data: updateData,
+      })
+    } catch {
+      // Prisma sync is best-effort fallback
+    }
+
     return NextResponse.json({
       success: true,
-      message: `Data user ${target.username} berhasil diperbarui`,
+      message: `Data user ${target.username} berhasil diperbarui di database`,
       data: target,
     })
   } catch (error: unknown) {
@@ -253,9 +313,16 @@ export async function DELETE(request: NextRequest) {
 
     saveSchoolDb(db)
 
+    // Optional Prisma sync
+    try {
+      await prisma.user.delete({ where: { id: userId } })
+    } catch {
+      // Prisma sync is best-effort fallback
+    }
+
     return NextResponse.json({
       success: true,
-      message: `User ${deletedUser.username} berhasil dihapus`,
+      message: `User ${deletedUser.username} berhasil dihapus dari database`,
     })
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Server error'

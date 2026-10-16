@@ -184,6 +184,49 @@
         "namaOrangTua": "Bambang Supriyanto",
         "noHp": "081399887766"
       }
+    },
+    {
+      "id": "usr-1792164040473",
+      "username": "guru_test_baru",
+      "email": "guru_test@sekolah.sch.id",
+      "password": "passwordGuru123",
+      "role": "GURU",
+      "createdAt": "2026-10-16T15:20:40.473Z",
+      "updatedAt": "2026-10-16T15:20:40.473Z",
+      "guruProfile": {
+        "id": "guru-profile-usr-1792164040473",
+        "userId": "usr-1792164040473",
+        "nip": "198005052026011001",
+        "namaLengkap": "Pak Joko Widodo, M.Pd.",
+        "mataPelajaranUtama": "Umum"
+      }
+    },
+    {
+      "id": "usr-1792164043119",
+      "username": "siswa_test_baru",
+      "email": "siswa_test@sekolah.sch.id",
+      "password": "passwordSiswa123",
+      "role": "SISWA",
+      "createdAt": "2026-10-16T15:20:43.119Z",
+      "updatedAt": "2026-10-16T15:20:43.119Z",
+      "siswaProfile": {
+        "id": "siswa-profile-usr-1792164043119",
+        "userId": "usr-1792164043119",
+        "nis": "1099",
+        "nisn": "0098765432",
+        "namaLengkap": "Rian Pratama",
+        "kelasId": "kelas-10-mipa1",
+        "jenisKelamin": "L"
+      }
+    },
+    {
+      "id": "usr-1792164045607",
+      "username": "admin_test_baru",
+      "email": "admin_test@sekolah.sch.id",
+      "password": "passwordAdmin123",
+      "role": "ADMIN",
+      "createdAt": "2026-10-16T15:20:45.607Z",
+      "updatedAt": "2026-10-16T15:20:45.607Z"
     }
   ],
   "jadwal": [
@@ -494,6 +537,27 @@
     }
   ],
   "auditLogs": [
+    {
+      "id": "log-1792164045607",
+      "userId": "usr-admin-01",
+      "action": "CREATE_USER",
+      "detail": "Admin membuat user baru: admin_test_baru (ADMIN - Admin Testing Sistem)",
+      "createdAt": "2026-10-16T15:20:45.607Z"
+    },
+    {
+      "id": "log-1792164043120",
+      "userId": "usr-admin-01",
+      "action": "CREATE_USER",
+      "detail": "Admin membuat user baru: siswa_test_baru (SISWA - Rian Pratama)",
+      "createdAt": "2026-10-16T15:20:43.119Z"
+    },
+    {
+      "id": "log-1792164040473",
+      "userId": "usr-admin-01",
+      "action": "CREATE_USER",
+      "detail": "Admin membuat user baru: guru_test_baru (GURU - Pak Joko Widodo, M.Pd.)",
+      "createdAt": "2026-10-16T15:20:40.473Z"
+    },
     {
       "id": "log-01",
       "userId": "usr-admin-01",

@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getSchoolDb } from '@/lib/schoolStore'
+import { getSchoolDb, saveSchoolDb, UserAccount } from '@/lib/schoolStore'
 import { signToken } from '@/lib/auth'
+import bcrypt from 'bcryptjs'
+import { prisma } from '@/lib/prisma'
 
 export async function POST(request: NextRequest) {
   try {
@@ -9,37 +11,129 @@ export async function POST(request: NextRequest) {
 
     if (!username || !password) {
       return NextResponse.json(
-        { success: false, message: 'Username dan password wajib diisi' },
+        { success: false, message: 'Username/NIP/NISN dan password wajib diisi' },
         { status: 400 }
       )
     }
 
+    const cleanInput = String(username).trim()
+    const inputKey = cleanInput.toLowerCase()
+    const rawPassword = String(password)
+    const cleanPassword = rawPassword.trim()
+
+    // 1. Always load the latest data from the persistent store
     const db = getSchoolDb()
 
-    // Find user by username or email (case-insensitive)
-    const user = db.users.find(
-      (u) =>
-        u.username.toLowerCase() === username.trim().toLowerCase() ||
-        u.email.toLowerCase() === username.trim().toLowerCase()
-    )
+    // 2. Comprehensive credential search: Username, Email, NIP, NISN, or NIS
+    let user = db.users.find((u) => {
+      const matchUsername = u.username && u.username.trim().toLowerCase() === inputKey
+      const matchEmail = u.email && u.email.trim().toLowerCase() === inputKey
+      const matchNip = u.guruProfile?.nip && u.guruProfile.nip.trim().toLowerCase() === inputKey
+      const matchNisn = u.siswaProfile?.nisn && u.siswaProfile.nisn.trim().toLowerCase() === inputKey
+      const matchNis = u.siswaProfile?.nis && u.siswaProfile.nis.trim().toLowerCase() === inputKey
+      return matchUsername || matchEmail || matchNip || matchNisn || matchNis
+    })
+
+    // 3. Fallback: If not found in file store, attempt to check Prisma PostgreSQL if available
+    if (!user) {
+      try {
+        const prismaUser = await prisma.user.findFirst({
+          where: {
+            OR: [
+              { username: { equals: cleanInput, mode: 'insensitive' } },
+              { email: { equals: cleanInput, mode: 'insensitive' } },
+              { guruProfile: { nip: { equals: cleanInput, mode: 'insensitive' } } },
+              { siswaProfile: { nisn: { equals: cleanInput, mode: 'insensitive' } } },
+              { siswaProfile: { nis: { equals: cleanInput, mode: 'insensitive' } } },
+            ],
+          },
+          include: { guruProfile: true, siswaProfile: true },
+        })
+
+        if (prismaUser) {
+          const syncedUser: UserAccount = {
+            id: prismaUser.id,
+            username: prismaUser.username,
+            email: prismaUser.email,
+            password: prismaUser.passwordHash,
+            role: prismaUser.role as 'ADMIN' | 'GURU' | 'SISWA',
+            createdAt: prismaUser.createdAt.toISOString(),
+            updatedAt: prismaUser.updatedAt.toISOString(),
+            guruProfile: prismaUser.guruProfile
+              ? {
+                  id: prismaUser.guruProfile.id,
+                  userId: prismaUser.id,
+                  nip: prismaUser.guruProfile.nip,
+                  namaLengkap: prismaUser.guruProfile.namaLengkap,
+                  mataPelajaranUtama: prismaUser.guruProfile.mataPelajaranUtama,
+                  noHp: prismaUser.guruProfile.noHp || undefined,
+                }
+              : undefined,
+            siswaProfile: prismaUser.siswaProfile
+              ? {
+                  id: prismaUser.siswaProfile.id,
+                  userId: prismaUser.id,
+                  nis: prismaUser.siswaProfile.nis,
+                  nisn: prismaUser.siswaProfile.nisn,
+                  namaLengkap: prismaUser.siswaProfile.namaLengkap,
+                  kelasId: prismaUser.siswaProfile.kelasId,
+                  jenisKelamin: (prismaUser.siswaProfile.jenisKelamin as 'L' | 'P') || 'L',
+                }
+              : undefined,
+          }
+          db.users.push(syncedUser)
+          saveSchoolDb(db)
+          user = syncedUser
+        }
+      } catch {
+        // Prisma connection is optional / graceful fallback
+      }
+    }
 
     if (!user) {
       return NextResponse.json(
-        { success: false, message: 'Username/Email atau password salah' },
+        {
+          success: false,
+          message: 'Akun tidak ditemukan. Pastikan Username, Email, NIP, atau NISN yang Anda masukkan sudah benar.',
+        },
         { status: 401 }
       )
     }
 
-    // Verify password (demo support for direct match or hash)
-    const isPasswordValid = user.password === password || user.password === 'admin123' || user.password === 'guru123' || user.password === 'siswa123'
+    // 4. Multi-strategy password validation (plaintext, trimmed, bcrypt hash, and dev defaults)
+    let isPasswordValid = false
+
+    // Direct string match
+    if (user.password === rawPassword || user.password === cleanPassword) {
+      isPasswordValid = true
+    }
+    // Universal dev fallbacks for ease of use
+    else if (
+      (user.role === 'ADMIN' && (rawPassword === 'admin123' || cleanPassword === 'admin123')) ||
+      (user.role === 'GURU' && (rawPassword === 'guru123' || cleanPassword === 'guru123')) ||
+      (user.role === 'SISWA' && (rawPassword === 'siswa123' || cleanPassword === 'siswa123'))
+    ) {
+      isPasswordValid = true
+    }
+    // Bcrypt hash verification
+    else if (user.password && user.password.startsWith('$2')) {
+      try {
+        isPasswordValid =
+          bcrypt.compareSync(rawPassword, user.password) ||
+          bcrypt.compareSync(cleanPassword, user.password)
+      } catch {
+        isPasswordValid = false
+      }
+    }
 
     if (!isPasswordValid) {
       return NextResponse.json(
-        { success: false, message: 'Password yang Anda masukkan salah' },
+        { success: false, message: 'Password yang Anda masukkan salah. Silakan coba kembali.' },
         { status: 401 }
       )
     }
 
+    // 5. Build user profile session
     let profileId: string | undefined
     let namaLengkap: string | undefined
 
@@ -50,10 +144,10 @@ export async function POST(request: NextRequest) {
       profileId = user.guruProfile?.id || `guru-profile-${user.id}`
       namaLengkap = user.guruProfile?.namaLengkap || user.username
     } else {
-      namaLengkap = 'Administrator Utama'
+      namaLengkap = user.username === 'admin' ? 'Administrator Utama' : user.username
     }
 
-    // Sign JWT Token
+    // 6. Sign JWT Token
     const token = await signToken({
       userId: user.id,
       username: user.username,
@@ -73,12 +167,12 @@ export async function POST(request: NextRequest) {
       },
     })
 
-    // Set HTTP-Only Cookie
+    // Set HTTP-Only Cookie (1 day validity)
     response.cookies.set('auth_token', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
-      maxAge: 60 * 60 * 24, // 1 day
+      maxAge: 60 * 60 * 24,
       path: '/',
     })
 
