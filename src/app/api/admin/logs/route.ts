@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
+import { getSchoolDb } from '@/lib/schoolStore'
 import { getSession } from '@/lib/auth'
 
 export async function GET(request: NextRequest) {
@@ -14,19 +14,14 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url)
     const limit = Math.min(Number(searchParams.get('limit')) || 50, 100)
+    const db = getSchoolDb()
 
-    const logs = await prisma.auditLog.findMany({
-      take: limit,
-      orderBy: { createdAt: 'desc' },
-      include: {
-        user: {
-          select: {
-            id: true,
-            username: true,
-            role: true,
-          },
-        },
-      },
+    const logs = db.auditLogs.slice(0, limit).map((l) => {
+      const u = db.users.find((user) => user.id === l.userId)
+      return {
+        ...l,
+        user: u ? { id: u.id, username: u.username, role: u.role } : undefined,
+      }
     })
 
     return NextResponse.json({ success: true, data: logs })

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
-import { getSession, hashPassword } from '@/lib/auth'
+import { getSchoolDb, saveSchoolDb, UserAccount } from '@/lib/schoolStore'
+import { getSession } from '@/lib/auth'
 
 export async function GET() {
   try {
@@ -12,78 +12,31 @@ export async function GET() {
       )
     }
 
-    try {
-      const users = await prisma.user.findMany({
-        select: {
-          id: true,
-          username: true,
-          email: true,
-          role: true,
-          createdAt: true,
-          updatedAt: true,
-          siswaProfile: {
-            select: {
-              id: true,
-              nis: true,
-              nisn: true,
-              namaLengkap: true,
-              kelas: { select: { namaKelas: true } },
-            },
-          },
-          guruProfile: {
-            select: {
-              id: true,
-              nip: true,
-              namaLengkap: true,
-              mataPelajaranUtama: true,
-            },
-          },
-        },
-        orderBy: { createdAt: 'desc' },
-      })
+    const db = getSchoolDb()
 
-      return NextResponse.json({ success: true, data: users })
-    } catch (dbErr) {
-      console.warn('DB error fetching users, returning demo list:', dbErr)
-      return NextResponse.json({
-        success: true,
-        data: [
-          {
-            id: 'usr-admin-01',
-            username: 'admin',
-            email: 'admin@sekolah.sch.id',
-            role: 'ADMIN',
-            createdAt: new Date().toISOString(),
-          },
-          {
-            id: 'usr-guru-01',
-            username: 'guru1',
-            email: 'budi.santoso@sekolah.sch.id',
-            role: 'GURU',
-            createdAt: new Date().toISOString(),
-            guruProfile: {
-              nip: '198501012010011001',
-              namaLengkap: 'Budi Santoso, S.Pd.',
-              mataPelajaranUtama: 'Matematika',
-            },
-          },
-          {
-            id: 'usr-siswa-01',
-            username: 'siswa1',
-            email: 'ahmad.fauzi@siswa.sch.id',
-            role: 'SISWA',
-            createdAt: new Date().toISOString(),
-            siswaProfile: {
-              id: 'siswa-profile-01',
-              nis: '1001',
-              nisn: '0051234567',
-              namaLengkap: 'Ahmad Fauzi',
-              kelas: { namaKelas: 'X MIPA 1' },
-            },
-          },
-        ],
-      })
-    }
+    const usersWithDetails = db.users.map((u) => {
+      let siswaProfile = u.siswaProfile
+      if (siswaProfile) {
+        const k = db.kelas.find((kls) => kls.id === siswaProfile?.kelasId)
+        siswaProfile = {
+          ...siswaProfile,
+          kelas: k ? { id: k.id, namaKelas: k.namaKelas } : undefined,
+        } as typeof siswaProfile & { kelas?: { id: string; namaKelas: string } }
+      }
+
+      return {
+        id: u.id,
+        username: u.username,
+        email: u.email,
+        role: u.role,
+        createdAt: u.createdAt,
+        updatedAt: u.updatedAt,
+        siswaProfile,
+        guruProfile: u.guruProfile,
+      }
+    })
+
+    return NextResponse.json({ success: true, data: usersWithDetails })
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Server error'
     return NextResponse.json({ success: false, message }, { status: 500 })
@@ -121,12 +74,14 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Check duplicate username or email
-    const existing = await prisma.user.findFirst({
-      where: {
-        OR: [{ username }, { email }],
-      },
-    })
+    const db = getSchoolDb()
+
+    // Check duplicate
+    const existing = db.users.find(
+      (u) =>
+        u.username.toLowerCase() === username.trim().toLowerCase() ||
+        u.email.toLowerCase() === email.trim().toLowerCase()
+    )
 
     if (existing) {
       return NextResponse.json(
@@ -135,54 +90,53 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const passwordHash = await hashPassword(password)
+    const newUserId = `usr-${Date.now()}`
+    const nowStr = new Date().toISOString()
 
-    const newUser = await prisma.user.create({
-      data: {
-        username,
-        email,
-        passwordHash,
-        role,
-        ...(role === 'GURU' && {
-          guruProfile: {
-            create: {
-              nip: nip || `NIP-${Date.now().toString().slice(-6)}`,
-              namaLengkap: namaLengkap || username,
-            },
-          },
-        }),
-        ...(role === 'SISWA' && {
-          siswaProfile: {
-            create: {
-              nis: nis || `NIS-${Date.now().toString().slice(-6)}`,
-              nisn: nisn || `00${Date.now().toString().slice(-8)}`,
-              namaLengkap: namaLengkap || username,
-              jenisKelamin,
-              kelasId: kelasId || null,
-            },
-          },
-        }),
-      },
-      select: {
-        id: true,
-        username: true,
-        email: true,
-        role: true,
-        createdAt: true,
-      },
+    const newUser: UserAccount = {
+      id: newUserId,
+      username: username.trim(),
+      email: email.trim(),
+      password: password.trim(),
+      role: role as 'ADMIN' | 'GURU' | 'SISWA',
+      createdAt: nowStr,
+      updatedAt: nowStr,
+    }
+
+    if (role === 'GURU') {
+      newUser.guruProfile = {
+        id: `guru-profile-${newUserId}`,
+        userId: newUserId,
+        nip: nip || `199${Date.now().toString().slice(-10)}`,
+        namaLengkap: namaLengkap || username,
+        mataPelajaranUtama: 'Umum',
+      }
+    } else if (role === 'SISWA') {
+      newUser.siswaProfile = {
+        id: `siswa-profile-${newUserId}`,
+        userId: newUserId,
+        nis: nis || `${Date.now().toString().slice(-4)}`,
+        nisn: nisn || `00${Date.now().toString().slice(-8)}`,
+        namaLengkap: namaLengkap || username,
+        kelasId: kelasId || 'kelas-10-mipa1',
+        jenisKelamin: jenisKelamin === 'P' ? 'P' : 'L',
+      }
+    }
+
+    db.users.push(newUser)
+    db.auditLogs.unshift({
+      id: `log-${Date.now()}`,
+      userId: session.userId,
+      action: 'CREATE_USER',
+      detail: `Admin membuat user baru: ${username} (${role} - ${namaLengkap || username})`,
+      createdAt: nowStr,
     })
 
-    await prisma.auditLog.create({
-      data: {
-        userId: session.userId,
-        action: 'CREATE_USER',
-        detail: `Admin membuat user baru: ${username} (Role: ${role})`,
-      },
-    })
+    saveSchoolDb(db)
 
     return NextResponse.json({
       success: true,
-      message: `User ${username} berhasil dibuat`,
+      message: `Akun ${username} (${role}) berhasil dibuat dan dapat langsung digunakan`,
       data: newUser,
     })
   } catch (error: unknown) {
@@ -211,44 +165,39 @@ export async function PATCH(request: NextRequest) {
       )
     }
 
-    const targetUser = await prisma.user.findUnique({ where: { id: userId } })
-    if (!targetUser) {
+    const db = getSchoolDb()
+    const target = db.users.find((u) => u.id === userId)
+    if (!target) {
       return NextResponse.json(
         { success: false, message: 'User tidak ditemukan' },
         { status: 404 }
       )
     }
 
-    const updateData: { passwordHash?: string; role?: 'ADMIN' | 'GURU' | 'SISWA' } = {}
-
-    if (newPassword && newPassword.trim().length >= 6) {
-      updateData.passwordHash = await hashPassword(newPassword)
+    if (newPassword && newPassword.trim().length >= 4) {
+      target.password = newPassword.trim()
     }
 
     if (newRole && ['ADMIN', 'GURU', 'SISWA'].includes(newRole)) {
-      updateData.role = newRole
+      target.role = newRole
     }
 
-    const updated = await prisma.user.update({
-      where: { id: userId },
-      data: updateData,
-      select: { id: true, username: true, role: true, updatedAt: true },
+    target.updatedAt = new Date().toISOString()
+
+    db.auditLogs.unshift({
+      id: `log-${Date.now()}`,
+      userId: session.userId,
+      action: 'UPDATE_USER',
+      detail: `Admin memperbarui user ${target.username}: ${newPassword ? '[Reset Password] ' : ''}${newRole ? `[Ubah Role: ${newRole}]` : ''}`,
+      createdAt: new Date().toISOString(),
     })
 
-    await prisma.auditLog.create({
-      data: {
-        userId: session.userId,
-        action: 'UPDATE_USER',
-        detail: `Admin mengupdate user ${targetUser.username}: ${
-          newPassword ? '[Reset Password] ' : ''
-        }${newRole ? `[Ubah Role ke ${newRole}]` : ''}`,
-      },
-    })
+    saveSchoolDb(db)
 
     return NextResponse.json({
       success: true,
-      message: `Data user ${updated.username} berhasil diperbarui`,
-      data: updated,
+      message: `Data user ${target.username} berhasil diperbarui`,
+      data: target,
     })
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Server error'
@@ -283,27 +232,30 @@ export async function DELETE(request: NextRequest) {
       )
     }
 
-    const userToDelete = await prisma.user.findUnique({ where: { id: userId } })
-    if (!userToDelete) {
+    const db = getSchoolDb()
+    const userIndex = db.users.findIndex((u) => u.id === userId)
+    if (userIndex === -1) {
       return NextResponse.json(
         { success: false, message: 'User tidak ditemukan' },
         { status: 404 }
       )
     }
 
-    await prisma.user.delete({ where: { id: userId } })
+    const deletedUser = db.users.splice(userIndex, 1)[0]
 
-    await prisma.auditLog.create({
-      data: {
-        userId: session.userId,
-        action: 'DELETE_USER',
-        detail: `Admin menghapus user ${userToDelete.username} (${userToDelete.role})`,
-      },
+    db.auditLogs.unshift({
+      id: `log-${Date.now()}`,
+      userId: session.userId,
+      action: 'DELETE_USER',
+      detail: `Admin menghapus user ${deletedUser.username} (${deletedUser.role})`,
+      createdAt: new Date().toISOString(),
     })
+
+    saveSchoolDb(db)
 
     return NextResponse.json({
       success: true,
-      message: `User ${userToDelete.username} berhasil dihapus`,
+      message: `User ${deletedUser.username} berhasil dihapus`,
     })
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Server error'

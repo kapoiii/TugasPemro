@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
+import { getSchoolDb, saveSchoolDb, NilaiSiswa } from '@/lib/schoolStore'
 import { getSession } from '@/lib/auth'
 
 export async function GET(request: NextRequest) {
@@ -14,21 +14,26 @@ export async function GET(request: NextRequest) {
     const mapelId = searchParams.get('mapelId')
     const siswaId = searchParams.get('siswaId') || (session.role === 'SISWA' ? session.profileId : undefined)
 
-    const nilais = await prisma.nilai.findMany({
-      where: {
-        ...(kelasId && { kelasId }),
-        ...(mapelId && { mapelId }),
-        ...(siswaId && { siswaId }),
-      },
-      include: {
-        siswa: true,
-        mapel: true,
-        kelas: true,
-      },
-      orderBy: { createdAt: 'desc' },
+    const db = getSchoolDb()
+
+    let results = db.nilais
+    if (kelasId) results = results.filter((n) => n.kelasId === kelasId)
+    if (mapelId) results = results.filter((n) => n.mapelId === mapelId)
+    if (siswaId) results = results.filter((n) => n.siswaId === siswaId)
+
+    const enriched = results.map((n) => {
+      const siswa = db.users.find((u) => u.siswaProfile?.id === n.siswaId)?.siswaProfile
+      const mapel = db.mapel.find((m) => m.id === n.mapelId)
+      const kelas = db.kelas.find((k) => k.id === n.kelasId)
+      return {
+        ...n,
+        siswa,
+        mapel,
+        kelas,
+      }
     })
 
-    return NextResponse.json({ success: true, data: nilais })
+    return NextResponse.json({ success: true, data: enriched })
   } catch (error: unknown) {
     const errMessage = error instanceof Error ? error.message : 'Server error'
     return NextResponse.json({ success: false, message: errMessage }, { status: 500 })
@@ -57,11 +62,12 @@ export async function POST(request: NextRequest) {
       catatan,
     } = body
 
-    if (!siswaId || !mapelId || !kelasId) {
+    if (!siswaId || !mapelId) {
       return NextResponse.json({ success: false, message: 'Data nilai tidak lengkap' }, { status: 400 })
     }
 
-    // Auto-calculate final grade & predicate
+    const db = getSchoolDb()
+
     const t = Number(nilaiTugas)
     const uts = Number(nilaiUts)
     const uas = Number(nilaiUas)
@@ -75,56 +81,55 @@ export async function POST(request: NextRequest) {
     else if (nilaiAkhir >= 78) predikat = 'B'
     else if (nilaiAkhir >= 68) predikat = 'C'
 
-    const upsertedNilai = await prisma.nilai.upsert({
-      where: {
-        siswaId_mapelId_semester_tahunAjaran: {
-          siswaId,
-          mapelId,
-          semester,
-          tahunAjaran,
-        },
-      },
-      update: {
-        nilaiTugas: t,
-        nilaiUts: uts,
-        nilaiUas: uas,
-        nilaiPraktik: prk,
-        nilaiSikap: skp,
-        nilaiAkhir,
-        predikat,
-        catatan,
-        guruId: session.profileId || session.userId,
-      },
-      create: {
-        siswaId,
-        mapelId,
-        kelasId,
-        guruId: session.profileId || session.userId,
-        semester,
-        tahunAjaran,
-        nilaiTugas: t,
-        nilaiUts: uts,
-        nilaiUas: uas,
-        nilaiPraktik: prk,
-        nilaiSikap: skp,
-        nilaiAkhir,
-        predikat,
-        catatan,
-      },
+    const existingIndex = db.nilais.findIndex(
+      (n) => n.siswaId === siswaId && n.mapelId === mapelId && n.semester === semester
+    )
+
+    let actualKelasId = kelasId
+    if (!actualKelasId) {
+      const studentUser = db.users.find((u) => u.siswaProfile?.id === siswaId)
+      actualKelasId = studentUser?.siswaProfile?.kelasId || 'kelas-10-mipa1'
+    }
+
+    const nilaiItem: NilaiSiswa = {
+      id: existingIndex !== -1 ? db.nilais[existingIndex].id : `nilai-${Date.now()}`,
+      siswaId,
+      mapelId,
+      kelasId: actualKelasId,
+      guruId: session.profileId || 'guru-profile-01',
+      semester,
+      tahunAjaran,
+      nilaiTugas: t,
+      nilaiUts: uts,
+      nilaiUas: uas,
+      nilaiPraktik: prk,
+      nilaiSikap: skp,
+      nilaiAkhir,
+      predikat,
+      catatan: catatan || '',
+      updatedAt: new Date().toISOString(),
+    }
+
+    if (existingIndex !== -1) {
+      db.nilais[existingIndex] = nilaiItem
+    } else {
+      db.nilais.push(nilaiItem)
+    }
+
+    db.auditLogs.unshift({
+      id: `log-${Date.now()}`,
+      userId: session.userId,
+      action: 'INPUT_NILAI',
+      detail: `Guru/Admin menginput/merubah nilai mapel ${mapelId} siswa ${siswaId}: Akhir=${nilaiAkhir} (${predikat})`,
+      createdAt: new Date().toISOString(),
     })
 
-    await prisma.auditLog.create({
-      data: {
-        userId: session.userId,
-        action: 'INPUT_NILAI',
-        detail: `Menginput nilai mapel ${mapelId} untuk siswa ${siswaId}, Nilai Akhir: ${nilaiAkhir} (${predikat})`,
-      },
-    })
+    saveSchoolDb(db)
 
     return NextResponse.json({
       success: true,
-      message: 'Nilai siswa berhasil disimpan',
-      data: upsertedNilai,
+      message: 'Nilai siswa berhasil disimpan & diperbarui',
+      data: nilaiItem,
     })
   } catch (error: unknown) {
     const errMessage = error instanceof Error ? error.message : 'Server error'

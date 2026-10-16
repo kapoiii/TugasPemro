@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { getSession } from '@/lib/auth'
-import { prisma } from '@/lib/prisma'
+import { getSchoolDb } from '@/lib/schoolStore'
 
 export async function GET() {
   const session = await getSession()
@@ -11,38 +11,35 @@ export async function GET() {
     )
   }
 
-  try {
-    const user = await prisma.user.findUnique({
-      where: { id: session.userId },
-      select: {
-        id: true,
-        username: true,
-        email: true,
-        role: true,
-        siswaProfile: {
-          include: {
-            kelas: true,
-          },
-        },
-        guruProfile: {
-          include: {
-            kelasWali: true,
-          },
+  const db = getSchoolDb()
+  const user = db.users.find((u) => u.id === session.userId || u.username === session.username)
+
+  if (user) {
+    let siswaProfile = user.siswaProfile
+    if (user.role === 'SISWA' && siswaProfile) {
+      const kelas = db.kelas.find((k) => k.id === siswaProfile?.kelasId)
+      siswaProfile = {
+        ...siswaProfile,
+        kelas: kelas ? { id: kelas.id, namaKelas: kelas.namaKelas } : undefined,
+      } as typeof siswaProfile & { kelas?: { id: string; namaKelas: string } }
+    }
+
+    return NextResponse.json({
+      success: true,
+      data: {
+        ...session,
+        profileId: session.profileId || user.siswaProfile?.id || user.guruProfile?.id,
+        namaLengkap: user.siswaProfile?.namaLengkap || user.guruProfile?.namaLengkap || session.namaLengkap || user.username,
+        details: {
+          id: user.id,
+          username: user.username,
+          email: user.email,
+          role: user.role,
+          siswaProfile,
+          guruProfile: user.guruProfile,
         },
       },
     })
-
-    if (user) {
-      return NextResponse.json({
-        success: true,
-        data: {
-          ...session,
-          details: user,
-        },
-      })
-    }
-  } catch (error) {
-    console.warn('Could not fetch user details from database, falling back to session payload:', error)
   }
 
   // Graceful fallback from session
@@ -57,14 +54,16 @@ export async function GET() {
         siswaProfile:
           session.role === 'SISWA'
             ? {
+                id: session.profileId || 'siswa-profile-01',
                 namaLengkap: session.namaLengkap || 'Ahmad Fauzi',
                 nisn: '0051234567',
-                kelas: { namaKelas: 'X MIPA 1' },
+                kelas: { id: 'kelas-10-mipa1', namaKelas: 'X MIPA 1' },
               }
             : undefined,
         guruProfile:
           session.role === 'GURU'
             ? {
+                id: session.profileId || 'guru-profile-01',
                 namaLengkap: session.namaLengkap || 'Budi Santoso, S.Pd.',
                 nip: '198501012010011001',
               }
