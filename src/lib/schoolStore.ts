@@ -35,6 +35,8 @@ export interface GuruProfile {
   namaLengkap: string
   mataPelajaranUtama: string
   noHp?: string
+  avatarUrl?: string
+  bio?: string
 }
 
 export interface Kelas {
@@ -53,7 +55,7 @@ export interface MataPelajaran {
 
 export interface JadwalPelajaran {
   id: string
-  hari: 'Senin' | 'Selasa' | 'Rabu' | 'Kamis' | 'Jumat'
+  hari: 'Senin' | 'Selasa' | 'Rabu' | 'Kamis' | 'Jumat' | 'Sabtu'
   jamMulai: string
   jamSelesai: string
   kelasId: string
@@ -81,6 +83,13 @@ export interface SesiAbsensi {
   details: DetailAbsensi[]
 }
 
+export interface BobotNilai {
+  tugas: number
+  uh: number
+  uts: number
+  uas: number
+}
+
 export interface NilaiSiswa {
   id: string
   siswaId: string
@@ -90,6 +99,7 @@ export interface NilaiSiswa {
   semester: string
   tahunAjaran: string
   nilaiTugas: number
+  nilaiUh?: number // Ulangan Harian
   nilaiUts: number
   nilaiUas: number
   nilaiPraktik: number
@@ -120,6 +130,40 @@ export interface PekerjaanRumah {
   tenggatWaktu: string
   createdAt: string
   submissions: HomeworkSubmission[]
+}
+
+export interface MateriItem {
+  id: string
+  judul: string
+  deskripsi?: string
+  fileName: string
+  fileUrl: string
+  fileType: string // pdf, docx, pptx, mp4, zip, image
+  fileSizeBytes: number
+  kelasId: string
+  mapelId: string
+  guruId: string
+  createdAt: string
+}
+
+export interface PengumumanKelasItem {
+  id: string
+  judul: string
+  konten: string
+  prioritas: 'NORMAL' | 'PENTING' | 'MENDESAK'
+  kelasId: string // 'ALL' or specific kelasId
+  guruId: string
+  createdAt: string
+}
+
+export interface CatatanBimbinganItem {
+  id: string
+  siswaId: string
+  guruId: string
+  kategori: 'Akademik' | 'Kedisiplinan' | 'Prestasi' | 'Konseling'
+  catatan: string
+  tindakan?: string
+  tanggal: string
 }
 
 export interface RaportData {
@@ -161,6 +205,10 @@ export interface SchoolDatabase {
   absensi: SesiAbsensi[]
   nilais: NilaiSiswa[]
   pekerjaanRumah: PekerjaanRumah[]
+  materis: MateriItem[]
+  pengumumanKelas: PengumumanKelasItem[]
+  catatanBimbingan: CatatanBimbinganItem[]
+  bobotNilai: BobotNilai
   raports: RaportData[]
   settings: SystemSettings
   auditLogs: AuditLog[]
@@ -565,6 +613,102 @@ const DEFAULT_DATABASE: SchoolDatabase = {
       submissions: [],
     },
   ],
+  materis: [
+    {
+      id: 'mat-01',
+      judul: 'Modul Bab 1: Eksponen & Logaritma Tingkat Lanjut',
+      deskripsi: 'Bahan ajar lengkap konsep logaritma, sifat-sifat dasar, dan pembahasan soal OSN.',
+      fileName: 'Modul_Eksponen_Logaritma_Kelas_X.pdf',
+      fileUrl: '/documents/Modul_Eksponen_Logaritma_Kelas_X.pdf',
+      fileType: 'pdf',
+      fileSizeBytes: 2450000,
+      kelasId: 'kelas-10-mipa1',
+      mapelId: 'mapel-mtk',
+      guruId: 'guru-profile-01',
+      createdAt: '2026-10-10T08:00:00.000Z',
+    },
+    {
+      id: 'mat-02',
+      judul: 'Slide Presentasi: Matriks dan Transformasi Geometri',
+      deskripsi: 'Slide presentasi interaktif format PPTX untuk pembelajaran visual di kelas.',
+      fileName: 'Slide_Matriks_Geometri.pptx',
+      fileUrl: '/documents/Slide_Matriks_Geometri.pptx',
+      fileType: 'pptx',
+      fileSizeBytes: 4200000,
+      kelasId: 'kelas-10-mipa1',
+      mapelId: 'mapel-mtk',
+      guruId: 'guru-profile-01',
+      createdAt: '2026-10-12T10:30:00.000Z',
+    },
+    {
+      id: 'mat-03',
+      judul: 'Video Tutorial: Penyelesaian Sistem Persamaan Linear Tiga Variabel',
+      deskripsi: 'Video rekaman simulasi metode eliminasi Gauss dan substitusi praktis.',
+      fileName: 'Video_Tutorial_SPLTV.mp4',
+      fileUrl: '/documents/Video_Tutorial_SPLTV.mp4',
+      fileType: 'mp4',
+      fileSizeBytes: 8900000,
+      kelasId: 'kelas-10-mipa2',
+      mapelId: 'mapel-mtk',
+      guruId: 'guru-profile-01',
+      createdAt: '2026-10-14T14:00:00.000Z',
+    },
+  ],
+  pengumumanKelas: [
+    {
+      id: 'peng-01',
+      judul: 'Jadwal Ulangan Harian (UH) Bab 2 Logaritma',
+      konten: 'Diumumkan kepada seluruh siswa kelas X MIPA 1, ulangan harian matematika bab 2 akan diselenggarakan hari Senin mendatang pukul 07.30 WIB. Siapkan alat tulis dan kalkulator standar.',
+      prioritas: 'PENTING',
+      kelasId: 'kelas-10-mipa1',
+      guruId: 'guru-profile-01',
+      createdAt: '2026-10-18T08:00:00.000Z',
+    },
+    {
+      id: 'peng-02',
+      judul: 'Sesi Remedial dan Pengayaan Matematika Wajib',
+      konten: 'Bagi siswa yang memperoleh nilai di bawah KKM (75) pada materi eksponen, bimbingan remedial dan klinik PR diadakan setiap Rabu jam 14.30 di Ruang 101.',
+      prioritas: 'NORMAL',
+      kelasId: 'ALL',
+      guruId: 'guru-profile-01',
+      createdAt: '2026-10-17T09:30:00.000Z',
+    },
+    {
+      id: 'peng-03',
+      judul: 'PENTING: Batas Akhir Pengumpulan Tugas Aljabar',
+      konten: 'Tenggat waktu pengumpulan tugas aljabar bab 2 adalah 25 Oktober 2026 pukul 23:59 WIB. Keterlambatan tanpa keterangan izin akan dikenakan pengurangan poin.',
+      prioritas: 'MENDESAK',
+      kelasId: 'kelas-10-mipa1',
+      guruId: 'guru-profile-01',
+      createdAt: '2026-10-19T07:15:00.000Z',
+    },
+  ],
+  catatanBimbingan: [
+    {
+      id: 'bim-01',
+      siswaId: 'siswa-profile-03',
+      guruId: 'guru-profile-01',
+      kategori: 'Akademik',
+      catatan: 'Siswa mengalami kesulitan memahami konsep logaritma dan nilai ulangan di bawah KKM (64). Sering absen karena sakit.',
+      tindakan: 'Diberikan jadwal tutor sebaya dengan Ahmad Fauzi dan modul ringkasan matematika khusus.',
+      tanggal: '2026-10-16',
+    },
+    {
+      id: 'bim-02',
+      siswaId: 'siswa-profile-01',
+      guruId: 'guru-profile-01',
+      kategori: 'Prestasi',
+      catatan: 'Siswa menunjukkan antusiasme dan bakat matematika tinggi, selalu aktif bertanya dan nilai di atas 88.',
+      tindakan: 'Direkomendasikan bergabung ke Tim Pembinaan Olimpiade Sains Nasional (OSN) Matematika sekolah.',
+      tanggal: '2026-10-17',
+    },
+  ],
+  bobotNilai: {
+    tugas: 25,
+    uh: 25,
+    uts: 25,
+    uas: 25,
+  },
   raports: [
     {
       id: 'raport-01',
@@ -599,7 +743,40 @@ export function getSchoolDb(): SchoolDatabase {
     if (fs.existsSync(DB_FILE_PATH)) {
       const fileData = fs.readFileSync(DB_FILE_PATH, 'utf-8')
       if (fileData && fileData.trim().length > 0) {
-        return JSON.parse(fileData) as SchoolDatabase
+        const parsed = JSON.parse(fileData) as SchoolDatabase
+        let needsSync = false
+
+        if (!parsed.materis) {
+          parsed.materis = DEFAULT_DATABASE.materis
+          needsSync = true
+        }
+        if (!parsed.pengumumanKelas) {
+          parsed.pengumumanKelas = DEFAULT_DATABASE.pengumumanKelas
+          needsSync = true
+        }
+        if (!parsed.catatanBimbingan) {
+          parsed.catatanBimbingan = DEFAULT_DATABASE.catatanBimbingan
+          needsSync = true
+        }
+        if (!parsed.bobotNilai) {
+          parsed.bobotNilai = DEFAULT_DATABASE.bobotNilai
+          needsSync = true
+        }
+
+        // Ensure nilais have nilaiUh field
+        if (Array.isArray(parsed.nilais)) {
+          parsed.nilais.forEach((n) => {
+            if (typeof n.nilaiUh === 'undefined') {
+              n.nilaiUh = n.nilaiTugas || 80
+              needsSync = true
+            }
+          })
+        }
+
+        if (needsSync) {
+          saveSchoolDb(parsed)
+        }
+        return parsed
       }
     }
   } catch (err) {

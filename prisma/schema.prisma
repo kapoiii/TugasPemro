@@ -41,6 +41,7 @@ model User {
   email        String        @unique
   passwordHash String
   role         Role          @default(SISWA)
+  avatarUrl    String?
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
 
@@ -56,11 +57,15 @@ model Kelas {
   tingkat     String   // 10, 11, 12
   waliKelasId String?  @unique
 
-  waliKelas   GuruProfile?   @relation("WaliKelas", fields: [waliKelasId], references: [id])
+  waliKelas   GuruProfile?       @relation("WaliKelas", fields: [waliKelasId], references: [id])
   siswas      SiswaProfile[]
   sesiAbsensi SesiAbsensi[]
   nilais      Nilai[]
   raports     Raport[]
+  jadwals     Jadwal[]
+  tugas       Tugas[]
+  materis     Materi[]
+  pengumuman  PengumumanKelas[]
 }
 
 model SiswaProfile {
@@ -76,12 +81,15 @@ model SiswaProfile {
   alamat       String?
   namaOrangTua String?
   noHp         String?
+  avatarUrl    String?
 
-  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  kelas        Kelas?        @relation(fields: [kelasId], references: [id])
-  absensis     DetailAbsensi[]
-  nilais       Nilai[]
-  raports      Raport[]
+  user             User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  kelas            Kelas?             @relation(fields: [kelasId], references: [id])
+  absensis         DetailAbsensi[]
+  nilais           Nilai[]
+  raports          Raport[]
+  submissions      PengumpulanTugas[]
+  catatanBimbingan CatatanBimbingan[]
 }
 
 model GuruProfile {
@@ -91,11 +99,18 @@ model GuruProfile {
   namaLengkap        String
   mataPelajaranUtama String?
   noHp               String?
+  avatarUrl          String?
+  bio                String?
 
-  user               User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  kelasWali          Kelas?        @relation("WaliKelas")
-  sesiAbsensi        SesiAbsensi[]
-  nilaisInputed      Nilai[]
+  user             User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  kelasWali        Kelas?             @relation("WaliKelas")
+  sesiAbsensi      SesiAbsensi[]
+  nilaisInputed    Nilai[]
+  jadwals          Jadwal[]
+  tugas            Tugas[]
+  materis          Materi[]
+  pengumuman       PengumumanKelas[]
+  catatanBimbingan CatatanBimbingan[]
 }
 
 model MataPelajaran {
@@ -106,6 +121,9 @@ model MataPelajaran {
 
   sesiAbsensi SesiAbsensi[]
   nilais      Nilai[]
+  jadwals     Jadwal[]
+  tugas       Tugas[]
+  materis     Materi[]
 }
 
 model PPDB {
@@ -132,6 +150,21 @@ model PPDB {
   updatedAt      DateTime   @updatedAt
 
   verifier       User?      @relation("PPDBVerifier", fields: [verifierId], references: [id])
+}
+
+model Jadwal {
+  id         String        @id @default(uuid())
+  hari       String        // Senin, Selasa, Rabu, Kamis, Jumat, Sabtu
+  jamMulai   String        // 07:30
+  jamSelesai String        // 09:00
+  kelasId    String
+  mapelId    String
+  guruId     String
+  ruangan    String        // Ruang 101, Lab Komputer, dll
+
+  kelas      Kelas         @relation(fields: [kelasId], references: [id], onDelete: Cascade)
+  mapel      MataPelajaran @relation(fields: [mapelId], references: [id], onDelete: Cascade)
+  guru       GuruProfile   @relation(fields: [guruId], references: [id], onDelete: Cascade)
 }
 
 model SesiAbsensi {
@@ -172,6 +205,7 @@ model Nilai {
   semester     String        // 1 (Ganjil) / 2 (Genap)
   tahunAjaran  String        // 2025/2026
   nilaiTugas   Float         @default(0)
+  nilaiUh      Float         @default(0) // Ulangan Harian
   nilaiUts     Float         @default(0)
   nilaiUas     Float         @default(0)
   nilaiPraktik Float         @default(0)
@@ -188,6 +222,83 @@ model Nilai {
   guru         GuruProfile   @relation(fields: [guruId], references: [id])
 
   @@unique([siswaId, mapelId, semester, tahunAjaran])
+}
+
+model Tugas {
+  id           String            @id @default(uuid())
+  judul        String
+  deskripsi    String
+  kelasId      String
+  mapelId      String
+  guruId       String
+  deadline     DateTime
+  createdAt    DateTime          @default(now())
+
+  kelas        Kelas             @relation(fields: [kelasId], references: [id], onDelete: Cascade)
+  mapel        MataPelajaran     @relation(fields: [mapelId], references: [id], onDelete: Cascade)
+  guru         GuruProfile       @relation(fields: [guruId], references: [id], onDelete: Cascade)
+  submissions  PengumpulanTugas[]
+}
+
+model PengumpulanTugas {
+  id           String       @id @default(uuid())
+  tugasId      String
+  siswaId      String
+  fileUrl      String?
+  catatanSiswa String?
+  nilai        Float?
+  catatanGuru  String?
+  status       String       @default("SUBMITTED") // SUBMITTED, GRADED
+  submittedAt  DateTime     @default(now())
+
+  tugas        Tugas        @relation(fields: [tugasId], references: [id], onDelete: Cascade)
+  siswa        SiswaProfile @relation(fields: [siswaId], references: [id], onDelete: Cascade)
+
+  @@unique([tugasId, siswaId])
+}
+
+model Materi {
+  id            String        @id @default(uuid())
+  judul         String
+  deskripsi     String?
+  fileName      String
+  fileUrl       String
+  fileType      String        // pdf, docx, pptx, mp4, zip, image
+  fileSizeBytes Int
+  kelasId       String
+  mapelId       String
+  guruId        String
+  createdAt     DateTime      @default(now())
+
+  kelas         Kelas         @relation(fields: [kelasId], references: [id], onDelete: Cascade)
+  mapel         MataPelajaran @relation(fields: [mapelId], references: [id], onDelete: Cascade)
+  guru          GuruProfile   @relation(fields: [guruId], references: [id], onDelete: Cascade)
+}
+
+model PengumumanKelas {
+  id        String       @id @default(uuid())
+  judul     String
+  konten    String
+  prioritas String       @default("NORMAL") // NORMAL, PENTING, MENDESAK
+  kelasId   String?      // null jika untuk semua kelas
+  guruId    String
+  createdAt DateTime     @default(now())
+
+  kelas     Kelas?       @relation(fields: [kelasId], references: [id], onDelete: Cascade)
+  guru      GuruProfile  @relation(fields: [guruId], references: [id], onDelete: Cascade)
+}
+
+model CatatanBimbingan {
+  id         String       @id @default(uuid())
+  siswaId    String
+  guruId     String
+  kategori   String       // Akademik, Kedisiplinan, Prestasi, Konseling
+  catatan    String
+  tindakan   String?
+  tanggal    DateTime     @default(now())
+
+  siswa      SiswaProfile @relation(fields: [siswaId], references: [id], onDelete: Cascade)
+  guru       GuruProfile  @relation(fields: [guruId], references: [id], onDelete: Cascade)
 }
 
 model Raport {

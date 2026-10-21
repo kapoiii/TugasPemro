@@ -391,6 +391,66 @@
           "catatan": "Tepat waktu"
         }
       ]
+    },
+    {
+      "id": "sesi-03",
+      "kelasId": "kelas-10-mipa1",
+      "mapelId": "mapel-mtk",
+      "guruId": "guru-profile-01",
+      "tanggal": "2026-10-18",
+      "pertemuanKe": 3,
+      "keterangan": "Materi Logaritma Dasar",
+      "createdAt": "2026-10-18T08:00:00.000Z",
+      "details": [
+        {
+          "id": "abs-03-1",
+          "siswaId": "siswa-profile-01",
+          "status": "HADIR",
+          "catatan": ""
+        },
+        {
+          "id": "abs-03-2",
+          "siswaId": "siswa-profile-02",
+          "status": "HADIR",
+          "catatan": ""
+        },
+        {
+          "id": "abs-03-3",
+          "siswaId": "siswa-profile-03",
+          "status": "ALFA",
+          "catatan": "Tanpa keterangan"
+        }
+      ]
+    },
+    {
+      "id": "sesi-04",
+      "kelasId": "kelas-10-mipa1",
+      "mapelId": "mapel-mtk",
+      "guruId": "guru-profile-01",
+      "tanggal": "2026-10-20",
+      "pertemuanKe": 4,
+      "keterangan": "Latihan Ulangan Harian",
+      "createdAt": "2026-10-20T08:00:00.000Z",
+      "details": [
+        {
+          "id": "abs-04-1",
+          "siswaId": "siswa-profile-01",
+          "status": "HADIR",
+          "catatan": ""
+        },
+        {
+          "id": "abs-04-2",
+          "siswaId": "siswa-profile-02",
+          "status": "HADIR",
+          "catatan": ""
+        },
+        {
+          "id": "abs-04-3",
+          "siswaId": "siswa-profile-03",
+          "status": "ALFA",
+          "catatan": "Tanpa keterangan"
+        }
+      ]
     }
   ],
   "nilais": [
@@ -483,6 +543,25 @@
       "predikat": "B",
       "catatan": "Baik dan tekun dalam menyelesaikan tugas.",
       "updatedAt": "2026-10-15T10:00:00.000Z"
+    },
+    {
+      "id": "nilai-citra-01",
+      "siswaId": "siswa-profile-03",
+      "mapelId": "mapel-mtk",
+      "kelasId": "kelas-10-mipa1",
+      "guruId": "guru-profile-01",
+      "semester": "1",
+      "tahunAjaran": "2025/2026",
+      "nilaiTugas": 65,
+      "nilaiUh": 60,
+      "nilaiUts": 68,
+      "nilaiUas": 66,
+      "nilaiPraktik": 70,
+      "nilaiSikap": 80,
+      "nilaiAkhir": 64.75,
+      "predikat": "C",
+      "catatan": "Perlu bimbingan remedial matematika wajib",
+      "updatedAt": "2026-10-21T08:10:45.495Z"
     }
   ],
   "pekerjaanRumah": [
@@ -504,6 +583,13 @@
           "status": "SUBMITTED",
           "nilai": 90,
           "catatanGuru": "Pengerjaan rapi dan pembuktian rumus tepat."
+        },
+        {
+          "siswaId": "siswa-profile-02",
+          "submissionText": "Sudah selesai dikerjakan di kertas folio, foto jawaban terlampir.",
+          "fileUrl": "https://drive.google.com/contoh-tugas-aljabar-siti.pdf",
+          "submittedAt": "2026-10-18T10:00:00.000Z",
+          "status": "SUBMITTED"
         }
       ]
     },
@@ -564,6 +650,102 @@
       "action": "SYSTEM_INIT",
       "detail": "Inisialisasi sistem database sekolah terpadu.",
       "createdAt": "2026-10-16T10:54:51.316Z"
+    }
+  ],
+  "bobotNilai": {
+    "tugas": 25,
+    "uh": 25,
+    "uts": 25,
+    "uas": 25
+  },
+  "materis": [
+    {
+      "id": "mat-01",
+      "judul": "Modul Bab 1: Eksponen & Logaritma Tingkat Lanjut",
+      "deskripsi": "Bahan ajar lengkap konsep logaritma, sifat-sifat dasar, dan pembahasan soal OSN.",
+      "fileName": "Modul_Eksponen_Logaritma_Kelas_X.pdf",
+      "fileUrl": "/documents/Modul_Eksponen_Logaritma_Kelas_X.pdf",
+      "fileType": "pdf",
+      "fileSizeBytes": 2450000,
+      "kelasId": "kelas-10-mipa1",
+      "mapelId": "mapel-mtk",
+      "guruId": "guru-profile-01",
+      "createdAt": "2026-10-10T08:00:00.000Z"
+    },
+    {
+      "id": "mat-02",
+      "judul": "Slide Presentasi: Matriks dan Transformasi Geometri",
+      "deskripsi": "Slide presentasi interaktif format PPTX untuk pembelajaran visual di kelas.",
+      "fileName": "Slide_Matriks_Geometri.pptx",
+      "fileUrl": "/documents/Slide_Matriks_Geometri.pptx",
+      "fileType": "pptx",
+      "fileSizeBytes": 4200000,
+      "kelasId": "kelas-10-mipa1",
+      "mapelId": "mapel-mtk",
+      "guruId": "guru-profile-01",
+      "createdAt": "2026-10-12T10:30:00.000Z"
+    },
+    {
+      "id": "mat-03",
+      "judul": "Video Tutorial: Penyelesaian Sistem Persamaan Linear Tiga Variabel",
+      "deskripsi": "Video rekaman simulasi metode eliminasi Gauss dan substitusi praktis.",
+      "fileName": "Video_Tutorial_SPLTV.mp4",
+      "fileUrl": "/documents/Video_Tutorial_SPLTV.mp4",
+      "fileType": "mp4",
+      "fileSizeBytes": 8900000,
+      "kelasId": "kelas-10-mipa2",
+      "mapelId": "mapel-mtk",
+      "guruId": "guru-profile-01",
+      "createdAt": "2026-10-14T14:00:00.000Z"
+    }
+  ],
+  "pengumumanKelas": [
+    {
+      "id": "peng-01",
+      "judul": "Jadwal Ulangan Harian (UH) Bab 2 Logaritma",
+      "konten": "Diumumkan kepada seluruh siswa kelas X MIPA 1, ulangan harian matematika bab 2 akan diselenggarakan hari Senin mendatang pukul 07.30 WIB. Siapkan alat tulis dan kalkulator standar.",
+      "prioritas": "PENTING",
+      "kelasId": "kelas-10-mipa1",
+      "guruId": "guru-profile-01",
+      "createdAt": "2026-10-18T08:00:00.000Z"
+    },
+    {
+      "id": "peng-02",
+      "judul": "Sesi Remedial dan Pengayaan Matematika Wajib",
+      "konten": "Bagi siswa yang memperoleh nilai di bawah KKM (75) pada materi eksponen, bimbingan remedial dan klinik PR diadakan setiap Rabu jam 14.30 di Ruang 101.",
+      "prioritas": "NORMAL",
+      "kelasId": "ALL",
+      "guruId": "guru-profile-01",
+      "createdAt": "2026-10-17T09:30:00.000Z"
+    },
+    {
+      "id": "peng-03",
+      "judul": "PENTING: Batas Akhir Pengumpulan Tugas Aljabar",
+      "konten": "Tenggat waktu pengumpulan tugas aljabar bab 2 adalah 25 Oktober 2026 pukul 23:59 WIB. Keterlambatan tanpa keterangan izin akan dikenakan pengurangan poin.",
+      "prioritas": "MENDESAK",
+      "kelasId": "kelas-10-mipa1",
+      "guruId": "guru-profile-01",
+      "createdAt": "2026-10-19T07:15:00.000Z"
+    }
+  ],
+  "catatanBimbingan": [
+    {
+      "id": "bim-01",
+      "siswaId": "siswa-profile-03",
+      "guruId": "guru-profile-01",
+      "kategori": "Akademik",
+      "catatan": "Siswa mengalami kesulitan memahami konsep logaritma dan nilai ulangan di bawah KKM (64). Sering izin dan sakit.",
+      "tindakan": "Diberikan jadwal tutor sebaya dengan Ahmad Fauzi dan modul ringkasan matematika khusus.",
+      "tanggal": "2026-10-16"
+    },
+    {
+      "id": "bim-02",
+      "siswaId": "siswa-profile-01",
+      "guruId": "guru-profile-01",
+      "kategori": "Prestasi",
+      "catatan": "Siswa menunjukkan antusiasme dan bakat matematika tinggi, selalu aktif bertanya dan nilai di atas 88.",
+      "tindakan": "Direkomendasikan bergabung ke Tim Pembinaan Olimpiade Sains Nasional (OSN) Matematika sekolah.",
+      "tanggal": "2026-10-17"
     }
   ]
 }
