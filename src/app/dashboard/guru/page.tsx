@@ -74,6 +74,7 @@ interface MapelOption {
 
 interface SiswaItem {
   id: string
+  userId?: string
   namaLengkap: string
   nis: string
   nisn: string
@@ -498,6 +499,18 @@ export default function GuruDashboardPage() {
 
   useEffect(() => {
     loadPortalData()
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search)
+      const tabParam = params.get('tab')
+      if (
+        tabParam &&
+        ['ringkasan', 'kelas_siswa', 'presensi', 'nilai', 'tugas_materi', 'pengumuman_bimbingan', 'profil'].includes(
+          tabParam
+        )
+      ) {
+        setActiveTab(tabParam as any)
+      }
+    }
   }, [loadPortalData])
 
   // --- Grade Table Builder ---
@@ -523,11 +536,13 @@ export default function GuruDashboardPage() {
     const sumW = bobot.tugas + bobot.uh + bobot.uts + bobot.uas || 100
 
     const rows: NilaiRow[] = students.map((s) => {
-      const match = existingGrades.find((g) => g.siswaId === s.id && (!g.mapelId || g.mapelId === mapelId))
-      const t = match?.nilaiTugas ?? 82
-      const uh = match?.nilaiUh ?? 80
+      const match = existingGrades.find(
+        (g) => (g.siswaId === s.id || g.siswaId === s.userId) && (!g.mapelId || g.mapelId === mapelId)
+      )
+      const t = match?.nilaiTugas ?? 80
+      const uh = match?.nilaiUh ?? match?.nilaiTugas ?? 80
       const uts = match?.nilaiUts ?? 80
-      const uas = match?.nilaiUas ?? 85
+      const uas = match?.nilaiUas ?? 80
       const prk = match?.nilaiPraktik ?? 85
       const skp = match?.nilaiSikap ?? 90
 
@@ -559,6 +574,36 @@ export default function GuruDashboardPage() {
       }
     })
     setNilaiRows(rows)
+  }
+
+  // Handle Class Switch in Nilai
+  const handleKelasNilaiChange = async (kId: string) => {
+    setSelectedKelasNilai(kId)
+    const studentsInClass = allSiswa.filter((s) => s.kelasId === kId)
+    try {
+      const res = await fetch(`/api/nilai?kelasId=${kId}&mapelId=${selectedMapelNilai}`)
+      const j = await res.json()
+      if (j.success && Array.isArray(j.data)) {
+        initGradesForClass(studentsInClass, j.data, selectedMapelNilai)
+        return
+      }
+    } catch {}
+    initGradesForClass(studentsInClass, [], selectedMapelNilai)
+  }
+
+  // Handle Mapel Switch in Nilai
+  const handleMapelNilaiChange = async (mId: string) => {
+    setSelectedMapelNilai(mId)
+    const studentsInClass = allSiswa.filter((s) => s.kelasId === selectedKelasNilai)
+    try {
+      const res = await fetch(`/api/nilai?kelasId=${selectedKelasNilai}&mapelId=${mId}`)
+      const j = await res.json()
+      if (j.success && Array.isArray(j.data)) {
+        initGradesForClass(studentsInClass, j.data, mId)
+        return
+      }
+    } catch {}
+    initGradesForClass(studentsInClass, [], mId)
   }
 
   // Handle Class Switch in Absensi
@@ -738,6 +783,16 @@ export default function GuruDashboardPage() {
       const json = await res.json()
       if (json.success) {
         showFeedback('success', `Berhasil menyimpan & memperbarui rekap nilai kelas!`)
+        try {
+          const rNilai = await fetch(`/api/nilai?kelasId=${selectedKelasNilai}&mapelId=${selectedMapelNilai}`)
+          const dNilai = await rNilai.json()
+          if (dNilai.success && Array.isArray(dNilai.data)) {
+            const studentsInClass = allSiswa.filter((s) => s.kelasId === selectedKelasNilai)
+            initGradesForClass(studentsInClass, dNilai.data, selectedMapelNilai)
+          }
+        } catch {
+          // non-blocking
+        }
       } else {
         showFeedback('error', json.message || 'Gagal menyimpan nilai siswa')
       }
@@ -2638,11 +2693,7 @@ export default function GuruDashboardPage() {
                       <span className="block text-[11px] font-bold text-slate-500 uppercase mb-1">Kelas:</span>
                       <select
                         value={selectedKelasNilai}
-                        onChange={(e) => {
-                          setSelectedKelasNilai(e.target.value)
-                          const studentsInClass = allSiswa.filter((s) => s.kelasId === e.target.value)
-                          initGradesForClass(studentsInClass, nilaiRows, selectedMapelNilai)
-                        }}
+                        onChange={(e) => handleKelasNilaiChange(e.target.value)}
                         className="text-xs sm:text-sm px-3 py-1.5 rounded-xl border border-slate-200 font-bold"
                       >
                         {kelasList.map((k) => (
@@ -2657,11 +2708,7 @@ export default function GuruDashboardPage() {
                       <span className="block text-[11px] font-bold text-slate-500 uppercase mb-1">Mata Pelajaran:</span>
                       <select
                         value={selectedMapelNilai}
-                        onChange={(e) => {
-                          setSelectedMapelNilai(e.target.value)
-                          const studentsInClass = allSiswa.filter((s) => s.kelasId === selectedKelasNilai)
-                          initGradesForClass(studentsInClass, nilaiRows, e.target.value)
-                        }}
+                        onChange={(e) => handleMapelNilaiChange(e.target.value)}
                         className="text-xs sm:text-sm px-3 py-1.5 rounded-xl border border-slate-200 font-bold"
                       >
                         {mapelList.map((m) => (
