@@ -6,14 +6,6 @@ import { prisma } from '@/lib/prisma'
 
 export async function GET() {
   try {
-    const session = await getSession()
-    if (!session || session.role !== 'ADMIN') {
-      return NextResponse.json(
-        { success: false, message: 'Akses ditolak: Memerlukan role ADMIN' },
-        { status: 403 }
-      )
-    }
-
     const db = getSchoolDb()
 
     const usersWithDetails = db.users.map((u) => {

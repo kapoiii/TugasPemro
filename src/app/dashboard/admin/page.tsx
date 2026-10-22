@@ -317,7 +317,7 @@ export default function AdminDashboardPage() {
         fetch('/api/admin/users'),
         fetch('/api/admin/master'),
         fetch('/api/admin/logs?limit=50'),
-        fetch('/api/admin/siswa-dashboard'),
+        fetch('/api/siswa').then((r) => r.ok ? r : fetch('/api/admin/siswa-dashboard')).catch(() => fetch('/api/admin/siswa-dashboard')),
         fetch('/api/jadwal'),
       ])
 

@@ -438,7 +438,7 @@ export default function GuruDashboardPage() {
         fetch('/api/admin/master').catch(() => null),
         fetch('/api/jadwal').catch(() => null),
         fetch('/api/absensi').catch(() => null),
-        fetch('/api/admin/siswa-dashboard').catch(() => null),
+        fetch('/api/siswa').then((r) => r.ok ? r : fetch('/api/admin/siswa-dashboard')).catch(() => fetch('/api/admin/siswa-dashboard')).catch(() => null),
         fetch('/api/nilai').catch(() => null),
         fetch('/api/pr').catch(() => null),
         fetch('/api/materi').catch(() => null),

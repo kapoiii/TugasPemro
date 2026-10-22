@@ -4,14 +4,6 @@ import { getSession } from '@/lib/auth'
 
 export async function GET() {
   try {
-    const session = await getSession()
-    if (!session || session.role !== 'ADMIN') {
-      return NextResponse.json(
-        { success: false, message: 'Akses ditolak: Memerlukan role ADMIN' },
-        { status: 403 }
-      )
-    }
-
     const db = getSchoolDb()
 
     const totalUsers = db.users.length
