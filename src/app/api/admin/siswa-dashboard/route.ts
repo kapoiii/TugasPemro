@@ -21,6 +21,8 @@ export async function GET(request: NextRequest) {
             nis: u.siswaProfile!.nis,
             nisn: u.siswaProfile!.nisn,
             kelasId: u.siswaProfile!.kelasId,
+            jenisKelamin: u.siswaProfile!.jenisKelamin || 'L',
+            noHp: u.siswaProfile!.noHp || '-',
             kelas: k ? { id: k.id, namaKelas: k.namaKelas, tingkat: k.tingkat } : undefined,
             user: { username: u.username, email: u.email },
           }

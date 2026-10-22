@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *, .dark, .dark *));
+
 :root {
   --font-inter: 'Inter', system-ui, -apple-system, sans-serif;
   --font-outfit: 'Outfit', system-ui, -apple-system, sans-serif;
@@ -64,13 +66,36 @@ html.dark .bg-white {
   background-color: #1E293B !important;
   color: #F8FAFC;
 }
+html.dark .bg-white\/95,
+html.dark .bg-white\/90,
+html.dark .bg-white\/80,
+html.dark .bg-white\/70,
+html.dark .bg-white\/60,
+html.dark .bg-white\/50 {
+  background-color: rgba(30, 41, 59, 0.94) !important;
+  color: #F8FAFC;
+}
+
 html.dark .bg-slate-50 {
   background-color: #0F172A !important;
 }
+html.dark .bg-slate-50\/50,
+html.dark .bg-slate-50\/60,
+html.dark .bg-slate-50\/70,
+html.dark .bg-slate-50\/80 {
+  background-color: rgba(15, 23, 42, 0.75) !important;
+}
+
 html.dark .bg-slate-100 {
   background-color: #334155 !important;
   color: #F8FAFC !important;
 }
+html.dark .bg-slate-100\/50,
+html.dark .bg-slate-100\/60,
+html.dark .bg-slate-100\/70 {
+  background-color: rgba(51, 65, 85, 0.5) !important;
+}
+
 html.dark .text-slate-900,
 html.dark .text-slate-800,
 html.dark .text-slate-700 {
@@ -85,13 +110,56 @@ html.dark .border-slate-100,
 html.dark .border-slate-200\/80 {
   border-color: #334155 !important;
 }
+
+/* Form inputs & selects in dark mode */
 html.dark input, 
 html.dark select, 
 html.dark textarea {
-  background-color: #0F172A;
-  color: #F8FAFC;
-  border-color: #334155;
+  background-color: #0F172A !important;
+  color: #F8FAFC !important;
+  border-color: #334155 !important;
 }
+html.dark select option {
+  background-color: #1E293B !important;
+  color: #F8FAFC !important;
+}
+html.dark input::placeholder,
+html.dark textarea::placeholder {
+  color: #64748B !important;
+}
+
+/* Badges with soft contrast in dark mode */
+html.dark .bg-blue-50 {
+  background-color: rgba(30, 58, 138, 0.35) !important;
+  color: #93C5FD !important;
+  border-color: rgba(59, 130, 246, 0.3) !important;
+}
+html.dark .bg-emerald-50, html.dark .bg-emerald-100 {
+  background-color: rgba(6, 78, 59, 0.35) !important;
+  color: #6EE7B7 !important;
+  border-color: rgba(16, 185, 129, 0.3) !important;
+}
+html.dark .bg-amber-50, html.dark .bg-amber-100 {
+  background-color: rgba(120, 53, 15, 0.35) !important;
+  color: #FCD34D !important;
+  border-color: rgba(245, 158, 11, 0.3) !important;
+}
+html.dark .bg-rose-50, html.dark .bg-rose-100 {
+  background-color: rgba(136, 19, 55, 0.35) !important;
+  color: #FDA4AF !important;
+  border-color: rgba(244, 63, 94, 0.3) !important;
+}
+html.dark .bg-indigo-50 {
+  background-color: rgba(49, 46, 129, 0.35) !important;
+  color: #A5B4FC !important;
+  border-color: rgba(99, 102, 241, 0.3) !important;
+}
+html.dark .bg-purple-50 {
+  background-color: rgba(88, 28, 135, 0.35) !important;
+  color: #D8B4FE !important;
+  border-color: rgba(168, 85, 247, 0.3) !important;
+}
+
 html.dark table thead {
   background-color: #0F172A !important;
   color: #CBD5E1 !important;
@@ -100,8 +168,8 @@ html.dark table tbody tr:hover {
   background-color: rgba(51, 65, 85, 0.4) !important;
 }
 html.dark .glass-effect {
-  background: rgba(15, 23, 42, 0.88);
-  border-bottom: 1px solid #334155;
+  background: rgba(15, 23, 42, 0.92) !important;
+  border-bottom: 1px solid #334155 !important;
 }
 
 @media (prefers-reduced-motion: reduce) {

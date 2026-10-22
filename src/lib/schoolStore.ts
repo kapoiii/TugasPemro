@@ -755,11 +755,169 @@ const DEFAULT_DATABASE: SchoolDatabase = {
   ],
 }
 
+export function getDbFilePath(): string {
+  const possiblePaths = [
+    path.join(process.cwd(), 'src', 'data', 'school-store.json'),
+    path.join(process.cwd(), 'sekolah', 'src', 'data', 'school-store.json'),
+    path.join(__dirname, '..', 'data', 'school-store.json'),
+    path.join(__dirname, '..', '..', 'data', 'school-store.json'),
+    path.join(__dirname, '..', '..', 'src', 'data', 'school-store.json'),
+  ]
+  for (const p of possiblePaths) {
+    if (fs.existsSync(/*turbopackIgnore: true*/ p)) {
+      return p
+    }
+  }
+  return path.join(process.cwd(), 'src', 'data', 'school-store.json')
+}
+
+// Student Name Generators for Seeding Fallbacks
+const FIRST_NAMES_MALE = [
+  'Ahmad', 'Aditya', 'Bagus', 'Bayu', 'Bima', 'Dimas', 'Dwi', 'Fajar', 'Farhan', 'Galang',
+  'Gilang', 'Hafiz', 'Ilham', 'Indra', 'Muhammad', 'Naufal', 'Pratama', 'Raditya', 'Rafi', 'Reza',
+  'Rian', 'Rifqi', 'Rizky', 'Satria', 'Taufik', 'Wahyu', 'Yudha', 'Zaky'
+]
+const LAST_NAMES_MALE = [
+  'Pratama', 'Saputra', 'Kusuma', 'Santoso', 'Hidayat', 'Ramadhan', 'Wijaya', 'Permana', 'Nugroho',
+  'Setiawan', 'Firmansyah', 'Wibowo', 'Kurniawan', 'Gunawan', 'Hakim', 'Anwar', 'Putra', 'Maulana'
+]
+const FIRST_NAMES_FEMALE = [
+  'Aisyah', 'Anisa', 'Aulia', 'Cantika', 'Citra', 'Dinda', 'Fadilah', 'Gita', 'Hana', 'Indah',
+  'Intan', 'Kartika', 'Laras', 'Maya', 'Nabila', 'Nadya', 'Nurul', 'Putri', 'Rahma', 'Rania',
+  'Safira', 'Salsabila', 'Salma', 'Siti', 'Syifa', 'Tia', 'Vina', 'Zahra'
+]
+const LAST_NAMES_FEMALE = [
+  'Lestari', 'Putri', 'Anggraini', 'Dewi', 'Wulandari', 'Maharani', 'Safitri', 'Kusumawati', 'Utami',
+  'Rahmawati', 'Sari', 'Azzahra', 'Kusuma', 'Handayani', 'Pratiwi', 'Novita'
+]
+
+function ensureMinimumStudentsPerClass(db: SchoolDatabase): boolean {
+  let modified = false
+  if (!Array.isArray(db.users)) db.users = []
+  if (!Array.isArray(db.nilais)) db.nilais = []
+  if (!Array.isArray(db.raports)) db.raports = []
+
+  const targetCountPerClass = 26
+
+  db.kelas.forEach((kls, kIdx) => {
+    const existingStudentsInClass = db.users.filter(
+      (u) => u.role === 'SISWA' && u.siswaProfile?.kelasId === kls.id
+    )
+
+    if (existingStudentsInClass.length < 25) {
+      modified = true
+      const needed = targetCountPerClass - existingStudentsInClass.length
+
+      for (let i = 0; i < needed; i++) {
+        const studentIndex = existingStudentsInClass.length + i + 1
+        const isMale = studentIndex % 2 === 1
+        const firstArr = isMale ? FIRST_NAMES_MALE : FIRST_NAMES_FEMALE
+        const lastArr = isMale ? LAST_NAMES_MALE : LAST_NAMES_FEMALE
+
+        const fn = firstArr[(kIdx * 7 + studentIndex) % firstArr.length]
+        const ln = lastArr[(kIdx * 5 + studentIndex * 3) % lastArr.length]
+        const namaLengkap = `${fn} ${ln}`
+
+        const gradeLevel = kls.tingkat || '10'
+        const cohortYear = gradeLevel === '10' ? '26' : gradeLevel === '11' ? '25' : '24'
+        const classCode = String(kIdx + 1).padStart(2, '0')
+        const rollCode = String(studentIndex).padStart(2, '0')
+
+        const nis = `${cohortYear}${classCode}${rollCode}`
+        const nisn = `00${cohortYear}${classCode}${rollCode}9`
+        const userId = `usr-gen-${kls.id}-${studentIndex}`
+        const profileId = `prof-gen-${kls.id}-${studentIndex}`
+
+        const newUser: UserAccount = {
+          id: userId,
+          username: `siswa_${nis}`,
+          email: `${fn.toLowerCase()}.${ln.toLowerCase()}_${cohortYear}@siswa.sch.id`.replace(/\s+/g, ''),
+          password: 'siswa' + nis,
+          role: 'SISWA',
+          createdAt: '2026-07-15T08:00:00.000Z',
+          updatedAt: '2026-10-20T10:00:00.000Z',
+          siswaProfile: {
+            id: profileId,
+            userId,
+            nis,
+            nisn,
+            namaLengkap,
+            kelasId: kls.id,
+            jenisKelamin: isMale ? 'L' : 'P',
+            tempatLahir: isMale ? 'Jakarta' : 'Bandung',
+            tanggalLahir: `200${gradeLevel === '10' ? '8' : gradeLevel === '11' ? '7' : '6'}-0${(studentIndex % 9) + 1}-15`,
+            alamat: `Jl. Pendidikan No. ${studentIndex * 3}, Jakarta`,
+            namaOrangTua: `Bpk/Ibu ${ln}`,
+            noHp: `0812${String(kIdx + 1).padStart(2, '0')}${String(studentIndex).padStart(2, '0')}8899`,
+          },
+        }
+
+        db.users.push(newUser)
+
+        // Seed initial Nilai for each subject
+        db.mapel.forEach((m) => {
+          const t = 75 + ((studentIndex * 3 + m.kkm) % 23)
+          const uh = 75 + ((studentIndex * 2 + m.kkm + 5) % 22)
+          const uts = 74 + ((studentIndex * 4 + m.kkm + 2) % 24)
+          const uas = 76 + ((studentIndex * 5 + m.kkm + 1) % 23)
+          const akhir = Number(((t * 0.2 + uh * 0.2 + uts * 0.3 + uas * 0.3)).toFixed(1))
+
+          let predikat = 'B'
+          if (akhir >= 88) predikat = 'A'
+          else if (akhir >= 78) predikat = 'B'
+          else if (akhir >= 68) predikat = 'C'
+          else predikat = 'D'
+
+          db.nilais.push({
+            id: `nil-gen-${kls.id}-${profileId}-${m.id}`,
+            siswaId: profileId,
+            mapelId: m.id,
+            kelasId: kls.id,
+            guruId: 'guru-profile-01',
+            semester: '1 (Ganjil)',
+            tahunAjaran: '2025/2026',
+            nilaiTugas: t,
+            nilaiUh: uh,
+            nilaiUts: uts,
+            nilaiUas: uas,
+            nilaiPraktik: 85,
+            nilaiSikap: 90,
+            nilaiAkhir: akhir,
+            predikat,
+            catatan: akhir >= 85 ? 'Sangat menguasai kompetensi dasar.' : 'Cukup baik, pertahankan motivasi belajar.',
+            updatedAt: '2026-10-20T10:00:00.000Z',
+          })
+        })
+
+        // Seed Raport
+        db.raports.push({
+          id: `rap-gen-${profileId}`,
+          siswaId: profileId,
+          kelasId: kls.id,
+          semester: '1 (Ganjil)',
+          tahunAjaran: '2025/2026',
+          totalHadir: 18,
+          totalIzin: 1,
+          totalSakit: 1,
+          totalAlfa: 0,
+          rataRataNilai: 84.5,
+          catatanWaliKelas: 'Tingkatkan prestasi belajar dan terus aktif dalam kegiatan sekolah.',
+          status: 'DRAFT', // Locked by default until teacher opens it
+          updatedAt: '2026-10-20T10:00:00.000Z',
+        })
+      }
+    }
+  })
+
+  return modified
+}
+
 // Persistent File Database
 export function getSchoolDb(): SchoolDatabase {
   try {
-    if (fs.existsSync(DB_FILE_PATH)) {
-      const fileData = fs.readFileSync(DB_FILE_PATH, 'utf-8')
+    const resolvedPath = getDbFilePath()
+    if (fs.existsSync(/*turbopackIgnore: true*/ resolvedPath)) {
+      const fileData = fs.readFileSync(/*turbopackIgnore: true*/ resolvedPath, 'utf-8')
       if (fileData && fileData.trim().length > 0) {
         const parsed = JSON.parse(fileData) as SchoolDatabase
         let needsSync = false
@@ -791,6 +949,11 @@ export function getSchoolDb(): SchoolDatabase {
           })
         }
 
+        // Ensure every class has at least 25 students (seeds to 26 students)
+        if (ensureMinimumStudentsPerClass(parsed)) {
+          needsSync = true
+        }
+
         if (needsSync) {
           saveSchoolDb(parsed)
         }
@@ -803,17 +966,35 @@ export function getSchoolDb(): SchoolDatabase {
 
   // Initialize file with default data if missing or empty
   const defaultCopy: SchoolDatabase = JSON.parse(JSON.stringify(DEFAULT_DATABASE))
+  ensureMinimumStudentsPerClass(defaultCopy)
   saveSchoolDb(defaultCopy)
   return defaultCopy
 }
 
 export function saveSchoolDb(db: SchoolDatabase): boolean {
   try {
-    const dir = path.dirname(DB_FILE_PATH)
+    const primaryPath = getDbFilePath()
+    const dir = path.dirname(primaryPath)
     if (!fs.existsSync(dir)) {
       fs.mkdirSync(dir, { recursive: true })
     }
-    fs.writeFileSync(DB_FILE_PATH, JSON.stringify(db, null, 2), 'utf-8')
+    const content = JSON.stringify(db, null, 2)
+    fs.writeFileSync(primaryPath, content, 'utf-8')
+
+    // Also sync to alternative paths if their directory exists
+    const altPaths = [
+      path.join(process.cwd(), 'src', 'data', 'school-store.json'),
+      path.join(process.cwd(), 'sekolah', 'src', 'data', 'school-store.json'),
+    ]
+    for (const alt of altPaths) {
+      if (alt !== primaryPath) {
+        const altDir = path.dirname(alt)
+        if (fs.existsSync(altDir)) {
+          fs.writeFileSync(alt, content, 'utf-8')
+        }
+      }
+    }
+
     return true
   } catch (err) {
     console.error('Failed to save school-store.json to disk:', err)

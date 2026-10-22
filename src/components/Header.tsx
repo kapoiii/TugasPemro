@@ -63,7 +63,7 @@ export default function Header() {
   return (
     <div className={`fixed top-0 left-0 right-0 z-50 px-4 pt-4 pb-2 transition-all duration-300 ${scrolled ? 'pt-2' : ''}`}>
       <header
-        className={`max-w-[1240px] mx-auto rounded-gemini-full glass-effect transition-all duration-300 ${scrolled ? "shadow-md bg-white/95 border-transparent" : "bg-white/80 border-[var(--border-color)]"}`}
+        className={`max-w-[1240px] mx-auto rounded-gemini-full glass-effect transition-all duration-300 ${scrolled ? "shadow-md bg-white/95 dark:bg-slate-900/95 border-transparent dark:border-slate-800" : "bg-white/80 dark:bg-slate-900/80 border-[var(--border-color)] dark:border-slate-800"}`}
       >
         <div className="px-5 sm:px-6 flex items-center justify-between h-[60px] gap-2">
           {/* Logo */}
@@ -87,12 +87,12 @@ export default function Header() {
                 <div key={link.href} className="relative group">
                   <Link
                     href={link.href}
-                    className={`flex items-center gap-1 px-3.5 py-1.5 rounded-full text-[0.875rem] font-medium transition-colors relative ${isActive(link.href) ? "bg-white text-[var(--text-primary)] shadow-sm" : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"}`}
+                    className={`flex items-center gap-1 px-3.5 py-1.5 rounded-full text-[0.875rem] font-medium transition-colors relative ${isActive(link.href) ? "bg-white dark:bg-slate-800 text-[var(--text-primary)] shadow-sm" : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"}`}
                   >
                     {link.label}
                     <svg width="10" height="10" viewBox="0 0 12 12" fill="currentColor" className="opacity-60"><path d="M6 8L2 4h8L6 8z"/></svg>
                   </Link>
-                  <ul className="absolute top-full left-1/2 -translate-x-1/2 mt-3 w-48 bg-white border border-[var(--border-color)] rounded-2xl p-2 shadow-lg opacity-0 invisible translate-y-2 group-hover:opacity-100 group-hover:visible group-hover:translate-y-0 transition-all duration-200">
+                  <ul className="absolute top-full left-1/2 -translate-x-1/2 mt-3 w-48 bg-white dark:bg-slate-900 border border-[var(--border-color)] dark:border-slate-800 rounded-2xl p-2 shadow-lg opacity-0 invisible translate-y-2 group-hover:opacity-100 group-hover:visible group-hover:translate-y-0 transition-all duration-200">
                     {link.children.map((child) => (
                       <li key={child.href}>
                         <Link href={child.href} className="block px-4 py-2 text-sm text-[var(--text-secondary)] rounded-xl hover:bg-[var(--bg-tertiary)] hover:text-[var(--text-primary)] transition-colors">
@@ -106,7 +106,7 @@ export default function Header() {
                 <Link
                   key={link.href}
                   href={link.href}
-                  className={`px-3.5 py-1.5 rounded-full text-[0.875rem] font-medium transition-all ${isActive(link.href) ? "bg-white text-[var(--text-primary)] shadow-sm" : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"}`}
+                  className={`px-3.5 py-1.5 rounded-full text-[0.875rem] font-medium transition-all ${isActive(link.href) ? "bg-white dark:bg-slate-800 text-[var(--text-primary)] shadow-sm" : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"}`}
                 >
                   {link.label}
                 </Link>
@@ -168,7 +168,7 @@ export default function Header() {
       {/* Mobile Nav Overlay */}
       <div
         id="mobileNav"
-        className={`lg:hidden fixed inset-0 top-[76px] bg-white z-40 overflow-y-auto transition-all duration-300 ${menuOpen ? "opacity-100 visible translate-y-0" : "opacity-0 invisible -translate-y-4"}`}
+        className={`lg:hidden fixed inset-0 top-[76px] bg-white dark:bg-slate-900 z-40 overflow-y-auto transition-all duration-300 ${menuOpen ? "opacity-100 visible translate-y-0" : "opacity-0 invisible -translate-y-4"}`}
       >
         <div className="px-6 py-8 flex flex-col gap-2">
           {navLinks.map((link) => (
@@ -176,7 +176,7 @@ export default function Header() {
               <Link
                 href={link.href}
                 onClick={() => { setMenuOpen(false); document.body.style.overflow = ""; }}
-                className={`block px-5 py-3.5 rounded-2xl text-[1.0625rem] font-medium transition-colors ${isActive(link.href) ? "bg-[#F0F4F8] text-[var(--text-primary)] font-semibold" : "text-[var(--text-secondary)] hover:bg-[#F8F9FA]"}`}
+                className={`block px-5 py-3.5 rounded-2xl text-[1.0625rem] font-medium transition-colors ${isActive(link.href) ? "bg-[#F0F4F8] dark:bg-slate-800 text-[var(--text-primary)] font-semibold" : "text-[var(--text-secondary)] hover:bg-[#F8F9FA] dark:hover:bg-slate-800/60"}`}
               >
                 {link.label}
               </Link>

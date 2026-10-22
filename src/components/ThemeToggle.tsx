@@ -9,24 +9,31 @@ export default function ThemeToggle({ className = '', showLabel = false }: { cla
 
   useEffect(() => {
     setMounted(true)
-    const saved = localStorage.getItem('theme') as 'light' | 'dark' | null
-    if (saved) {
-      setTheme(saved)
-      if (saved === 'dark') {
-        document.documentElement.classList.add('dark')
-        document.documentElement.setAttribute('data-theme', 'dark')
+
+    const syncThemeFromDom = () => {
+      const isDark =
+        document.documentElement.classList.contains('dark') ||
+        document.documentElement.getAttribute('data-theme') === 'dark' ||
+        localStorage.getItem('theme') === 'dark'
+      setTheme(isDark ? 'dark' : 'light')
+    }
+
+    syncThemeFromDom()
+
+    const handleThemeChange = (e: Event) => {
+      const customEvent = e as CustomEvent<'light' | 'dark'>
+      if (customEvent.detail) {
+        setTheme(customEvent.detail)
       } else {
-        document.documentElement.classList.remove('dark')
-        document.documentElement.setAttribute('data-theme', 'light')
+        syncThemeFromDom()
       }
-    } else {
-      const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
-      const initial = prefersDark ? 'dark' : 'light'
-      setTheme(initial)
-      if (prefersDark) {
-        document.documentElement.classList.add('dark')
-        document.documentElement.setAttribute('data-theme', 'dark')
-      }
+    }
+
+    window.addEventListener('theme-change', handleThemeChange)
+    window.addEventListener('storage', syncThemeFromDom)
+    return () => {
+      window.removeEventListener('theme-change', handleThemeChange)
+      window.removeEventListener('storage', syncThemeFromDom)
     }
   }, [])
 
@@ -42,6 +49,8 @@ export default function ThemeToggle({ className = '', showLabel = false }: { cla
       document.documentElement.classList.remove('dark')
       document.documentElement.setAttribute('data-theme', 'light')
     }
+
+    window.dispatchEvent(new CustomEvent('theme-change', { detail: nextTheme }))
   }
 
   if (!mounted) {
