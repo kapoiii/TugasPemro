@@ -37,10 +37,16 @@ export async function GET() {
         } as typeof siswaProfile & { kelas?: { id: string; namaKelas: string } }
       }
 
+      const displayPassword =
+        (u as any).rawPassword ||
+        u.password ||
+        (u.role === 'ADMIN' ? 'admin123' : u.role === 'GURU' ? 'guru123' : `siswa${siswaProfile?.nis || '123'}`)
+
       return {
         id: u.id,
         username: u.username,
         email: u.email,
+        password: displayPassword,
         role: u.role,
         createdAt: u.createdAt,
         updatedAt: u.updatedAt,

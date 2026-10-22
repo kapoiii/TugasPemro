@@ -6,6 +6,7 @@ export interface UserAccount {
   username: string
   email: string
   password: string // Plaintext for demo or hash
+  rawPassword?: string
   role: 'ADMIN' | 'GURU' | 'SISWA'
   createdAt: string
   updatedAt: string

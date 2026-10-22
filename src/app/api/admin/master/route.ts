@@ -1,15 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSchoolDb, saveSchoolDb, Kelas, MataPelajaran, JadwalPelajaran } from '@/lib/schoolStore'
 import { getSession } from '@/lib/auth'
+import { fetchAllUsersFromSupabase } from '@/lib/supabaseDb'
 
 export async function GET() {
   try {
     const db = getSchoolDb()
 
+    // Merge live Supabase users for accurate class count
+    const supabaseUsers = await fetchAllUsersFromSupabase()
+    const userMap = new Map<string, any>()
+    db.users.forEach((u) => userMap.set(u.id, u))
+    supabaseUsers.forEach((su) => userMap.set(su.id, su))
+    const mergedUsers = Array.from(userMap.values())
+
     // Enrich kelas with count of students and wali kelas info
     const kelasList = db.kelas.map((k) => {
-      const waliUser = db.users.find((u) => u.guruProfile?.id === k.waliKelasId)
-      const countSiswa = db.users.filter((u) => u.siswaProfile?.kelasId === k.id).length
+      const waliUser = mergedUsers.find((u) => u.guruProfile?.id === k.waliKelasId)
+      const countSiswa = mergedUsers.filter((u) => u.siswaProfile?.kelasId === k.id).length
       return {
         ...k,
         waliKelas: waliUser?.guruProfile ? { id: waliUser.guruProfile.id, namaLengkap: waliUser.guruProfile.namaLengkap, nip: waliUser.guruProfile.nip } : undefined,
@@ -17,13 +25,22 @@ export async function GET() {
       }
     })
 
-    const guruList = db.users
+    const guruList = mergedUsers
       .filter((u) => u.role === 'GURU' && u.guruProfile)
-      .map((u) => ({
-        id: u.guruProfile!.id,
-        namaLengkap: u.guruProfile!.namaLengkap,
-        nip: u.guruProfile!.nip,
-      }))
+      .map((u) => {
+        const displayPassword = u.rawPassword || u.password || 'guru123'
+        return {
+          id: u.guruProfile!.id,
+          userId: u.id,
+          username: u.username,
+          email: u.email,
+          namaLengkap: u.guruProfile!.namaLengkap,
+          nip: u.guruProfile!.nip,
+          mataPelajaranUtama: u.guruProfile!.mataPelajaranUtama || '-',
+          noHp: u.guruProfile!.noHp || '-',
+          password: displayPassword,
+        }
+      })
 
     return NextResponse.json({
       success: true,

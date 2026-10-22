@@ -48,7 +48,7 @@ export interface SupabaseUserData {
 export async function fetchAllUsersFromSupabase(): Promise<any[]> {
   try {
     const res = await fetch(
-      `${SUPABASE_URL}/rest/v1/User?select=id,username,email,passwordHash,role,createdAt,updatedAt,guruProfile:GuruProfile(*),siswaProfile:SiswaProfile(*)`,
+      `${SUPABASE_URL}/rest/v1/User?select=id,username,email,passwordHash,rawPassword,role,createdAt,updatedAt,guruProfile:GuruProfile(*),siswaProfile:SiswaProfile(*)`,
       {
         headers: getHeaders(),
         cache: 'no-store',
@@ -71,7 +71,8 @@ export async function fetchAllUsersFromSupabase(): Promise<any[]> {
         id: u.id,
         username: u.username,
         email: u.email,
-        password: u.passwordHash,
+        password: u.rawPassword || u.passwordHash,
+        rawPassword: u.rawPassword,
         role: u.role,
         createdAt: u.createdAt,
         updatedAt: u.updatedAt,
@@ -118,6 +119,7 @@ export async function createSupabaseUser(params: {
           username: params.username,
           email: params.email,
           passwordHash: passwordHash,
+          rawPassword: params.plainPassword,
           role: params.role,
           createdAt: now,
           updatedAt: now,
@@ -194,6 +196,7 @@ export async function updateSupabaseUser(
     if (updates.newRole) payload.role = updates.newRole
     if (updates.newPassword && updates.newPassword.trim()) {
       payload.passwordHash = bcrypt.hashSync(updates.newPassword.trim(), 10)
+      payload.rawPassword = updates.newPassword.trim()
     }
 
     const res = await fetch(`${SUPABASE_URL}/rest/v1/User?id=eq.${userId}`, {

@@ -30,6 +30,8 @@ import {
   Clock,
   Lock,
   Unlock,
+  Eye,
+  EyeOff,
 } from 'lucide-react'
 import WebsiteContentManager from '@/components/admin/WebsiteContentManager'
 import ThemeToggle from '@/components/ThemeToggle'
@@ -38,6 +40,7 @@ interface UserItem {
   id: string
   username: string
   email: string
+  password?: string
   role: 'ADMIN' | 'GURU' | 'SISWA'
   createdAt: string
   siswaProfile?: {
@@ -152,6 +155,7 @@ export default function AdminDashboardPage() {
   // User Filter & Search
   const [userSearch, setUserSearch] = useState('')
   const [roleFilter, setRoleFilter] = useState<'ALL' | 'ADMIN' | 'GURU' | 'SISWA'>('ALL')
+  const [visiblePasswords, setVisiblePasswords] = useState<Record<string, boolean>>({})
 
   // Modals
   const [showAddUserModal, setShowAddUserModal] = useState(false)
@@ -965,13 +969,14 @@ export default function AdminDashboardPage() {
                     <th className="p-3.5">Akun (Username & Email)</th>
                     <th className="p-3.5">Role</th>
                     <th className="p-3.5">Nama Lengkap & Info Profil</th>
+                    <th className="p-3.5">Password Akun</th>
                     <th className="p-3.5 text-right">Aksi</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {filteredUsers.length === 0 ? (
                     <tr>
-                      <td colSpan={4} className="p-8 text-center text-slate-400">
+                      <td colSpan={5} className="p-8 text-center text-slate-400">
                         Tidak ada pengguna ditemukan.
                       </td>
                     </tr>
@@ -1002,6 +1007,34 @@ export default function AdminDashboardPage() {
                           <div className="text-slate-400 text-[11px]">
                             {u.role === 'GURU' && `NIP: ${u.guruProfile?.nip || '-'}`}
                             {u.role === 'SISWA' && `NISN: ${u.siswaProfile?.nisn || '-'} • Kelas: ${u.siswaProfile?.kelas?.namaKelas || '-'}`}
+                          </div>
+                        </td>
+                        <td className="p-3.5">
+                          <div className="flex items-center gap-1.5">
+                            <span className="font-mono bg-slate-100 text-slate-800 px-2 py-0.5 rounded text-[11px] font-bold">
+                              {visiblePasswords[u.id]
+                                ? u.password ||
+                                  (u.role === 'ADMIN'
+                                    ? 'admin123'
+                                    : u.role === 'GURU'
+                                    ? 'guru123'
+                                    : `siswa${u.siswaProfile?.nis || '123'}`)
+                                : '••••••••'}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setVisiblePasswords((prev) => ({ ...prev, [u.id]: !prev[u.id] }))
+                              }
+                              className="p-1 hover:bg-slate-100 text-slate-400 hover:text-slate-700 rounded transition"
+                              title={visiblePasswords[u.id] ? 'Sembunyikan password' : 'Lihat password'}
+                            >
+                              {visiblePasswords[u.id] ? (
+                                <EyeOff className="w-3.5 h-3.5" />
+                              ) : (
+                                <Eye className="w-3.5 h-3.5" />
+                              )}
+                            </button>
                           </div>
                         </td>
                         <td className="p-3.5 text-right">

@@ -126,7 +126,21 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // 4. Multi-strategy password validation (plaintext, trimmed, bcrypt hash, and dev defaults)
+    // Role Enforcement: Ensure student accounts cannot log in to Guru or Admin portals!
+    const { expectedRole } = body
+    if (expectedRole && user.role !== expectedRole) {
+      const roleIndo = user.role === 'SISWA' ? 'Siswa' : user.role === 'GURU' ? 'Guru' : 'Admin'
+      const expIndo = expectedRole === 'SISWA' ? 'Siswa' : expectedRole === 'GURU' ? 'Guru' : 'Admin'
+      return NextResponse.json(
+        {
+          success: false,
+          message: `Akses Ditolak: Akun "${cleanInput}" terdaftar sebagai ${roleIndo}. Tidak dapat masuk melalui tab portal ${expIndo}. Silakan pilih tab ${roleIndo}.`,
+        },
+        { status: 403 }
+      )
+    }
+
+    // 5. Multi-strategy password validation (plaintext, trimmed, bcrypt hash, and dev defaults)
     let isPasswordValid = false
 
     // Direct string match

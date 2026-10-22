@@ -14,6 +14,7 @@ export async function GET(request: NextRequest) {
         .filter((u) => u.role === 'SISWA' && u.siswaProfile)
         .map((u) => {
           const k = db.kelas.find((kls) => kls.id === u.siswaProfile?.kelasId)
+          const displayPassword = u.rawPassword || u.password || `siswa${u.siswaProfile?.nis || '123'}`
           return {
             id: u.siswaProfile!.id,
             userId: u.id,
@@ -23,6 +24,7 @@ export async function GET(request: NextRequest) {
             kelasId: u.siswaProfile!.kelasId,
             jenisKelamin: u.siswaProfile!.jenisKelamin || 'L',
             noHp: u.siswaProfile!.noHp || '-',
+            password: displayPassword,
             kelas: k ? { id: k.id, namaKelas: k.namaKelas, tingkat: k.tingkat } : undefined,
             user: { username: u.username, email: u.email },
           }
