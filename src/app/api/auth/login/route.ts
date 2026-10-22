@@ -3,6 +3,7 @@ import { getSchoolDb, saveSchoolDb, UserAccount } from '@/lib/schoolStore'
 import { signToken } from '@/lib/auth'
 import bcrypt from 'bcryptjs'
 import { prisma } from '@/lib/prisma'
+import { findUserInSupabase } from '@/lib/supabaseDb'
 
 export async function POST(request: NextRequest) {
   try {
@@ -34,7 +35,32 @@ export async function POST(request: NextRequest) {
       return matchUsername || matchEmail || matchNip || matchNisn || matchNis
     })
 
-    // 3. Fallback: If not found in file store, attempt to check Prisma PostgreSQL if available
+    // 3. Fallback: If not found in file store, check Supabase Cloud Database directly via REST API
+    if (!user) {
+      try {
+        const sbUser = await findUserInSupabase(cleanInput)
+        if (sbUser) {
+          const syncedUser: UserAccount = {
+            id: sbUser.id,
+            username: sbUser.username,
+            email: sbUser.email,
+            password: sbUser.passwordHash,
+            role: sbUser.role as 'ADMIN' | 'GURU' | 'SISWA',
+            createdAt: sbUser.createdAt,
+            updatedAt: sbUser.updatedAt,
+            guruProfile: sbUser.guruProfile || undefined,
+            siswaProfile: sbUser.siswaProfile || undefined,
+          }
+          db.users.push(syncedUser)
+          saveSchoolDb(db)
+          user = syncedUser
+        }
+      } catch (err) {
+        console.warn('Supabase login check error:', err)
+      }
+    }
+
+    // 4. Secondary fallback: Prisma if connected
     if (!user) {
       try {
         const prismaUser = await prisma.user.findFirst({

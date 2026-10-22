@@ -775,20 +775,31 @@ export function getDbFilePath(): string {
 const FIRST_NAMES_MALE = [
   'Ahmad', 'Aditya', 'Bagus', 'Bayu', 'Bima', 'Dimas', 'Dwi', 'Fajar', 'Farhan', 'Galang',
   'Gilang', 'Hafiz', 'Ilham', 'Indra', 'Muhammad', 'Naufal', 'Pratama', 'Raditya', 'Rafi', 'Reza',
-  'Rian', 'Rifqi', 'Rizky', 'Satria', 'Taufik', 'Wahyu', 'Yudha', 'Zaky'
+  'Rian', 'Rifqi', 'Rizky', 'Satria', 'Taufik', 'Wahyu', 'Yudha', 'Zaky', 'Aldiansyah', 'Alif',
+  'Arya', 'Arga', 'Danu', 'Doni', 'Fahri', 'Faisal', 'Fauzan', 'Genta', 'Hakim', 'Hendra',
+  'Ihsan', 'Irfan', 'Kevin', 'Lukman', 'Maulana', 'Pandu', 'Randy', 'Rendy', 'Reyhan', 'Ridho',
+  'Rio', 'Syahrul', 'Tegar', 'Tommy', 'Yoga', 'Yusuf', 'Zainal', 'Zidan', 'Faris', 'Danial'
 ]
 const LAST_NAMES_MALE = [
   'Pratama', 'Saputra', 'Kusuma', 'Santoso', 'Hidayat', 'Ramadhan', 'Wijaya', 'Permana', 'Nugroho',
-  'Setiawan', 'Firmansyah', 'Wibowo', 'Kurniawan', 'Gunawan', 'Hakim', 'Anwar', 'Putra', 'Maulana'
+  'Setiawan', 'Firmansyah', 'Wibowo', 'Kurniawan', 'Gunawan', 'Hakim', 'Anwar', 'Putra', 'Maulana',
+  'Susanto', 'Wibisono', 'Suhendra', 'Baskoro', 'Wardhana', 'Siregar', 'Nasution', 'Lubis', 'Tanjung',
+  'Batubara', 'Pohan', 'Harahap', 'Pasaribu', 'Simanjuntak', 'Hutapea', 'Panjaitan', 'Sihombing',
+  'Sitompul', 'Samosir', 'Sinaga', 'Manurung', 'Marpaung', 'Sitorus', 'Tampubolon', 'Sitanggang'
 ]
 const FIRST_NAMES_FEMALE = [
   'Aisyah', 'Anisa', 'Aulia', 'Cantika', 'Citra', 'Dinda', 'Fadilah', 'Gita', 'Hana', 'Indah',
   'Intan', 'Kartika', 'Laras', 'Maya', 'Nabila', 'Nadya', 'Nurul', 'Putri', 'Rahma', 'Rania',
-  'Safira', 'Salsabila', 'Salma', 'Siti', 'Syifa', 'Tia', 'Vina', 'Zahra'
+  'Safira', 'Salsabila', 'Salma', 'Siti', 'Syifa', 'Tia', 'Vina', 'Zahra', 'Adelia', 'Amanda',
+  'Annisa', 'Bella', 'Chelsea', 'Clarissa', 'Della', 'Desi', 'Dian', 'Elsa', 'Fitri', 'Febri',
+  'Ghaida', 'Jessica', 'Karina', 'Keisha', 'Keysha', 'Lestari', 'Melani', 'Mutia', 'Nadia', 'Nayla',
+  'Olivia', 'Raisa', 'Sabrina', 'Salsa', 'Sheila', 'Tiara', 'Widya', 'Wulan', 'Yasmin', 'Zaskia'
 ]
 const LAST_NAMES_FEMALE = [
   'Lestari', 'Putri', 'Anggraini', 'Dewi', 'Wulandari', 'Maharani', 'Safitri', 'Kusumawati', 'Utami',
-  'Rahmawati', 'Sari', 'Azzahra', 'Kusuma', 'Handayani', 'Pratiwi', 'Novita'
+  'Rahmawati', 'Sari', 'Azzahra', 'Handayani', 'Pratiwi', 'Novita', 'Susanti', 'Wulandari', 'Puspita',
+  'Kusuma', 'Siregar', 'Nasution', 'Lubis', 'Tanjung', 'Batubara', 'Pohan', 'Harahap', 'Pasaribu',
+  'Simanjuntak', 'Hutapea', 'Panjaitan', 'Sihombing', 'Sitompul', 'Samosir', 'Sinaga', 'Manurung'
 ]
 
 function ensureMinimumStudentsPerClass(db: SchoolDatabase): boolean {
@@ -798,6 +809,11 @@ function ensureMinimumStudentsPerClass(db: SchoolDatabase): boolean {
   if (!Array.isArray(db.raports)) db.raports = []
 
   const targetCountPerClass = 26
+  const usedNames = new Set(
+    db.users
+      .filter((u) => u.siswaProfile?.namaLengkap)
+      .map((u) => u.siswaProfile!.namaLengkap.toLowerCase().trim())
+  )
 
   db.kelas.forEach((kls, kIdx) => {
     const existingStudentsInClass = db.users.filter(
@@ -814,9 +830,17 @@ function ensureMinimumStudentsPerClass(db: SchoolDatabase): boolean {
         const firstArr = isMale ? FIRST_NAMES_MALE : FIRST_NAMES_FEMALE
         const lastArr = isMale ? LAST_NAMES_MALE : LAST_NAMES_FEMALE
 
-        const fn = firstArr[(kIdx * 7 + studentIndex) % firstArr.length]
-        const ln = lastArr[(kIdx * 5 + studentIndex * 3) % lastArr.length]
-        const namaLengkap = `${fn} ${ln}`
+        let fn = firstArr[(kIdx * 7 + studentIndex) % firstArr.length]
+        let ln = lastArr[(kIdx * 5 + studentIndex * 3) % lastArr.length]
+        let namaLengkap = `${fn} ${ln}`
+        let attempts = 0
+        while (usedNames.has(namaLengkap.toLowerCase().trim()) && attempts < 100) {
+          attempts++
+          fn = firstArr[(kIdx * 7 + studentIndex + attempts) % firstArr.length]
+          ln = lastArr[(kIdx * 5 + studentIndex * 3 + attempts) % lastArr.length]
+          namaLengkap = `${fn} ${ln}`
+        }
+        usedNames.add(namaLengkap.toLowerCase().trim())
 
         const gradeLevel = kls.tingkat || '10'
         const cohortYear = gradeLevel === '10' ? '26' : gradeLevel === '11' ? '25' : '24'
