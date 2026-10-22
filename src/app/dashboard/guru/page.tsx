@@ -40,7 +40,11 @@ import {
   AlertOctagon,
   Clock3,
   Save,
+  Unlock,
+  Printer,
 } from 'lucide-react'
+import ThemeToggle from '@/components/ThemeToggle'
+import DualImageInput from '@/components/common/DualImageInput'
 
 // --- Interfaces ---
 interface JadwalItem {
@@ -71,6 +75,41 @@ interface MapelOption {
   namaMapel: string
   kkm: number
 }
+
+const DEFAULT_KELAS_LIST: KelasOption[] = [
+  { id: 'kelas-10-mipa1', namaKelas: 'X MIPA 1', tingkat: '10' },
+  { id: 'kelas-10-mipa2', namaKelas: 'X MIPA 2', tingkat: '10' },
+  { id: 'kelas-10-ips1',  namaKelas: 'X IPS 1',  tingkat: '10' },
+  { id: 'kelas-10-ips2',  namaKelas: 'X IPS 2',  tingkat: '10' },
+  { id: 'kelas-11-mipa1', namaKelas: 'XI MIPA 1', tingkat: '11' },
+  { id: 'kelas-11-mipa2', namaKelas: 'XI MIPA 2', tingkat: '11' },
+  { id: 'kelas-11-ips1',  namaKelas: 'XI IPS 1',  tingkat: '11' },
+  { id: 'kelas-11-ips2',  namaKelas: 'XI IPS 2',  tingkat: '11' },
+  { id: 'kelas-12-mipa1', namaKelas: 'XII MIPA 1', tingkat: '12' },
+  { id: 'kelas-12-mipa2', namaKelas: 'XII MIPA 2', tingkat: '12' },
+  { id: 'kelas-12-ips1',  namaKelas: 'XII IPS 1',  tingkat: '12' },
+  { id: 'kelas-12-ips2',  namaKelas: 'XII IPS 2',  tingkat: '12' },
+]
+
+const DEFAULT_MAPEL_LIST: MapelOption[] = [
+  { id: 'mapel-mtk', kodeMapel: 'MTK-W', namaMapel: 'Matematika Wajib', kkm: 75 },
+  { id: 'mapel-mtk-minat', kodeMapel: 'MTK-P', namaMapel: 'Matematika Peminatan', kkm: 75 },
+  { id: 'mapel-bin', kodeMapel: 'BIN', namaMapel: 'Bahasa Indonesia', kkm: 75 },
+  { id: 'mapel-ing', kodeMapel: 'ING', namaMapel: 'Bahasa Inggris', kkm: 75 },
+  { id: 'mapel-fis', kodeMapel: 'FIS', namaMapel: 'Fisika', kkm: 75 },
+  { id: 'mapel-kim', kodeMapel: 'KIM', namaMapel: 'Kimia', kkm: 75 },
+  { id: 'mapel-bio', kodeMapel: 'BIO', namaMapel: 'Biologi', kkm: 75 },
+  { id: 'mapel-sej', kodeMapel: 'SEJ', namaMapel: 'Sejarah Indonesia', kkm: 75 },
+  { id: 'mapel-sos', kodeMapel: 'SOS', namaMapel: 'Sosiologi', kkm: 75 },
+  { id: 'mapel-geo', kodeMapel: 'GEO', namaMapel: 'Geografi', kkm: 75 },
+  { id: 'mapel-eko', kodeMapel: 'EKO', namaMapel: 'Ekonomi', kkm: 75 },
+  { id: 'mapel-pabp', kodeMapel: 'PABP', namaMapel: 'Pendidikan Agama & Budi Pekerti', kkm: 78 },
+  { id: 'mapel-ppkn', kodeMapel: 'PPKN', namaMapel: 'PPKn', kkm: 76 },
+  { id: 'mapel-pjok', kodeMapel: 'PJOK', namaMapel: 'PJOK', kkm: 75 },
+  { id: 'mapel-seni', kodeMapel: 'SBD', namaMapel: 'Seni Budaya', kkm: 75 },
+  { id: 'mapel-pkwu', kodeMapel: 'PKWU', namaMapel: 'Prakarya & Kewirausahaan', kkm: 75 },
+  { id: 'mapel-inf', kodeMapel: 'INF', namaMapel: 'Informatika', kkm: 75 },
+]
 
 interface SiswaItem {
   id: string
@@ -196,13 +235,28 @@ export default function GuruDashboardPage() {
 
   // Navigation tab
   const [activeTab, setActiveTab] = useState<
-    'ringkasan' | 'kelas_siswa' | 'presensi' | 'nilai' | 'tugas_materi' | 'pengumuman_bimbingan' | 'profil'
+    'ringkasan' | 'kelas_siswa' | 'presensi' | 'nilai' | 'tugas_materi' | 'raport' | 'profil'
   >('ringkasan')
 
   // Sub-tabs
   const [tugasSubTab, setTugasSubTab] = useState<'tugas' | 'materi'>('tugas')
-  const [pengumumanSubTab, setPengumumanSubTab] = useState<'pengumuman' | 'bimbingan'>('pengumuman')
   const [presensiSubTab, setPresensiSubTab] = useState<'input' | 'rekap'>('input')
+
+  // Raport Digital States
+  const [selectedKelasRaport, setSelectedKelasRaport] = useState<string>('kelas-10-mipa1')
+  const [raportRecords, setRaportRecords] = useState<any[]>([])
+  const [loadingRaport, setLoadingRaport] = useState(false)
+  const [selectedStudentForRaport, setSelectedStudentForRaport] = useState<{
+    siswa: SiswaItem
+    raport?: any
+    nilais?: any[]
+  } | null>(null)
+  const [showRaportDetailModal, setShowRaportDetailModal] = useState(false)
+  const [raportDetailForm, setRaportDetailForm] = useState({
+    catatanWaliKelas: '',
+    status: 'DRAFT' as 'DRAFT' | 'PUBLISHED',
+  })
+  const [savingRaport, setSavingRaport] = useState(false)
 
   // Global loading
   const [loading, setLoading] = useState(true)
@@ -220,9 +274,9 @@ export default function GuruDashboardPage() {
     bio: 'Guru Pengampu Mata Pelajaran Matematika Wajib & Pembina Olimpiade Sains',
   })
 
-  // Master Data
-  const [kelasList, setKelasList] = useState<KelasOption[]>([])
-  const [mapelList, setMapelList] = useState<MapelOption[]>([])
+  // Master Data (Initialized with complete 12 classes & 17 subjects)
+  const [kelasList, setKelasList] = useState<KelasOption[]>(DEFAULT_KELAS_LIST)
+  const [mapelList, setMapelList] = useState<MapelOption[]>(DEFAULT_MAPEL_LIST)
   const [jadwalList, setJadwalList] = useState<JadwalItem[]>([])
   const [allSiswa, setAllSiswa] = useState<SiswaItem[]>([])
 
@@ -301,25 +355,25 @@ export default function GuruDashboardPage() {
     mapelId: 'mapel-mtk',
   })
 
-  // Pengumuman & Bimbingan State
-  const [pengumumanList, setPengumumanList] = useState<PengumumanItem[]>([])
-  const [showCreatePengumumanModal, setShowCreatePengumumanModal] = useState(false)
-  const [newPengumumanForm, setNewPengumumanForm] = useState({
-    judul: '',
-    konten: '',
-    prioritas: 'NORMAL' as 'NORMAL' | 'PENTING' | 'MENDESAK',
-    kelasId: 'ALL',
-  })
+  // Raport Memoized Stats
+  const studentsInSelectedRaportClass = useMemo(() => {
+    return allSiswa.filter((s) => s.kelasId === selectedKelasRaport)
+  }, [allSiswa, selectedKelasRaport])
 
-  const [bimbinganList, setBimbinganList] = useState<BimbinganItem[]>([])
-  const [showCreateBimbinganModal, setShowCreateBimbinganModal] = useState(false)
-  const [newBimbinganForm, setNewBimbinganForm] = useState({
-    siswaId: '',
-    kategori: 'Akademik' as 'Akademik' | 'Kedisiplinan' | 'Prestasi' | 'Konseling',
-    catatan: '',
-    tindakan: '',
-    tanggal: '2026-10-21',
-  })
+  const currentRaportKelasObj = useMemo(() => {
+    return kelasList.find((k) => k.id === selectedKelasRaport)
+  }, [kelasList, selectedKelasRaport])
+
+  const countPublished = useMemo(() => {
+    return studentsInSelectedRaportClass.filter((st) => {
+      const rap = raportRecords.find((r) => r.siswaId === st.id)
+      return rap?.status === 'PUBLISHED'
+    }).length
+  }, [studentsInSelectedRaportClass, raportRecords])
+
+  const countLocked = useMemo(() => {
+    return Math.max(0, studentsInSelectedRaportClass.length - countPublished)
+  }, [studentsInSelectedRaportClass, countPublished])
   const [todayName, setTodayName] = useState('Senin')
 
   // Filter & Search states
@@ -378,31 +432,28 @@ export default function GuruDashboardPage() {
         resNilai,
         resPr,
         resMateri,
-        resPengumuman,
-        resBimbingan,
+        resRaport,
       ] = await Promise.all([
-        fetch('/api/auth/me'),
-        fetch('/api/admin/master'),
-        fetch('/api/jadwal'),
-        fetch('/api/absensi'),
-        fetch('/api/admin/siswa-dashboard'),
-        fetch('/api/nilai'),
-        fetch('/api/pr'),
-        fetch('/api/materi'),
-        fetch('/api/pengumuman-kelas'),
-        fetch('/api/bimbingan'),
+        fetch('/api/auth/me').catch(() => null),
+        fetch('/api/admin/master').catch(() => null),
+        fetch('/api/jadwal').catch(() => null),
+        fetch('/api/absensi').catch(() => null),
+        fetch('/api/admin/siswa-dashboard').catch(() => null),
+        fetch('/api/nilai').catch(() => null),
+        fetch('/api/pr').catch(() => null),
+        fetch('/api/materi').catch(() => null),
+        fetch('/api/raport').catch(() => null),
       ])
 
-      const dataMe = await resMe.json()
-      const dataMaster = await resMaster.json()
-      const dataJadwal = await resJadwal.json()
-      const dataAbsensi = await resAbsensi.json()
-      const dataSiswa = await resSiswa.json()
-      const dataNilai = await resNilai.json()
-      const dataPr = await resPr.json()
-      const dataMateri = await resMateri.json()
-      const dataPengumuman = await resPengumuman.json()
-      const dataBimbingan = await resBimbingan.json()
+      const dataMe = resMe ? await resMe.json().catch(() => ({})) : {}
+      const dataMaster = resMaster ? await resMaster.json().catch(() => ({})) : {}
+      const dataJadwal = resJadwal ? await resJadwal.json().catch(() => ({})) : {}
+      const dataAbsensi = resAbsensi ? await resAbsensi.json().catch(() => ({})) : {}
+      const dataSiswa = resSiswa ? await resSiswa.json().catch(() => ({})) : {}
+      const dataNilai = resNilai ? await resNilai.json().catch(() => ({})) : {}
+      const dataPr = resPr ? await resPr.json().catch(() => ({})) : {}
+      const dataMateri = resMateri ? await resMateri.json().catch(() => ({})) : {}
+      const dataRaport = resRaport ? await resRaport.json().catch(() => ({})) : {}
 
       if (dataMe.success && dataMe.data?.details) {
         const d = dataMe.data.details
@@ -430,9 +481,16 @@ export default function GuruDashboardPage() {
         })
       }
 
-      if (dataMaster.success && dataMaster.data) {
-        setKelasList(dataMaster.data.kelas || [])
-        setMapelList(dataMaster.data.mapel || [])
+      if (dataMaster.success && dataMaster.data && Array.isArray(dataMaster.data.kelas) && dataMaster.data.kelas.length > 0) {
+        setKelasList(dataMaster.data.kelas)
+      } else {
+        setKelasList(DEFAULT_KELAS_LIST)
+      }
+
+      if (dataMaster.success && dataMaster.data && Array.isArray(dataMaster.data.mapel) && dataMaster.data.mapel.length > 0) {
+        setMapelList(dataMaster.data.mapel)
+      } else {
+        setMapelList(DEFAULT_MAPEL_LIST)
       }
 
       if (dataJadwal.success && Array.isArray(dataJadwal.data)) {
@@ -465,12 +523,8 @@ export default function GuruDashboardPage() {
         setMateriList(dataMateri.data)
       }
 
-      if (dataPengumuman.success && Array.isArray(dataPengumuman.data)) {
-        setPengumumanList(dataPengumuman.data)
-      }
-
-      if (dataBimbingan.success && Array.isArray(dataBimbingan.data)) {
-        setBimbinganList(dataBimbingan.data)
+      if (dataRaport.success && Array.isArray(dataRaport.data)) {
+        setRaportRecords(dataRaport.data)
       }
 
       // Initialize Attendance and Grade tables for default class
@@ -1000,119 +1054,131 @@ export default function GuruDashboardPage() {
     })
   }
 
-  // Create Announcement
-  const handleCreatePengumuman = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!newPengumumanForm.judul.trim() || !newPengumumanForm.konten.trim()) {
-      showFeedback('error', 'Judul dan isi pengumuman wajib diisi')
-      return
-    }
-
+  // --- RAPORT DIGITAL HANDLERS ---
+  const loadRaportForClass = async (kId: string) => {
+    setLoadingRaport(true)
     try {
-      const res = await fetch('/api/pengumuman-kelas', {
+      const res = await fetch(`/api/raport?kelasId=${kId}`)
+      const j = await res.json()
+      if (j.success && Array.isArray(j.data)) {
+        setRaportRecords(j.data)
+      }
+    } catch {
+      showFeedback('error', 'Gagal memuat status raport kelas')
+    } finally {
+      setLoadingRaport(false)
+    }
+  }
+
+  const handleToggleStudentRaportStatus = async (siswaId: string, currentStatus: string) => {
+    const nextStatus = currentStatus === 'PUBLISHED' ? 'DRAFT' : 'PUBLISHED'
+    try {
+      const res = await fetch('/api/raport', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newPengumumanForm),
+        body: JSON.stringify({
+          siswaId,
+          kelasId: selectedKelasRaport,
+          status: nextStatus,
+        }),
       })
       const j = await res.json()
       if (j.success) {
-        showFeedback('success', 'Pengumuman kelas berhasil dipublikasikan!')
-        setShowCreatePengumumanModal(false)
-        setNewPengumumanForm({
-          judul: '',
-          konten: '',
-          prioritas: 'NORMAL',
-          kelasId: 'ALL',
+        showFeedback(
+          'success',
+          `Status izin raport berhasil diubah: ${nextStatus === 'PUBLISHED' ? 'Diizinkan (Terbuka)' : 'Terkunci (Perlu Izin Guru)'}`
+        )
+        setRaportRecords((prev) => {
+          const idx = prev.findIndex((r) => r.siswaId === siswaId)
+          if (idx !== -1) {
+            const copy = [...prev]
+            copy[idx] = { ...copy[idx], status: nextStatus }
+            return copy
+          }
+          return [...prev, { siswaId, kelasId: selectedKelasRaport, status: nextStatus }]
         })
-        const rPeng = await fetch('/api/pengumuman-kelas')
-        const dPeng = await rPeng.json()
-        if (dPeng.success) setPengumumanList(dPeng.data)
       } else {
-        showFeedback('error', j.message || 'Gagal mempublikasikan pengumuman')
+        showFeedback('error', j.message || 'Gagal mengubah status izin raport')
       }
     } catch {
-      showFeedback('error', 'Gagal memproses pengumuman')
+      showFeedback('error', 'Terjadi kesalahan saat mengubah izin raport')
     }
   }
 
-  // Delete Announcement
-  const handleDeletePengumuman = (pId: string, judul: string) => {
-    setConfirmDialog({
-      isOpen: true,
-      title: 'Hapus Pengumuman',
-      message: `Hapus pengumuman "${judul}"?`,
-      onConfirm: async () => {
-        try {
-          const res = await fetch(`/api/pengumuman-kelas?id=${pId}`, { method: 'DELETE' })
-          const j = await res.json()
-          if (j.success) {
-            showFeedback('success', 'Pengumuman berhasil dihapus')
-            setPengumumanList((prev) => prev.filter((p) => p.id !== pId))
-          }
-        } catch {
-          showFeedback('error', 'Gagal menghubungi server')
-        }
-        setConfirmDialog((c) => ({ ...c, isOpen: false }))
-      },
-    })
-  }
-
-  // Create Bimbingan
-  const handleCreateBimbingan = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!newBimbinganForm.siswaId || !newBimbinganForm.catatan.trim()) {
-      showFeedback('error', 'Pilih siswa dan isi catatan bimbingan')
-      return
-    }
-
+  const handleBulkRaportStatus = async (kelasId: string, newStatus: 'PUBLISHED' | 'DRAFT') => {
     try {
-      const res = await fetch('/api/bimbingan', {
+      const res = await fetch('/api/raport', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newBimbinganForm),
+        body: JSON.stringify({
+          action: 'BULK_UPDATE_STATUS',
+          kelasId,
+          status: newStatus,
+        }),
       })
       const j = await res.json()
       if (j.success) {
-        showFeedback('success', 'Catatan bimbingan siswa berhasil disimpan!')
-        setShowCreateBimbinganModal(false)
-        setNewBimbinganForm({
-          siswaId: '',
-          kategori: 'Akademik',
-          catatan: '',
-          tindakan: '',
-          tanggal: new Date().toISOString().split('T')[0],
-        })
-        const rBim = await fetch('/api/bimbingan')
-        const dBim = await rBim.json()
-        if (dBim.success) setBimbinganList(dBim.data)
+        showFeedback('success', j.message || 'Izin raport kelas berhasil diperbarui!')
+        loadRaportForClass(kelasId)
       } else {
-        showFeedback('error', j.message || 'Gagal menyimpan bimbingan')
+        showFeedback('error', j.message || 'Gagal mengubah status kelas')
       }
     } catch {
-      showFeedback('error', 'Gagal menyimpan catatan bimbingan')
+      showFeedback('error', 'Gagal memproses perubahan izin raport')
     }
   }
 
-  // Delete Bimbingan
-  const handleDeleteBimbingan = (bId: string) => {
-    setConfirmDialog({
-      isOpen: true,
-      title: 'Hapus Catatan Bimbingan',
-      message: 'Apakah Anda yakin ingin menghapus catatan bimbingan siswa ini?',
-      onConfirm: async () => {
-        try {
-          const res = await fetch(`/api/bimbingan?id=${bId}`, { method: 'DELETE' })
-          const j = await res.json()
-          if (j.success) {
-            showFeedback('success', 'Catatan bimbingan berhasil dihapus')
-            setBimbinganList((prev) => prev.filter((b) => b.id !== bId))
-          }
-        } catch {
-          showFeedback('error', 'Gagal menghubungi server')
-        }
-        setConfirmDialog((c) => ({ ...c, isOpen: false }))
-      },
+  const handleOpenRaportModal = async (student: SiswaItem, existingRaport?: any) => {
+    let studentNilais: any[] = []
+    try {
+      const res = await fetch(`/api/nilai?siswaId=${student.id}`)
+      const j = await res.json()
+      if (j.success && Array.isArray(j.data)) {
+        studentNilais = j.data
+      }
+    } catch {}
+
+    setSelectedStudentForRaport({
+      siswa: student,
+      raport: existingRaport,
+      nilais: studentNilais,
     })
+    setRaportDetailForm({
+      catatanWaliKelas:
+        existingRaport?.catatanWaliKelas ||
+        'Pertahankan prestasi belajar, tingkatkan kedisiplinan dan selalu aktif dalam kegiatan sekolah.',
+      status: existingRaport?.status === 'PUBLISHED' ? 'PUBLISHED' : 'DRAFT',
+    })
+    setShowRaportDetailModal(true)
+  }
+
+  const handleSaveRaportModal = async () => {
+    if (!selectedStudentForRaport) return
+    setSavingRaport(true)
+    try {
+      const res = await fetch('/api/raport', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          siswaId: selectedStudentForRaport.siswa.id,
+          kelasId: selectedKelasRaport,
+          catatanWaliKelas: raportDetailForm.catatanWaliKelas,
+          status: raportDetailForm.status,
+        }),
+      })
+      const j = await res.json()
+      if (j.success) {
+        showFeedback('success', 'Pengaturan raport siswa berhasil disimpan!')
+        setShowRaportDetailModal(false)
+        loadRaportForClass(selectedKelasRaport)
+      } else {
+        showFeedback('error', j.message || 'Gagal menyimpan raport')
+      }
+    } catch {
+      showFeedback('error', 'Terjadi kesalahan sistem saat menyimpan')
+    } finally {
+      setSavingRaport(false)
+    }
   }
 
   // Save Teacher Profile
@@ -1544,6 +1610,7 @@ export default function GuruDashboardPage() {
           </div>
 
           <div className="flex items-center gap-2.5">
+            <ThemeToggle />
             <button
               onClick={() => setActiveTab('profil')}
               className="hidden sm:flex items-center gap-2 px-3.5 py-2 text-xs font-semibold text-slate-700 hover:text-blue-700 hover:bg-slate-100 rounded-xl transition border border-slate-200"
@@ -1612,14 +1679,17 @@ export default function GuruDashboardPage() {
             <BookOpen className="w-4 h-4" /> Tugas & Materi
           </button>
           <button
-            onClick={() => setActiveTab('pengumuman_bimbingan')}
+            onClick={() => {
+              setActiveTab('raport')
+              loadRaportForClass(selectedKelasRaport)
+            }}
             className={`py-3 px-4 font-semibold text-xs sm:text-sm flex items-center gap-2 border-b-2 whitespace-nowrap transition-all ${
-              activeTab === 'pengumuman_bimbingan'
+              activeTab === 'raport'
                 ? 'border-blue-600 text-blue-600 bg-blue-50/50'
                 : 'border-transparent text-slate-600 hover:text-slate-900 hover:border-slate-300'
             }`}
           >
-            <MessageSquare className="w-4 h-4" /> Pengumuman & Bimbingan
+            <FileSpreadsheet className="w-4 h-4" /> Raport Digital
           </button>
           <button
             onClick={() => setActiveTab('profil')}
@@ -2003,48 +2073,54 @@ export default function GuruDashboardPage() {
                       )}
                     </div>
 
-                    {/* Pengumuman Terbaru */}
+                    {/* Status Raport Digital Siswa */}
                     <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs space-y-4">
                       <div className="flex items-center justify-between">
                         <h3 className="font-bold text-slate-900 text-sm flex items-center gap-2">
-                          <MessageSquare className="w-4 h-4 text-blue-600" /> Pengumuman Kelas Terbaru
+                          <FileSpreadsheet className="w-4 h-4 text-blue-600" /> Kontrol Raport Digital Siswa
                         </h3>
                         <button
                           onClick={() => {
-                            setActiveTab('pengumuman_bimbingan')
-                            setPengumumanSubTab('pengumuman')
+                            setActiveTab('raport')
+                            loadRaportForClass(selectedKelasRaport)
                           }}
                           className="text-xs text-blue-600 hover:underline font-semibold"
                         >
-                          Kelola
+                          Buka Raport
                         </button>
                       </div>
 
-                      {pengumumanList.length === 0 ? (
-                        <p className="text-xs text-slate-400 py-4 text-center">Belum ada pengumuman kelas</p>
-                      ) : (
-                        <div className="space-y-3">
-                          {pengumumanList.slice(0, 2).map((p) => (
-                            <div key={p.id} className="p-3 rounded-xl border border-slate-100 bg-slate-50/60 space-y-1">
-                              <div className="flex items-center justify-between gap-2">
-                                <span className="font-bold text-xs text-slate-800 line-clamp-1">{p.judul}</span>
-                                <span
-                                  className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${
-                                    p.prioritas === 'MENDESAK'
-                                      ? 'bg-rose-100 text-rose-700'
-                                      : p.prioritas === 'PENTING'
-                                      ? 'bg-amber-100 text-amber-800'
-                                      : 'bg-blue-100 text-blue-800'
-                                  }`}
-                                >
-                                  {p.prioritas}
-                                </span>
-                              </div>
-                              <p className="text-xs text-slate-600 line-clamp-2">{p.konten}</p>
-                            </div>
-                          ))}
+                      <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl space-y-1">
+                        <div className="flex items-center gap-2 text-amber-800 text-xs font-bold">
+                          <Lock className="w-3.5 h-3.5" /> Proteksi Izin Akses Raport
                         </div>
-                      )}
+                        <p className="text-[11px] text-amber-700 leading-relaxed">
+                          Siswa tidak dapat membuka raport mereka tanpa izin/publikasi dari Guru atau Wali Kelas. Anda dapat mengizinkan perorangan atau seluruh kelas secara serentak.
+                        </p>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-3 pt-1">
+                        <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-100 text-center">
+                          <span className="text-[11px] font-bold text-emerald-800">Status Izin</span>
+                          <p className="text-lg font-extrabold text-emerald-700 mt-0.5">Aktif</p>
+                          <span className="text-[10px] text-emerald-600">Bisa Dikelola Guru</span>
+                        </div>
+                        <div className="p-3 rounded-xl bg-blue-50 border border-blue-100 text-center">
+                          <span className="text-[11px] font-bold text-blue-800">Total Kelas</span>
+                          <p className="text-lg font-extrabold text-blue-700 mt-0.5">{kelasList.length}</p>
+                          <span className="text-[10px] text-blue-600">Tersedia Lengkap</span>
+                        </div>
+                      </div>
+
+                      <button
+                        onClick={() => {
+                          setActiveTab('raport')
+                          loadRaportForClass(selectedKelasRaport)
+                        }}
+                        className="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 shadow-xs"
+                      >
+                        <ShieldCheck className="w-4 h-4" /> Kelola Izin Raport Siswa
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -2187,14 +2263,14 @@ export default function GuruDashboardPage() {
                                 <td className="py-3 px-4 text-center">
                                   <button
                                     onClick={() => {
-                                      setNewBimbinganForm((prev) => ({ ...prev, siswaId: st.id }))
-                                      setActiveTab('pengumuman_bimbingan')
-                                      setPengumumanSubTab('bimbingan')
-                                      setShowCreateBimbinganModal(true)
+                                      setSelectedKelasRaport(st.kelasId)
+                                      setActiveTab('raport')
+                                      loadRaportForClass(st.kelasId)
+                                      handleOpenRaportModal(st)
                                     }}
-                                    className="px-2.5 py-1 text-xs font-semibold text-blue-600 hover:bg-blue-50 rounded-lg border border-blue-200 transition"
+                                    className="px-2.5 py-1 text-xs font-semibold text-blue-600 hover:bg-blue-50 rounded-lg border border-blue-200 transition flex items-center gap-1 mx-auto"
                                   >
-                                    + Catatan Bimbingan
+                                    <FileSpreadsheet className="w-3.5 h-3.5" /> Buka Raport
                                   </button>
                                 </td>
                               </tr>
@@ -3068,174 +3144,200 @@ export default function GuruDashboardPage() {
             )}
 
             {/* ========================================================= */}
-            {/* 6. PENGUMUMAN & BIMBINGAN SISWA */}
+            {/* 6. RAPORT DIGITAL & IZIN AKSES SISWA */}
             {/* ========================================================= */}
-            {activeTab === 'pengumuman_bimbingan' && (
+            {activeTab === 'raport' && (
               <div className="space-y-6">
-                {/* Header & Sub-tab */}
+                {/* Header & Controls */}
                 <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
                   <div>
                     <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
-                      <MessageSquare className="w-5 h-5 text-blue-600" /> Pengumuman Kelas & Catatan Bimbingan Siswa
+                      <FileSpreadsheet className="w-5 h-5 text-blue-600" /> Raport Digital & Izin Akses Siswa
                     </h2>
                     <p className="text-xs text-slate-500 mt-1">
-                      Kirim pengumuman khusus per kelas dan catat bimbingan konseling atau prestasi belajar siswa
+                      Kontrol penerbitan raport semester. Tanpa izin Guru / Wali Kelas, raport siswa terkunci secara otomatis.
                     </p>
                   </div>
 
-                  <div className="flex items-center gap-3">
-                    <div className="bg-slate-100 p-1 rounded-xl flex items-center">
-                      <button
-                        onClick={() => setPengumumanSubTab('pengumuman')}
-                        className={`px-3 py-1.5 text-xs font-bold rounded-lg transition ${
-                          pengumumanSubTab === 'pengumuman' ? 'bg-white text-blue-700 shadow-xs' : 'text-slate-600'
-                        }`}
+                  <div className="flex flex-wrap items-center gap-3">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-semibold text-slate-500">Pilih Kelas:</span>
+                      <select
+                        value={selectedKelasRaport}
+                        onChange={(e) => {
+                          const kId = e.target.value
+                          setSelectedKelasRaport(kId)
+                          loadRaportForClass(kId)
+                        }}
+                        className="text-xs sm:text-sm px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:border-blue-500 font-bold bg-white"
                       >
-                        Pengumuman Kelas
-                      </button>
-                      <button
-                        onClick={() => setPengumumanSubTab('bimbingan')}
-                        className={`px-3 py-1.5 text-xs font-bold rounded-lg transition ${
-                          pengumumanSubTab === 'bimbingan' ? 'bg-white text-blue-700 shadow-xs' : 'text-slate-600'
-                        }`}
-                      >
-                        Catatan Bimbingan
-                      </button>
+                        {kelasList.map((k) => (
+                          <option key={k.id} value={k.id}>
+                            {k.namaKelas}
+                          </option>
+                        ))}
+                      </select>
                     </div>
 
-                    {pengumumanSubTab === 'pengumuman' ? (
-                      <button
-                        onClick={() => setShowCreatePengumumanModal(true)}
-                        className="px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl shadow-xs transition flex items-center gap-1.5"
-                      >
-                        <Plus className="w-4 h-4" /> Buat Pengumuman
-                      </button>
-                    ) : (
-                      <button
-                        onClick={() => setShowCreateBimbinganModal(true)}
-                        className="px-3.5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shadow-xs transition flex items-center gap-1.5"
-                      >
-                        <Plus className="w-4 h-4" /> Tambah Catatan Bimbingan
-                      </button>
-                    )}
+                    <button
+                      onClick={() => handleBulkRaportStatus(selectedKelasRaport, 'PUBLISHED')}
+                      className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl shadow-xs transition flex items-center gap-1.5"
+                    >
+                      <Unlock className="w-4 h-4" /> Izinkan Semua (Buka Raport)
+                    </button>
+                    <button
+                      onClick={() => handleBulkRaportStatus(selectedKelasRaport, 'DRAFT')}
+                      className="px-3.5 py-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-xl shadow-xs transition flex items-center gap-1.5"
+                    >
+                      <Lock className="w-4 h-4" /> Kunci Semua Raport
+                    </button>
+                    <button
+                      onClick={() => loadRaportForClass(selectedKelasRaport)}
+                      className="p-2 text-slate-500 hover:text-blue-600 hover:bg-slate-100 rounded-xl border border-slate-200 transition"
+                      title="Segarkan data raport"
+                    >
+                      <RefreshCw className={`w-4 h-4 ${loadingRaport ? 'animate-spin' : ''}`} />
+                    </button>
                   </div>
                 </div>
 
-                {/* SUBTAB 1: PENGUMUMAN KELAS */}
-                {pengumumanSubTab === 'pengumuman' && (
-                  <div className="space-y-4">
-                    {pengumumanList.length === 0 ? (
-                      <div className="bg-white p-12 text-center rounded-2xl border border-slate-200 text-slate-400">
-                        Belum ada pengumuman kelas yang dibuat
-                      </div>
-                    ) : (
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {pengumumanList.map((p) => (
-                          <div
-                            key={p.id}
-                            className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs hover:shadow-md transition space-y-3"
-                          >
-                            <div className="flex items-start justify-between gap-2">
-                              <div>
-                                <span
-                                  className={`px-2 py-0.5 text-[10px] font-bold rounded ${
-                                    p.prioritas === 'MENDESAK'
-                                      ? 'bg-rose-100 text-rose-700'
-                                      : p.prioritas === 'PENTING'
-                                      ? 'bg-amber-100 text-amber-800'
-                                      : 'bg-blue-100 text-blue-800'
-                                  }`}
-                                >
-                                  {p.prioritas}
-                                </span>
-                                <h3 className="font-bold text-slate-900 text-base mt-1.5">{p.judul}</h3>
-                              </div>
-
-                              <button
-                                onClick={() => handleDeletePengumuman(p.id, p.judul)}
-                                className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </button>
-                            </div>
-
-                            <p className="text-xs text-slate-600 whitespace-pre-line leading-relaxed">{p.konten}</p>
-
-                            <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-xs text-slate-400">
-                              <span>
-                                Target: <strong>{p.kelasId === 'ALL' ? 'Semua Kelas' : p.kelas?.namaKelas || p.kelasId}</strong>
-                              </span>
-                              <span>{new Date(p.createdAt).toLocaleDateString('id-ID')}</span>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
+                {/* Status Alert Banner */}
+                <div className="p-4 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-2xl flex items-start gap-3">
+                  <div className="w-9 h-9 rounded-xl bg-amber-500 text-white flex items-center justify-center shrink-0 shadow-xs">
+                    <Lock className="w-5 h-5" />
                   </div>
-                )}
-
-                {/* SUBTAB 2: CATATAN BIMBINGAN SISWA */}
-                {pengumumanSubTab === 'bimbingan' && (
-                  <div className="space-y-4">
-                    {bimbinganList.length === 0 ? (
-                      <div className="bg-white p-12 text-center rounded-2xl border border-slate-200 text-slate-400">
-                        Belum ada catatan bimbingan siswa yang dibuat
-                      </div>
-                    ) : (
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {bimbinganList.map((b) => (
-                          <div
-                            key={b.id}
-                            className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-3"
-                          >
-                            <div className="flex items-start justify-between gap-2">
-                              <div>
-                                <span
-                                  className={`px-2 py-0.5 text-[10px] font-bold rounded ${
-                                    b.kategori === 'Prestasi'
-                                      ? 'bg-emerald-100 text-emerald-800'
-                                      : b.kategori === 'Kedisiplinan'
-                                      ? 'bg-rose-100 text-rose-800'
-                                      : b.kategori === 'Konseling'
-                                      ? 'bg-purple-100 text-purple-800'
-                                      : 'bg-blue-100 text-blue-800'
-                                  }`}
-                                >
-                                  {b.kategori}
-                                </span>
-                                <h4 className="font-bold text-slate-900 text-sm mt-1">
-                                  {b.siswa?.namaLengkap || 'Siswa'} ({b.siswa?.kelas?.namaKelas || 'Kelas'})
-                                </h4>
-                              </div>
-
-                              <button
-                                onClick={() => handleDeleteBimbingan(b.id)}
-                                className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </button>
-                            </div>
-
-                            <div className="space-y-1.5 bg-slate-50/70 p-3 rounded-xl border border-slate-100">
-                              <p className="text-xs text-slate-700">
-                                <strong>Catatan:</strong> {b.catatan}
-                              </p>
-                              {b.tindakan && (
-                                <p className="text-xs text-blue-800">
-                                  <strong>Rencana Tindakan:</strong> {b.tindakan}
-                                </p>
-                              )}
-                            </div>
-
-                            <p className="text-[11px] text-slate-400 text-right">
-                              Tanggal: {new Date(b.tanggal).toLocaleDateString('id-ID')}
-                            </p>
-                          </div>
-                        ))}
-                      </div>
-                    )}
+                  <div>
+                    <h4 className="text-xs font-bold text-amber-900 uppercase tracking-wider">
+                      Aturan Akses Raport Digital Siswa
+                    </h4>
+                    <p className="text-xs text-amber-800 mt-0.5 leading-relaxed">
+                      Siswa <strong>TIDAK DAPAT MEMBUKA RAPORT</strong> di akun mereka sebelum status raport diubah menjadi <strong>Diizinkan (Terbuka)</strong> oleh Guru / Wali Kelas. Anda dapat mengizinkan perorangan atau membuka akses seluruh siswa di kelas <strong>{currentRaportKelasObj?.namaKelas || selectedKelasRaport}</strong> dengan satu klik tombol di atas.
+                    </p>
                   </div>
-                )}
+                </div>
+
+                {/* Metrics Cards */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+                      <Users className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <span className="text-xs text-slate-500 font-semibold">Total Siswa Kelas {currentRaportKelasObj?.namaKelas}</span>
+                      <p className="text-2xl font-black text-slate-900">{studentsInSelectedRaportClass.length} Siswa</p>
+                    </div>
+                  </div>
+
+                  <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+                      <Unlock className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <span className="text-xs text-slate-500 font-semibold">Raport Diizinkan (Terbuka)</span>
+                      <p className="text-2xl font-black text-emerald-600">{countPublished} Siswa</p>
+                    </div>
+                  </div>
+
+                  <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center shrink-0">
+                      <Lock className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <span className="text-xs text-slate-500 font-semibold">Raport Terkunci (Belum Izin)</span>
+                      <p className="text-2xl font-black text-rose-600">{countLocked} Siswa</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Raport Students Table */}
+                <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs space-y-4">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                    <h3 className="font-bold text-slate-900 text-base flex items-center gap-2">
+                      <FileCheck className="w-5 h-5 text-indigo-600" /> Lembar Verifikasi Raport Siswa - Kelas {currentRaportKelasObj?.namaKelas}
+                    </h3>
+                    <span className="text-xs font-semibold text-slate-500">
+                      Semester Ganjil 2025/2026
+                    </span>
+                  </div>
+
+                  <div className="overflow-x-auto rounded-xl border border-slate-200">
+                    <table className="w-full text-left border-collapse text-xs sm:text-sm">
+                      <thead>
+                        <tr className="bg-slate-50 border-b border-slate-200 text-slate-600 font-bold text-[11px] uppercase tracking-wider">
+                          <th className="py-3 px-4">No</th>
+                          <th className="py-3 px-4">NISN / NIS</th>
+                          <th className="py-3 px-4">Nama Siswa</th>
+                          <th className="py-3 px-4 text-center">Status Izin Guru</th>
+                          <th className="py-3 px-4">Catatan Wali Kelas</th>
+                          <th className="py-3 px-4 text-center">Aksi Cepat</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100">
+                        {studentsInSelectedRaportClass.length === 0 ? (
+                          <tr>
+                            <td colSpan={6} className="py-8 text-center text-slate-400">
+                              Tidak ada data siswa terdaftar di kelas ini
+                            </td>
+                          </tr>
+                        ) : (
+                          studentsInSelectedRaportClass.map((st, idx) => {
+                            const rap = raportRecords.find((r) => r.siswaId === st.id)
+                            const isPub = rap?.status === 'PUBLISHED'
+                            return (
+                              <tr key={st.id} className="hover:bg-slate-50/70 transition">
+                                <td className="py-3 px-4 text-slate-500 font-medium">{idx + 1}</td>
+                                <td className="py-3 px-4 font-mono">
+                                  <div className="font-bold text-blue-700">{st.nisn || '-'}</div>
+                                  <div className="text-[11px] text-slate-400">{st.nis || '-'}</div>
+                                </td>
+                                <td className="py-3 px-4">
+                                  <div className="font-bold text-slate-900">{st.namaLengkap}</div>
+                                  <div className="text-[11px] text-slate-400">Jenis Kelamin: {st.jenisKelamin || 'L'}</div>
+                                </td>
+                                <td className="py-3 px-4 text-center">
+                                  {isPub ? (
+                                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                                      <Unlock className="w-3.5 h-3.5" /> Diizinkan (Terbuka)
+                                    </span>
+                                  ) : (
+                                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-rose-100 text-rose-800 border border-rose-200">
+                                      <Lock className="w-3.5 h-3.5" /> Terkunci (Perlu Izin)
+                                    </span>
+                                  )}
+                                </td>
+                                <td className="py-3 px-4 text-slate-600 max-w-xs truncate text-xs">
+                                  {rap?.catatanWaliKelas || 'Pertahankan prestasi belajar, tingkatkan kedisiplinan.'}
+                                </td>
+                                <td className="py-3 px-4">
+                                  <div className="flex items-center justify-center gap-2">
+                                    <button
+                                      onClick={() => handleToggleStudentRaportStatus(st.id, rap?.status || 'DRAFT')}
+                                      className={`px-3 py-1 text-xs font-bold rounded-lg transition flex items-center gap-1 ${
+                                        isPub
+                                          ? 'bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200'
+                                          : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200'
+                                      }`}
+                                      title={isPub ? 'Kunci kembali raport siswa ini' : 'Buka & izinkan raport siswa ini'}
+                                    >
+                                      {isPub ? <Lock className="w-3 h-3" /> : <Unlock className="w-3 h-3" />}
+                                      {isPub ? 'Kunci' : 'Izinkan'}
+                                    </button>
+                                    <button
+                                      onClick={() => handleOpenRaportModal(st, rap)}
+                                      className="px-3 py-1 text-xs font-bold bg-blue-50 text-blue-700 hover:bg-blue-100 rounded-lg border border-blue-200 transition flex items-center gap-1"
+                                    >
+                                      <Edit3 className="w-3 h-3" /> Kelola & Catatan
+                                    </button>
+                                  </div>
+                                </td>
+                              </tr>
+                            )
+                          })
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
               </div>
             )}
 
@@ -3282,15 +3384,11 @@ export default function GuruDashboardPage() {
                     </div>
 
                     <div className="text-left pt-3 border-t border-slate-100">
-                      <label className="block text-[11px] font-bold text-slate-500 uppercase mb-1">
-                        URL Foto Profil / Avatar
-                      </label>
-                      <input
-                        type="text"
-                        placeholder="https://.../foto-guru.jpg"
+                      <DualImageInput
+                        label="Foto Profil Guru"
                         value={profileForm.avatarUrl}
-                        onChange={(e) => setProfileForm({ ...profileForm, avatarUrl: e.target.value })}
-                        className="w-full px-3 py-1.5 text-xs rounded-xl border border-slate-200 focus:outline-none focus:border-blue-500"
+                        onChange={(val) => setProfileForm({ ...profileForm, avatarUrl: val })}
+                        helperText="Bisa seret & lepas (drag & drop) gambar dari folder/galeri atau masukkan URL"
                       />
                     </div>
                   </div>
@@ -3973,204 +4071,188 @@ export default function GuruDashboardPage() {
       )}
 
       {/* ========================================================= */}
-      {/* MODAL 6: BUAT PENGUMUMAN KELAS */}
+      {/* MODAL 6: DETAIL & IZIN AKSES RAPORT DIGITAL SISWA */}
       {/* ========================================================= */}
-      {showCreatePengumumanModal && (
-        <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className="font-bold text-slate-900 text-base flex items-center gap-2">
-                <MessageSquare className="w-5 h-5 text-blue-600" /> Publikasikan Pengumuman Kelas
-              </h3>
-              <button onClick={() => setShowCreatePengumumanModal(false)} className="text-slate-400 hover:text-slate-600">
+      {showRaportDetailModal && selectedStudentForRaport && (
+        <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-2xl w-full p-6 shadow-2xl space-y-5 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-blue-100 text-blue-700 flex items-center justify-center">
+                  <FileSpreadsheet className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-slate-900 text-base">
+                    Verifikasi Raport Digital - {selectedStudentForRaport.siswa.namaLengkap}
+                  </h3>
+                  <p className="text-xs text-slate-500">
+                    NISN: {selectedStudentForRaport.siswa.nisn || '-'} | NIS: {selectedStudentForRaport.siswa.nis || '-'}
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowRaportDetailModal(false)}
+                className="text-slate-400 hover:text-slate-600 p-1.5 rounded-xl hover:bg-slate-100 transition"
+              >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <form onSubmit={handleCreatePengumuman} className="space-y-3">
-              <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Judul Pengumuman</label>
-                <input
-                  type="text"
-                  placeholder="Contoh: Jadwal Ulangan Harian Bab 2 Logaritma"
-                  value={newPengumumanForm.judul}
-                  onChange={(e) => setNewPengumumanForm({ ...newPengumumanForm, judul: e.target.value })}
-                  className="w-full px-3.5 py-2 text-sm rounded-xl border border-slate-200 focus:outline-none focus:border-blue-500 font-semibold"
-                  required
-                />
-              </div>
-
+            {/* Status Control Card */}
+            <div className="p-4 rounded-2xl border bg-slate-50 space-y-3">
+              <label className="block text-xs font-bold text-slate-800 uppercase tracking-wider">
+                Status Izin Akses Raport Siswa
+              </label>
               <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Target Kelas</label>
-                  <select
-                    value={newPengumumanForm.kelasId}
-                    onChange={(e) => setNewPengumumanForm({ ...newPengumumanForm, kelasId: e.target.value })}
-                    className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 font-semibold"
-                  >
-                    <option value="ALL">Semua Kelas yang Diampu</option>
-                    {kelasList.map((k) => (
-                      <option key={k.id} value={k.id}>
-                        {k.namaKelas}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Tingkat Prioritas</label>
-                  <select
-                    value={newPengumumanForm.prioritas}
-                    onChange={(e) =>
-                      setNewPengumumanForm({
-                        ...newPengumumanForm,
-                        prioritas: e.target.value as 'NORMAL' | 'PENTING' | 'MENDESAK',
-                      })
-                    }
-                    className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 font-semibold"
-                  >
-                    <option value="NORMAL">Normal</option>
-                    <option value="PENTING">Penting</option>
-                    <option value="MENDESAK">Mendesak</option>
-                  </select>
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Isi Pesan Pengumuman</label>
-                <textarea
-                  rows={4}
-                  placeholder="Tuliskan isi pengumuman lengkap untuk siswa..."
-                  value={newPengumumanForm.konten}
-                  onChange={(e) => setNewPengumumanForm({ ...newPengumumanForm, konten: e.target.value })}
-                  className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-200 focus:outline-none focus:border-blue-500"
-                  required
-                />
-              </div>
-
-              <div className="pt-3 border-t border-slate-100 flex justify-end gap-2">
                 <button
                   type="button"
-                  onClick={() => setShowCreatePengumumanModal(false)}
-                  className="px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-100 rounded-xl"
+                  onClick={() => setRaportDetailForm((prev) => ({ ...prev, status: 'PUBLISHED' }))}
+                  className={`p-3 rounded-xl border text-left flex items-start gap-3 transition ${
+                    raportDetailForm.status === 'PUBLISHED'
+                      ? 'bg-emerald-50 border-emerald-300 ring-2 ring-emerald-500/20'
+                      : 'bg-white border-slate-200 hover:bg-slate-100/50'
+                  }`}
                 >
-                  Batal
+                  <div
+                    className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
+                      raportDetailForm.status === 'PUBLISHED'
+                        ? 'bg-emerald-600 text-white'
+                        : 'bg-slate-100 text-slate-400'
+                    }`}
+                  >
+                    <Unlock className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h4 className="text-xs font-bold text-slate-900">Diizinkan (Terbuka)</h4>
+                    <p className="text-[11px] text-slate-500 mt-0.5">
+                      Siswa dapat melihat nilai dan mengunduh berkas raport
+                    </p>
+                  </div>
                 </button>
+
                 <button
-                  type="submit"
-                  className="px-5 py-2 text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-md"
+                  type="button"
+                  onClick={() => setRaportDetailForm((prev) => ({ ...prev, status: 'DRAFT' }))}
+                  className={`p-3 rounded-xl border text-left flex items-start gap-3 transition ${
+                    raportDetailForm.status === 'DRAFT'
+                      ? 'bg-rose-50 border-rose-300 ring-2 ring-rose-500/20'
+                      : 'bg-white border-slate-200 hover:bg-slate-100/50'
+                  }`}
                 >
-                  Publikasikan
+                  <div
+                    className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
+                      raportDetailForm.status === 'DRAFT'
+                        ? 'bg-rose-600 text-white'
+                        : 'bg-slate-100 text-slate-400'
+                    }`}
+                  >
+                    <Lock className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h4 className="text-xs font-bold text-slate-900">Terkunci (Belum Izin)</h4>
+                    <p className="text-[11px] text-slate-500 mt-0.5">
+                      Raport belum bisa diakses siswa di dashboard mereka
+                    </p>
+                  </div>
                 </button>
               </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* ========================================================= */}
-      {/* MODAL 7: TAMBAH CATATAN BIMBINGAN */}
-      {/* ========================================================= */}
-      {showCreateBimbinganModal && (
-        <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className="font-bold text-slate-900 text-base flex items-center gap-2">
-                <Plus className="w-5 h-5 text-indigo-600" /> Catatan Bimbingan Siswa
-              </h3>
-              <button onClick={() => setShowCreateBimbinganModal(false)} className="text-slate-400 hover:text-slate-600">
-                <X className="w-5 h-5" />
-              </button>
             </div>
 
-            <form onSubmit={handleCreateBimbingan} className="space-y-3">
-              <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Pilih Siswa</label>
-                <select
-                  value={newBimbinganForm.siswaId}
-                  onChange={(e) => setNewBimbinganForm({ ...newBimbinganForm, siswaId: e.target.value })}
-                  className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-200 font-semibold"
-                  required
-                >
-                  <option value="">-- Pilih Siswa --</option>
-                  {allSiswa.map((s) => (
-                    <option key={s.id} value={s.id}>
-                      {s.namaLengkap} ({s.nisn})
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Kategori</label>
-                  <select
-                    value={newBimbinganForm.kategori}
-                    onChange={(e) =>
-                      setNewBimbinganForm({
-                        ...newBimbinganForm,
-                        kategori: e.target.value as 'Akademik' | 'Kedisiplinan' | 'Prestasi' | 'Konseling',
-                      })
-                    }
-                    className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 font-semibold"
-                  >
-                    <option value="Akademik">Akademik</option>
-                    <option value="Kedisiplinan">Kedisiplinan</option>
-                    <option value="Prestasi">Prestasi / Olimpiade</option>
-                    <option value="Konseling">Konseling Pribadi</option>
-                  </select>
+            {/* Nilai Ringkasan Preview */}
+            <div className="space-y-2">
+              <label className="block text-xs font-bold text-slate-800 uppercase tracking-wider">
+                Pratinjau Nilai Mata Pelajaran Siswa
+              </label>
+              {selectedStudentForRaport.nilais && selectedStudentForRaport.nilais.length > 0 ? (
+                <div className="border border-slate-200 rounded-xl overflow-hidden max-h-44 overflow-y-auto">
+                  <table className="w-full text-left border-collapse text-xs">
+                    <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 font-bold sticky top-0">
+                      <tr>
+                        <th className="py-2 px-3">Mata Pelajaran</th>
+                        <th className="py-2 px-3 text-center">Tugas</th>
+                        <th className="py-2 px-3 text-center">UH</th>
+                        <th className="py-2 px-3 text-center">UTS</th>
+                        <th className="py-2 px-3 text-center">UAS</th>
+                        <th className="py-2 px-3 text-center">Nilai Akhir</th>
+                        <th className="py-2 px-3 text-center">Predikat</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {selectedStudentForRaport.nilais.map((n: any, i: number) => {
+                        const mObj = mapelList.find((m) => m.id === n.mapelId)
+                        return (
+                          <tr key={i} className="hover:bg-slate-50/50">
+                            <td className="py-2 px-3 font-medium text-slate-800">
+                              {mObj?.namaMapel || n.mapelId}
+                            </td>
+                            <td className="py-2 px-3 text-center font-mono">{n.nilaiTugas || '-'}</td>
+                            <td className="py-2 px-3 text-center font-mono">{n.nilaiUh || '-'}</td>
+                            <td className="py-2 px-3 text-center font-mono">{n.nilaiUts || '-'}</td>
+                            <td className="py-2 px-3 text-center font-mono">{n.nilaiUas || '-'}</td>
+                            <td className="py-2 px-3 text-center font-mono font-bold text-blue-700">
+                              {n.nilaiAkhir || '-'}
+                            </td>
+                            <td className="py-2 px-3 text-center font-bold">
+                              <span
+                                className={`px-1.5 py-0.5 rounded text-[10px] ${
+                                  n.predikat === 'A'
+                                    ? 'bg-emerald-100 text-emerald-800'
+                                    : n.predikat === 'B'
+                                    ? 'bg-blue-100 text-blue-800'
+                                    : 'bg-amber-100 text-amber-800'
+                                }`}
+                              >
+                                {n.predikat || '-'}
+                              </span>
+                            </td>
+                          </tr>
+                        )
+                      })}
+                    </tbody>
+                  </table>
                 </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Tanggal</label>
-                  <input
-                    type="date"
-                    value={newBimbinganForm.tanggal}
-                    onChange={(e) => setNewBimbinganForm({ ...newBimbinganForm, tanggal: e.target.value })}
-                    className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 font-semibold"
-                  />
+              ) : (
+                <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl text-center text-xs text-slate-500">
+                  Data nilai mata pelajaran sudah disinkronisasi dengan master raport.
                 </div>
-              </div>
+              )}
+            </div>
 
-              <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Catatan Permasalahan / Pencapaian</label>
-                <textarea
-                  rows={3}
-                  placeholder="Deskripsikan kondisi belajar, perilaku, atau prestasi siswa..."
-                  value={newBimbinganForm.catatan}
-                  onChange={(e) => setNewBimbinganForm({ ...newBimbinganForm, catatan: e.target.value })}
-                  className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-200 focus:outline-none focus:border-blue-500"
-                  required
-                />
-              </div>
+            {/* Catatan Wali Kelas */}
+            <div>
+              <label className="block text-xs font-bold text-slate-800 uppercase tracking-wider mb-1.5">
+                Catatan Wali Kelas untuk Raport Siswa
+              </label>
+              <textarea
+                rows={3}
+                placeholder="Tuliskan catatan kemajuan belajar, kedisiplinan, dan motivasi untuk siswa..."
+                value={raportDetailForm.catatanWaliKelas}
+                onChange={(e) =>
+                  setRaportDetailForm({ ...raportDetailForm, catatanWaliKelas: e.target.value })
+                }
+                className="w-full px-3.5 py-2 text-xs sm:text-sm rounded-xl border border-slate-200 focus:outline-none focus:border-blue-500 leading-relaxed"
+                required
+              />
+            </div>
 
-              <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Tindakan / Solusi / Rencana Tindak Lanjut</label>
-                <input
-                  type="text"
-                  placeholder="Contoh: Diberikan jadwal bimbingan remedial setiap Rabu jam 14.30"
-                  value={newBimbinganForm.tindakan}
-                  onChange={(e) => setNewBimbinganForm({ ...newBimbinganForm, tindakan: e.target.value })}
-                  className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-200 focus:outline-none focus:border-blue-500"
-                />
-              </div>
-
-              <div className="pt-3 border-t border-slate-100 flex justify-end gap-2">
-                <button
-                  type="button"
-                  onClick={() => setShowCreateBimbinganModal(false)}
-                  className="px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-100 rounded-xl"
-                >
-                  Batal
-                </button>
-                <button
-                  type="submit"
-                  className="px-5 py-2 text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl shadow-md"
-                >
-                  Simpan Catatan
-                </button>
-              </div>
-            </form>
+            <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-2.5">
+              <button
+                type="button"
+                onClick={() => setShowRaportDetailModal(false)}
+                className="px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-100 rounded-xl transition"
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                onClick={handleSaveRaportModal}
+                disabled={savingRaport}
+                className="px-5 py-2 text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-md transition flex items-center gap-1.5 disabled:opacity-60"
+              >
+                <Save className="w-4 h-4" />
+                {savingRaport ? 'Menyimpan...' : 'Simpan Perubahan Raport'}
+              </button>
+            </div>
           </div>
         </div>
       )}

@@ -32,6 +32,7 @@ import {
   Unlock,
 } from 'lucide-react'
 import WebsiteContentManager from '@/components/admin/WebsiteContentManager'
+import ThemeToggle from '@/components/ThemeToggle'
 
 interface UserItem {
   id: string
@@ -791,12 +792,15 @@ export default function AdminDashboardPage() {
           </div>
         </div>
 
-        <button
-          onClick={handleLogout}
-          className="w-full flex items-center gap-2 px-3 py-2 text-xs font-semibold text-rose-600 hover:bg-rose-50 rounded-xl transition-all border border-rose-100 mt-6"
-        >
-          <LogOut className="w-4 h-4" /> Keluar (Logout)
-        </button>
+        <div className="flex items-center gap-2 mt-6">
+          <ThemeToggle />
+          <button
+            onClick={handleLogout}
+            className="flex-1 flex items-center justify-center gap-2 px-3 py-2 text-xs font-semibold text-rose-600 hover:bg-rose-50 rounded-xl transition-all border border-rose-100 cursor-pointer"
+          >
+            <LogOut className="w-4 h-4" /> Keluar
+          </button>
+        </div>
       </aside>
 
       {/* Main Admin Content */}

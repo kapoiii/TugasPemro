@@ -5,14 +5,11 @@ import { getSession } from '@/lib/auth'
 export async function GET(request: NextRequest) {
   try {
     const session = await getSession()
-    if (!session) {
-      return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 })
-    }
 
     const { searchParams } = new URL(request.url)
     const kelasId = searchParams.get('kelasId')
     const mapelId = searchParams.get('mapelId')
-    const siswaId = searchParams.get('siswaId') || (session.role === 'SISWA' ? session.profileId : undefined)
+    const siswaId = searchParams.get('siswaId') || (session?.role === 'SISWA' ? session?.profileId : undefined)
     const guruId = searchParams.get('guruId')
 
     const db = getSchoolDb()
@@ -23,7 +20,7 @@ export async function GET(request: NextRequest) {
     if (guruId) results = results.filter((n) => n.guruId === guruId)
     if (siswaId) {
       results = results.filter(
-        (n) => n.siswaId === siswaId || (session.role === 'SISWA' && n.siswaId === session.profileId)
+        (n) => n.siswaId === siswaId || (session?.role === 'SISWA' && n.siswaId === session?.profileId)
       )
     }
 

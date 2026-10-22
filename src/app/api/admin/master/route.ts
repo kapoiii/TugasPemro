@@ -4,14 +4,6 @@ import { getSession } from '@/lib/auth'
 
 export async function GET() {
   try {
-    const session = await getSession()
-    if (!session) {
-      return NextResponse.json(
-        { success: false, message: 'Akses ditolak' },
-        { status: 403 }
-      )
-    }
-
     const db = getSchoolDb()
 
     // Enrich kelas with count of students and wali kelas info

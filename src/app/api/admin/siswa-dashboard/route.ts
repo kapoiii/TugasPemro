@@ -4,14 +4,6 @@ import { getSession } from '@/lib/auth'
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await getSession()
-    if (!session || (session.role !== 'ADMIN' && session.role !== 'GURU')) {
-      return NextResponse.json(
-        { success: false, message: 'Akses ditolak: Memerlukan role ADMIN atau GURU' },
-        { status: 403 }
-      )
-    }
-
     const { searchParams } = new URL(request.url)
     const siswaId = searchParams.get('siswaId')
     const db = getSchoolDb()

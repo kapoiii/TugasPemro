@@ -26,9 +26,28 @@
   --shadow-elevated: 0 10px 20px rgba(60,64,67,0.15);
 }
 
+html.dark, [data-theme="dark"] {
+  --bg-primary: #0F172A;
+  --bg-secondary: #1E293B;
+  --bg-tertiary: #334155;
+  
+  --text-primary: #F8FAFC;
+  --text-secondary: #CBD5E1;
+  --text-tertiary: #94A3B8;
+  
+  --border-color: #334155;
+  --border-light: #1E293B;
+  
+  --shadow-subtle: 0 1px 3px 0 rgba(0, 0, 0, 0.4);
+  --shadow-medium: 0 4px 8px -1px rgba(0, 0, 0, 0.5);
+  --shadow-elevated: 0 12px 24px rgba(0, 0, 0, 0.6);
+  color-scheme: dark;
+}
+
 html { 
   scroll-behavior: smooth; 
   background-color: var(--bg-secondary);
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 body { 
@@ -37,6 +56,52 @@ body {
   background-color: var(--bg-primary);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/* Dark mode generic overrides for cards, tables, inputs */
+html.dark .bg-white {
+  background-color: #1E293B !important;
+  color: #F8FAFC;
+}
+html.dark .bg-slate-50 {
+  background-color: #0F172A !important;
+}
+html.dark .bg-slate-100 {
+  background-color: #334155 !important;
+  color: #F8FAFC !important;
+}
+html.dark .text-slate-900,
+html.dark .text-slate-800,
+html.dark .text-slate-700 {
+  color: #F8FAFC !important;
+}
+html.dark .text-slate-600,
+html.dark .text-slate-500 {
+  color: #94A3B8 !important;
+}
+html.dark .border-slate-200,
+html.dark .border-slate-100,
+html.dark .border-slate-200\/80 {
+  border-color: #334155 !important;
+}
+html.dark input, 
+html.dark select, 
+html.dark textarea {
+  background-color: #0F172A;
+  color: #F8FAFC;
+  border-color: #334155;
+}
+html.dark table thead {
+  background-color: #0F172A !important;
+  color: #CBD5E1 !important;
+}
+html.dark table tbody tr:hover {
+  background-color: rgba(51, 65, 85, 0.4) !important;
+}
+html.dark .glass-effect {
+  background: rgba(15, 23, 42, 0.88);
+  border-bottom: 1px solid #334155;
 }
 
 @media (prefers-reduced-motion: reduce) {

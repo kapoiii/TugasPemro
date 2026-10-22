@@ -22,6 +22,7 @@ import {
   Layers
 } from 'lucide-react'
 import type { SiteContent } from '@/lib/siteContent'
+import DualImageInput from '@/components/common/DualImageInput'
 
 // Curated preset photos for easy selection by admin
 const PHOTO_PRESETS = {
@@ -370,62 +371,18 @@ export default function WebsiteContentManager() {
               <ImageIcon className="w-4 h-4 text-blue-400" /> Foto Utama Gedung / Hero Banner
             </h3>
 
-            {/* Preview Image */}
-            <div className="relative aspect-[16/9] w-full rounded-2xl overflow-hidden border border-slate-800 bg-slate-900 group">
-              <Image
-                src={content.general.heroImage}
-                alt="Hero Banner Preview"
-                fill
-                className="object-cover group-hover:scale-105 transition-all"
-                unoptimized
-              />
-              <span className="absolute bottom-2 left-2 bg-black/70 backdrop-blur-md px-2 py-0.5 rounded text-[10px] text-white font-mono">
-                Live Preview
-              </span>
-            </div>
-
-            <div>
-              <label className="block text-slate-400 text-xs font-semibold mb-1">
-                URL Foto Gedung / Banner
-              </label>
-              <input
-                type="text"
-                value={content.general.heroImage}
-                onChange={(e) =>
-                  setContent({
-                    ...content,
-                    general: { ...content.general, heroImage: e.target.value },
-                  })
-                }
-                placeholder="https://..."
-                className="w-full p-2.5 bg-slate-900 border border-slate-800 rounded-xl text-white text-xs font-mono"
-              />
-            </div>
-
-            {/* Quick Presets */}
-            <div>
-              <label className="block text-slate-400 text-[11px] font-semibold mb-2">
-                Pilih Cepat dari Galeri Preset Gedung:
-              </label>
-              <div className="grid grid-cols-1 gap-2">
-                {PHOTO_PRESETS.gedung.map((p, i) => (
-                  <button
-                    key={i}
-                    type="button"
-                    onClick={() =>
-                      setContent({
-                        ...content,
-                        general: { ...content.general, heroImage: p.url },
-                      })
-                    }
-                    className="flex items-center justify-between p-2 bg-slate-900 hover:bg-slate-850 border border-slate-800 rounded-xl text-xs text-left text-slate-300 hover:text-white transition-all cursor-pointer"
-                  >
-                    <span>{p.label}</span>
-                    <span className="text-[10px] text-rose-400 font-semibold">Terapkan</span>
-                  </button>
-                ))}
-              </div>
-            </div>
+            <DualImageInput
+              label="Ganti Foto Gedung / Hero Banner"
+              value={content.general.heroImage}
+              onChange={(val) =>
+                setContent({
+                  ...content,
+                  general: { ...content.general, heroImage: val },
+                })
+              }
+              presets={PHOTO_PRESETS.gedung}
+              aspectRatioClass="aspect-[16/9]"
+            />
           </div>
         </div>
       )}
@@ -496,44 +453,18 @@ export default function WebsiteContentManager() {
                       />
                     </div>
 
-                    <div>
-                      <label className="block text-slate-400 text-[11px] font-semibold mb-1">
-                        URL Foto Fasilitas (Ganti Foto)
-                      </label>
-                      <input
-                        type="text"
+                    <div className="pt-2 border-t border-slate-850">
+                      <DualImageInput
+                        label="Ganti Foto Fasilitas"
                         value={fas.img}
-                        onChange={(e) => {
+                        onChange={(val) => {
                           const updated = [...content.fasilitas]
-                          updated[idx].img = e.target.value
+                          updated[idx].img = val
                           setContent({ ...content, fasilitas: updated })
                         }}
-                        placeholder="https://..."
-                        className="w-full p-2 bg-slate-900 border border-slate-800 rounded-xl text-white text-xs font-mono"
+                        presets={PHOTO_PRESETS.fasilitas.slice(0, 4)}
+                        aspectRatioClass="aspect-[16/9]"
                       />
-                    </div>
-
-                    {/* Quick photo replace from presets */}
-                    <div>
-                      <span className="block text-[10px] text-slate-500 uppercase font-bold mb-1">
-                        Ganti Cepat Foto Preset:
-                      </span>
-                      <div className="flex flex-wrap gap-1">
-                        {PHOTO_PRESETS.fasilitas.slice(0, 4).map((p, pIdx) => (
-                          <button
-                            key={pIdx}
-                            type="button"
-                            onClick={() => {
-                              const updated = [...content.fasilitas]
-                              updated[idx].img = p.url
-                              setContent({ ...content, fasilitas: updated })
-                            }}
-                            className="text-[10px] px-2 py-1 bg-slate-900 hover:bg-slate-800 text-slate-300 rounded border border-slate-800 cursor-pointer"
-                          >
-                            {p.label.split(' ')[0]}
-                          </button>
-                        ))}
-                      </div>
                     </div>
                   </div>
                 </div>
@@ -561,7 +492,7 @@ export default function WebsiteContentManager() {
             <h4 className="font-bold text-white text-sm flex items-center gap-2">
               <Plus className="w-4 h-4 text-emerald-400" /> Tambah Fasilitas / Fitur Baru
             </h4>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-slate-400 text-xs font-semibold mb-1">Nama Fasilitas Baru</label>
                 <input
@@ -582,14 +513,13 @@ export default function WebsiteContentManager() {
                   className="w-full p-2.5 bg-slate-900 border border-slate-800 rounded-xl text-white text-xs"
                 />
               </div>
-              <div>
-                <label className="block text-slate-400 text-xs font-semibold mb-1">URL Foto Fasilitas</label>
-                <input
-                  type="text"
-                  placeholder="https://..."
+              <div className="md:col-span-2">
+                <DualImageInput
+                  label="Foto Fasilitas Baru (Folder / URL)"
                   value={newFasilitas.img}
-                  onChange={(e) => setNewFasilitas({ ...newFasilitas, img: e.target.value })}
-                  className="w-full p-2.5 bg-slate-900 border border-slate-800 rounded-xl text-white text-xs font-mono"
+                  onChange={(val) => setNewFasilitas({ ...newFasilitas, img: val })}
+                  presets={PHOTO_PRESETS.fasilitas}
+                  aspectRatioClass="aspect-[16/9]"
                 />
               </div>
             </div>
@@ -674,26 +604,13 @@ export default function WebsiteContentManager() {
             </div>
 
             <div>
-              <label className="block text-slate-400 text-xs font-semibold mb-1">Foto Berita (URL)</label>
-              <input
-                type="text"
-                placeholder="https://..."
+              <DualImageInput
+                label="Foto Berita / Dokumentasi (Folder / Galeri atau URL)"
                 value={newBerita.gambar}
-                onChange={(e) => setNewBerita({ ...newBerita, gambar: e.target.value })}
-                className="w-full p-2.5 bg-slate-900 border border-slate-800 rounded-xl text-white text-xs font-mono"
+                onChange={(val) => setNewBerita({ ...newBerita, gambar: val })}
+                presets={PHOTO_PRESETS.berita}
+                aspectRatioClass="aspect-[16/9]"
               />
-              <div className="flex gap-2 mt-1.5 flex-wrap">
-                {PHOTO_PRESETS.berita.map((p, i) => (
-                  <button
-                    key={i}
-                    type="button"
-                    onClick={() => setNewBerita({ ...newBerita, gambar: p.url })}
-                    className="text-[10px] px-2 py-0.5 bg-slate-900 hover:bg-slate-800 text-slate-300 rounded border border-slate-800 cursor-pointer"
-                  >
-                    + Foto {p.label}
-                  </button>
-                ))}
-              </div>
             </div>
 
             <div>
@@ -1149,29 +1066,15 @@ export default function WebsiteContentManager() {
                 </select>
               </div>
 
-              <div>
-                <label className="block text-slate-400 text-xs font-semibold mb-1">URL Foto Gambar</label>
-                <input
-                  type="text"
-                  placeholder="https://..."
+              <div className="md:col-span-3">
+                <DualImageInput
+                  label="Pilih Foto Galeri Dokumentasi (Folder / Galeri atau URL)"
                   value={newGaleri.foto}
-                  onChange={(e) => setNewGaleri({ ...newGaleri, foto: e.target.value })}
-                  className="w-full p-2.5 bg-slate-900 border border-slate-800 rounded-xl text-white text-xs font-mono"
+                  onChange={(val) => setNewGaleri({ ...newGaleri, foto: val })}
+                  presets={PHOTO_PRESETS.galeri}
+                  aspectRatioClass="aspect-[4/3]"
                 />
               </div>
-            </div>
-
-            <div className="flex gap-2 flex-wrap">
-              {PHOTO_PRESETS.galeri.map((p, i) => (
-                <button
-                  key={i}
-                  type="button"
-                  onClick={() => setNewGaleri({ ...newGaleri, foto: p.url })}
-                  className="text-[10px] px-2 py-0.5 bg-slate-900 hover:bg-slate-800 text-slate-300 rounded border border-slate-800 cursor-pointer"
-                >
-                  + Gunakan Preset {p.label}
-                </button>
-              ))}
             </div>
 
             <div className="flex justify-end">
@@ -1294,14 +1197,12 @@ export default function WebsiteContentManager() {
                 />
               </div>
 
-              <div>
-                <label className="block text-slate-400 text-xs font-semibold mb-1">URL Foto Guru</label>
-                <input
-                  type="text"
-                  placeholder="https://..."
+              <div className="md:col-span-4">
+                <DualImageInput
+                  label="Foto Guru / Pendidik Baru (Folder / Galeri atau URL)"
                   value={newGuru.foto}
-                  onChange={(e) => setNewGuru({ ...newGuru, foto: e.target.value })}
-                  className="w-full p-2.5 bg-slate-900 border border-slate-800 rounded-xl text-white text-xs font-mono"
+                  onChange={(val) => setNewGuru({ ...newGuru, foto: val })}
+                  aspectRatioClass="aspect-square"
                 />
               </div>
             </div>
@@ -1354,18 +1255,15 @@ export default function WebsiteContentManager() {
 
                   {/* Input Ganti Foto Guru */}
                   <div className="w-full mt-3 text-left">
-                    <label className="block text-slate-500 text-[10px] uppercase font-bold mb-1">
-                      URL Foto:
-                    </label>
-                    <input
-                      type="text"
+                    <DualImageInput
+                      label="Ganti Foto"
                       value={g.foto}
-                      onChange={(e) => {
+                      onChange={(val) => {
                         const updated = [...content.guru]
-                        updated[idx].foto = e.target.value
+                        updated[idx].foto = val
                         setContent({ ...content, guru: updated })
                       }}
-                      className="w-full p-1.5 bg-slate-900 border border-slate-800 rounded-lg text-white text-[10px] font-mono"
+                      aspectRatioClass="aspect-square"
                     />
                   </div>
                 </div>

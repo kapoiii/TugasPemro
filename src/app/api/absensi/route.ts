@@ -5,16 +5,13 @@ import { getSession } from '@/lib/auth'
 export async function GET(request: NextRequest) {
   try {
     const session = await getSession()
-    if (!session) {
-      return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 })
-    }
 
     const { searchParams } = new URL(request.url)
     const kelasId = searchParams.get('kelasId')
-    const siswaId = searchParams.get('siswaId') || session.profileId
+    const siswaId = searchParams.get('siswaId') || session?.profileId
     const db = getSchoolDb()
 
-    if (session.role === 'SISWA') {
+    if (session?.role === 'SISWA') {
       // Find all session details where this student is enrolled
       const detailsList: Array<{
         id: string

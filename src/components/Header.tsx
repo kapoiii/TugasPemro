@@ -3,6 +3,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
 import { LogIn } from "lucide-react";
+import ThemeToggle from "./ThemeToggle";
 
 const navLinks = [
   { href: "/", label: "Beranda" },
@@ -113,11 +114,13 @@ export default function Header() {
             )}
           </nav>
 
-          {/* Action Buttons: Kontak, Login, Daftar PPDB */}
+          {/* Action Buttons: Kontak, Login, ThemeToggle, Daftar PPDB */}
           <div className="hidden lg:flex items-center gap-2.5">
              <Link href="/kontak" className="text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors px-2 py-1">
                Kontak
              </Link>
+
+             <ThemeToggle />
 
              {!user && (
                <Link
@@ -134,8 +137,9 @@ export default function Header() {
              </Link>
           </div>
 
-          {/* Hamburger for mobile */}
+          {/* Hamburger and controls for mobile */}
           <div className="lg:hidden flex items-center gap-2">
+            <ThemeToggle />
             {!user && (
               <Link
                 href="/login"

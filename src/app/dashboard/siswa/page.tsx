@@ -25,6 +25,7 @@ import {
   ChevronRight,
   ExternalLink,
 } from 'lucide-react'
+import ThemeToggle from '@/components/ThemeToggle'
 
 interface SiswaProfile {
   namaLengkap: string
@@ -318,9 +319,10 @@ export default function SiswaDashboardPage() {
           </div>
 
           <div className="flex items-center gap-3">
+            <ThemeToggle />
             <button
               onClick={handleLogout}
-              className="flex items-center gap-2 px-3.5 py-2 text-xs font-semibold text-rose-600 hover:bg-rose-50 rounded-xl transition-all border border-rose-100"
+              className="flex items-center gap-2 px-3.5 py-2 text-xs font-semibold text-rose-600 hover:bg-rose-50 rounded-xl transition-all border border-rose-100 cursor-pointer"
             >
               <LogOut className="w-4 h-4" /> Keluar
             </button>
@@ -813,13 +815,13 @@ export default function SiswaDashboardPage() {
 
                     <div className="space-y-2">
                       <span className="px-3 py-1 bg-amber-100 text-amber-800 font-extrabold text-xs rounded-full uppercase tracking-wider inline-block">
-                        Hasil Raport Belum Dibagikan
+                        Menunggu Izin Guru / Wali Kelas
                       </span>
                       <h2 className="text-2xl font-extrabold text-slate-800">
                         Akses Raport Digital Masih Dikunci
                       </h2>
                       <p className="text-sm text-slate-500 leading-relaxed max-w-md mx-auto">
-                        Sesuai ketentuan akademik sekolah, hasil raport digital <strong>hanya dapat dilihat pada saat pembagian raport resmi</strong> oleh Wali Kelas.
+                        Sesuai ketentuan akademik sekolah, raport digital <strong>hanya dapat dibuka setelah Guru / Wali Kelas memberikan izin penerbitan resmi</strong>.
                       </p>
                     </div>
 
