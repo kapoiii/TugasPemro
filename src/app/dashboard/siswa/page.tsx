@@ -24,6 +24,7 @@ import {
   Printer,
   ChevronRight,
   ExternalLink,
+  RefreshCw,
 } from 'lucide-react'
 import ThemeToggle from '@/components/ThemeToggle'
 
@@ -240,9 +241,68 @@ export default function SiswaDashboardPage() {
     }
   }, [])
 
+  const [checkingRaport, setCheckingRaport] = useState(false)
+
+  const checkRaportStatus = useCallback(async (notifyOnSuccess = false) => {
+    setCheckingRaport(true)
+    try {
+      const [resRaport, resNilai] = await Promise.all([
+        fetch('/api/raport'),
+        fetch('/api/nilai'),
+      ])
+      const dataRaport = await resRaport.json()
+      const dataNilai = await resNilai.json()
+
+      if (dataRaport.success) {
+        if (dataRaport.tanggalPembagianRaport) {
+          setTanggalPembagianRaport(dataRaport.tanggalPembagianRaport)
+        }
+        setIsRaportPublished(!!dataRaport.isPublished)
+
+        if (dataRaport.isPublished && Array.isArray(dataRaport.data) && dataRaport.data.length > 0) {
+          const r = dataRaport.data[0]
+          setRaport({
+            status: r.status,
+            catatanWaliKelas: r.catatanWaliKelas,
+            rataRataNilai: r.rataRataNilai,
+            semester: r.semester,
+            tahunAjaran: r.tahunAjaran,
+            totalHadir: r.totalHadir,
+            totalIzin: r.totalIzin,
+            totalSakit: r.totalSakit,
+            totalAlfa: r.totalAlfa,
+            isPublished: true,
+          })
+          if (notifyOnSuccess) {
+            showFeedback('success', 'Raport digital resmi terbuka! Anda dapat melihat hasil belajar.')
+          }
+        } else if (notifyOnSuccess) {
+          showFeedback('error', 'Raport masih dikunci oleh Guru / Wali Kelas.')
+        }
+      }
+
+      if (dataNilai.success && Array.isArray(dataNilai.data)) {
+        setNilais(dataNilai.data)
+      }
+    } catch {
+      if (notifyOnSuccess) {
+        showFeedback('error', 'Gagal memuat status izin raport')
+      }
+    } finally {
+      setCheckingRaport(false)
+    }
+  }, [])
+
   useEffect(() => {
     loadData()
   }, [loadData])
+
+  // Automatically re-check raport status whenever student switches to Raport tab
+  useEffect(() => {
+    if (activeTab === 'raport') {
+      checkRaportStatus()
+    }
+  }, [activeTab, checkRaportStatus])
 
   // Handle Homework Submission (Input Pekerjaan Rumah)
   const handleSubmitPr = async (e: React.FormEvent) => {
@@ -333,33 +393,30 @@ export default function SiswaDashboardPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex border-t border-slate-100 gap-2 overflow-x-auto">
           <button
             onClick={() => setActiveTab('absen')}
-            className={`py-3 px-4 font-semibold text-sm flex items-center gap-2 border-b-2 whitespace-nowrap transition-all ${
-              activeTab === 'absen'
+            className={`py-3 px-4 font-semibold text-sm flex items-center gap-2 border-b-2 whitespace-nowrap transition-all ${activeTab === 'absen'
                 ? 'border-blue-600 text-blue-600 bg-blue-50/40'
                 : 'border-transparent text-slate-600 hover:text-slate-900 hover:border-slate-300'
-            }`}
+              }`}
           >
             <Calendar className="w-4 h-4" /> Rekap & Riwayat Absen
           </button>
 
           <button
             onClick={() => setActiveTab('jadwal')}
-            className={`py-3 px-4 font-semibold text-sm flex items-center gap-2 border-b-2 whitespace-nowrap transition-all ${
-              activeTab === 'jadwal'
+            className={`py-3 px-4 font-semibold text-sm flex items-center gap-2 border-b-2 whitespace-nowrap transition-all ${activeTab === 'jadwal'
                 ? 'border-blue-600 text-blue-600 bg-blue-50/40'
                 : 'border-transparent text-slate-600 hover:text-slate-900 hover:border-slate-300'
-            }`}
+              }`}
           >
             <Clock className="w-4 h-4" /> Jadwal Mata Pelajaran
           </button>
 
           <button
             onClick={() => setActiveTab('pr')}
-            className={`py-3 px-4 font-semibold text-sm flex items-center gap-2 border-b-2 whitespace-nowrap transition-all ${
-              activeTab === 'pr'
+            className={`py-3 px-4 font-semibold text-sm flex items-center gap-2 border-b-2 whitespace-nowrap transition-all ${activeTab === 'pr'
                 ? 'border-blue-600 text-blue-600 bg-blue-50/40'
                 : 'border-transparent text-slate-600 hover:text-slate-900 hover:border-slate-300'
-            }`}
+              }`}
           >
             <BookOpen className="w-4 h-4" /> Pekerjaan Rumah (PR)
             {prList.filter((p) => !p.isSubmitted).length > 0 && (
@@ -371,11 +428,10 @@ export default function SiswaDashboardPage() {
 
           <button
             onClick={() => setActiveTab('raport')}
-            className={`py-3 px-4 font-semibold text-sm flex items-center gap-2 border-b-2 whitespace-nowrap transition-all ${
-              activeTab === 'raport'
+            className={`py-3 px-4 font-semibold text-sm flex items-center gap-2 border-b-2 whitespace-nowrap transition-all ${activeTab === 'raport'
                 ? 'border-blue-600 text-blue-600 bg-blue-50/40'
                 : 'border-transparent text-slate-600 hover:text-slate-900 hover:border-slate-300'
-            }`}
+              }`}
           >
             <Award className="w-4 h-4" /> Hasil Raport Digital
             {!isRaportPublished && (
@@ -391,11 +447,10 @@ export default function SiswaDashboardPage() {
       {feedback && (
         <div className="fixed top-20 right-6 z-50 animate-bounce">
           <div
-            className={`px-4 py-3 rounded-xl shadow-lg border text-sm font-semibold flex items-center gap-2.5 ${
-              feedback.type === 'success'
+            className={`px-4 py-3 rounded-xl shadow-lg border text-sm font-semibold flex items-center gap-2.5 ${feedback.type === 'success'
                 ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
                 : 'bg-rose-50 border-rose-200 text-rose-800'
-            }`}
+              }`}
           >
             {feedback.type === 'success' ? (
               <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
@@ -500,23 +555,22 @@ export default function SiswaDashboardPage() {
                               <td className="p-3 text-slate-600">Pertemuan ke-{det.sesi.pertemuanKe}</td>
                               <td className="p-3">
                                 <span
-                                  className={`px-2.5 py-1 rounded-lg font-bold text-xs ${
-                                    det.status === 'HADIR'
+                                  className={`px-2.5 py-1 rounded-lg font-bold text-xs ${det.status === 'HADIR'
                                       ? 'bg-emerald-100 text-emerald-800'
                                       : det.status === 'IZIN'
-                                      ? 'bg-blue-100 text-blue-800'
-                                      : det.status === 'SAKIT'
-                                      ? 'bg-amber-100 text-amber-800'
-                                      : 'bg-rose-100 text-rose-800'
-                                  }`}
+                                        ? 'bg-blue-100 text-blue-800'
+                                        : det.status === 'SAKIT'
+                                          ? 'bg-amber-100 text-amber-800'
+                                          : 'bg-rose-100 text-rose-800'
+                                    }`}
                                 >
                                   {det.status === 'HADIR'
                                     ? 'Masuk (Hadir)'
                                     : det.status === 'IZIN'
-                                    ? 'Izin'
-                                    : det.status === 'SAKIT'
-                                    ? 'Sakit'
-                                    : 'Alfa'}
+                                      ? 'Izin'
+                                      : det.status === 'SAKIT'
+                                        ? 'Sakit'
+                                        : 'Alfa'}
                                 </span>
                               </td>
                               <td className="p-3 text-slate-600">{det.sesi.guru?.namaLengkap || '-'}</td>
@@ -554,11 +608,10 @@ export default function SiswaDashboardPage() {
                       <button
                         key={h}
                         onClick={() => setSelectedHari(h)}
-                        className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all ${
-                          selectedHari === h
+                        className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all ${selectedHari === h
                             ? 'bg-blue-600 text-white shadow-xs'
                             : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                        }`}
+                          }`}
                       >
                         {h}
                       </button>
@@ -642,9 +695,8 @@ export default function SiswaDashboardPage() {
                     prList.map((pr) => (
                       <div
                         key={pr.id}
-                        className={`bg-white p-6 rounded-2xl border shadow-xs transition-all ${
-                          pr.isSubmitted ? 'border-emerald-200 bg-emerald-50/20' : 'border-slate-200 hover:border-blue-400'
-                        }`}
+                        className={`bg-white p-6 rounded-2xl border shadow-xs transition-all ${pr.isSubmitted ? 'border-emerald-200 bg-emerald-50/20' : 'border-slate-200 hover:border-blue-400'
+                          }`}
                       >
                         <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
                           <div className="space-y-2 flex-1">
@@ -684,11 +736,10 @@ export default function SiswaDashboardPage() {
                                 setSubmissionText(pr.mySubmission?.submissionText || '')
                                 setFileUrl(pr.mySubmission?.fileUrl || '')
                               }}
-                              className={`px-4 py-2 font-bold text-xs rounded-xl shadow-xs transition-all flex items-center gap-1.5 ${
-                                pr.isSubmitted
+                              className={`px-4 py-2 font-bold text-xs rounded-xl shadow-xs transition-all flex items-center gap-1.5 ${pr.isSubmitted
                                   ? 'bg-slate-100 hover:bg-slate-200 text-slate-700'
                                   : 'bg-blue-600 hover:bg-blue-700 text-white shadow-blue-500/20'
-                              }`}
+                                }`}
                             >
                               <Send className="w-3.5 h-3.5" />
                               {pr.isSubmitted ? 'Edit Pengumpulan' : 'Input Pekerjaan Rumah'}
@@ -844,6 +895,16 @@ export default function SiswaDashboardPage() {
                         * Hubungi Wali Kelas Anda apabila terdapat keperluan administratif atau verifikasi perbaikan nilai sebelum tanggal pembagian raport.
                       </p>
                     </div>
+
+                    <button
+                      type="button"
+                      onClick={() => checkRaportStatus(true)}
+                      disabled={checkingRaport}
+                      className="w-full py-3 px-4 rounded-xl font-bold text-sm bg-blue-600 hover:bg-blue-700 text-white transition flex items-center justify-center gap-2 shadow-xs cursor-pointer disabled:opacity-50"
+                    >
+                      <RefreshCw className={`w-4 h-4 ${checkingRaport ? 'animate-spin' : ''}`} />
+                      {checkingRaport ? 'Memeriksa Izin Guru...' : 'Periksa & Buka Raport Sekarang'}
+                    </button>
                   </div>
                 ) : (
                   /* =================================================== */
@@ -860,12 +921,23 @@ export default function SiswaDashboardPage() {
                         </h2>
                       </div>
 
-                      <button
-                        onClick={() => window.print()}
-                        className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-md shadow-blue-500/20 flex items-center gap-2 transition-all shrink-0"
-                      >
-                        <Printer className="w-4 h-4" /> Cetak / Unduh Raport PDF
-                      </button>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <button
+                          onClick={() => checkRaportStatus(true)}
+                          disabled={checkingRaport}
+                          className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl flex items-center gap-1.5 transition cursor-pointer"
+                          title="Perbarui data raport"
+                        >
+                          <RefreshCw className={`w-3.5 h-3.5 ${checkingRaport ? 'animate-spin' : ''}`} />
+                          {checkingRaport ? 'Memuat...' : 'Perbarui'}
+                        </button>
+                        <button
+                          onClick={() => window.print()}
+                          className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-md shadow-blue-500/20 flex items-center gap-2 transition-all shrink-0 cursor-pointer"
+                        >
+                          <Printer className="w-4 h-4" /> Cetak / Unduh Raport PDF
+                        </button>
+                      </div>
                     </div>
 
                     {/* Official Report Card Sheet */}

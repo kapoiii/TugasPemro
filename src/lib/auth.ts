@@ -1,6 +1,6 @@
 import { SignJWT, jwtVerify } from 'jose'
 import bcrypt from 'bcryptjs'
-import { cookies } from 'next/headers'
+import { cookies, headers } from 'next/headers'
 
 const JWT_SECRET = new TextEncoder().encode(
   process.env.JWT_SECRET || 'sekolah-secret-jwt-key-2026-production-min32chars'
@@ -72,7 +72,14 @@ export async function getSession(req?: any): Promise<JWTPayload | null> {
     }
   }
 
-  // 3. Fallback: next/headers cookies()
+  let headerStore: any
+  try {
+    headerStore = await headers()
+  } catch {
+    // headerStore might not be available in non-request contexts
+  }
+
+  // 3. Fallback: next/headers cookies() & headers()
   if (!token) {
     try {
       const cookieStore = await cookies()
@@ -82,6 +89,52 @@ export async function getSession(req?: any): Promise<JWTPayload | null> {
     }
   }
 
-  if (!token) return null
-  return verifyToken(token)
+  if (!token && headerStore) {
+    const rawCookie = headerStore.get('cookie') || ''
+    const match = rawCookie.match(/auth_token=([^;]+)/)
+    if (match) {
+      token = decodeURIComponent(match[1].trim())
+    }
+    if (!token) {
+      const authHeader = headerStore.get('authorization') || ''
+      if (authHeader.startsWith('Bearer ')) {
+        token = authHeader.substring(7).trim()
+      }
+    }
+  }
+
+  if (token) {
+    const verified = await verifyToken(token)
+    if (verified) return verified
+  }
+
+  // 4. Header fallback: Injected by Next.js proxy/middleware (either from req or headerStore)
+  const getHeader = (name: string) => {
+    if (req && typeof req.headers?.get === 'function') {
+      const val = req.headers.get(name)
+      if (val) return val
+    }
+    if (headerStore && typeof headerStore.get === 'function') {
+      return headerStore.get(name) || undefined
+    }
+    return undefined
+  }
+
+  const roleHeader = getHeader('x-user-role')
+  const userIdHeader = getHeader('x-user-id')
+  if (roleHeader && userIdHeader) {
+    const roleUpper = String(roleHeader).trim().toUpperCase()
+    const validRole: 'ADMIN' | 'GURU' | 'SISWA' =
+      roleUpper === 'ADMIN' ? 'ADMIN' : roleUpper === 'GURU' ? 'GURU' : 'SISWA'
+
+    return {
+      userId: userIdHeader,
+      username: getHeader('x-user-username') || getHeader('x-user-name') || userIdHeader,
+      role: validRole,
+      profileId: getHeader('x-user-profile-id') || undefined,
+      namaLengkap: getHeader('x-user-name') || undefined,
+    }
+  }
+
+  return null
 }

@@ -20,9 +20,25 @@ export async function GET(request: NextRequest) {
     if (mapelId) results = results.filter((n) => n.mapelId === mapelId)
     if (guruId) results = results.filter((n) => n.guruId === guruId)
     if (siswaId) {
-      results = results.filter(
-        (n) => n.siswaId === siswaId || (session?.role === 'SISWA' && n.siswaId === session?.profileId)
+      const studentUser = db.users.find(
+        (u) =>
+          u.siswaProfile?.id === siswaId ||
+          u.id === siswaId ||
+          (session?.profileId && u.siswaProfile?.id === session.profileId) ||
+          (session?.userId && u.id === session.userId)
       )
+      const possibleSiswaIds = new Set(
+        [
+          siswaId,
+          session?.profileId,
+          session?.userId,
+          studentUser?.siswaProfile?.id,
+          studentUser?.id,
+          siswaId.replace(/-0+/, '-'),
+          siswaId.replace(/-(?=[1-9])/, '-0'),
+        ].filter(Boolean) as string[]
+      )
+      results = results.filter((n) => possibleSiswaIds.has(n.siswaId))
     }
 
     const enriched = results.map((n) => {

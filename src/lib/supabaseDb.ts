@@ -245,7 +245,7 @@ export async function deleteSupabaseUser(userId: string): Promise<boolean> {
 export async function findUserInSupabase(keyword: string): Promise<any | null> {
   try {
     const clean = keyword.trim().toLowerCase()
-    
+
     // 1. Check by username or email
     const res = await fetch(
       `${SUPABASE_URL}/rest/v1/User?or=(username.ilike.${clean},email.ilike.${clean})&select=*,guruProfile:GuruProfile(*),siswaProfile:SiswaProfile(*)`,

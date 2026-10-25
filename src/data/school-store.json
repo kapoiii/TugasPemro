@@ -108302,7 +108302,47 @@
       "updatedAt": "2026-10-20T10:00:00.000Z"
     }
   ],
-  "pekerjaanRumah": [],
+  "pekerjaanRumah": [
+    {
+      "id": "pr-01",
+      "judul": "Tugas Latihan Aljabar Bab 2 (Halaman 45 No. 1-10)",
+      "deskripsi": "Kerjakan soal latihan nomor 1 sampai 10 di buku latihan matematika. Tuliskan langkah pengerjaan dengan jelas, lalu foto atau upload rangkuman jawaban di sini.",
+      "mapelId": "mapel-mtk",
+      "kelasId": "kelas-10-mipa1",
+      "guruId": "guru-profile-01",
+      "tenggatWaktu": "2026-10-25T23:59:00.000Z",
+      "createdAt": "2026-10-14T09:00:00.000Z",
+      "submissions": [
+        {
+          "siswaId": "siswa-profile-01",
+          "submissionText": "Tugas latihan aljabar bab 2 sudah dikerjakan lengkap dari nomor 1 sampai 10 di lembar lampiran.",
+          "fileUrl": "https://drive.google.com/contoh-tugas-aljabar-ahmad-fauzi.pdf",
+          "submittedAt": "2026-10-15T14:30:00.000Z",
+          "status": "SUBMITTED",
+          "nilai": 90,
+          "catatanGuru": "Pengerjaan rapi dan pembuktian rumus tepat."
+        },
+        {
+          "siswaId": "siswa-profile-1",
+          "submissionText": "Tugas latihan aljabar sudah dikerjakan lengkap.",
+          "fileUrl": "https://drive.google.com/test-tugas.pdf",
+          "submittedAt": "2026-10-25T16:26:15.828Z",
+          "status": "SUBMITTED"
+        }
+      ]
+    },
+    {
+      "id": "pr-02",
+      "judul": "Resensi Novel Sastra Indonesia Kontemporer",
+      "deskripsi": "Buatlah esai resensi 500 kata mengenai salah satu novel sastra Indonesia pilihan. Analisis unsur intrinsik dan amanat cerita.",
+      "mapelId": "mapel-bin",
+      "kelasId": "kelas-10-mipa1",
+      "guruId": "guru-profile-02",
+      "tenggatWaktu": "2026-10-30T23:59:00.000Z",
+      "createdAt": "2026-10-15T10:00:00.000Z",
+      "submissions": []
+    }
+  ],
   "materis": [],
   "pengumumanKelas": [],
   "catatanBimbingan": [],
@@ -108320,13 +108360,13 @@
       "semester": "1 (Ganjil)",
       "tahunAjaran": "2025/2026",
       "totalHadir": 18,
-      "totalIzin": 0,
+      "totalIzin": 1,
       "totalSakit": 0,
       "totalAlfa": 0,
-      "rataRataNilai": 84.5,
+      "rataRataNilai": 85.93,
       "catatanWaliKelas": "Pertahankan prestasi belajar dan aktif dalam kegiatan sekolah.",
-      "status": "DRAFT",
-      "updatedAt": "2026-10-20T10:00:00.000Z"
+      "status": "PUBLISHED",
+      "updatedAt": "2026-10-25T16:27:08.122Z"
     },
     {
       "id": "rap-siswa-profile-2",
@@ -108340,8 +108380,8 @@
       "totalAlfa": 0,
       "rataRataNilai": 84.5,
       "catatanWaliKelas": "Pertahankan prestasi belajar dan aktif dalam kegiatan sekolah.",
-      "status": "DRAFT",
-      "updatedAt": "2026-10-20T10:00:00.000Z"
+      "status": "PUBLISHED",
+      "updatedAt": "2026-10-25T16:22:35.702Z"
     },
     {
       "id": "rap-siswa-profile-3",
@@ -108355,8 +108395,8 @@
       "totalAlfa": 0,
       "rataRataNilai": 84.5,
       "catatanWaliKelas": "Pertahankan prestasi belajar dan aktif dalam kegiatan sekolah.",
-      "status": "DRAFT",
-      "updatedAt": "2026-10-20T10:00:00.000Z"
+      "status": "PUBLISHED",
+      "updatedAt": "2026-10-25T16:22:35.702Z"
     },
     {
       "id": "rap-siswa-profile-4",
@@ -108370,8 +108410,8 @@
       "totalAlfa": 0,
       "rataRataNilai": 84.5,
       "catatanWaliKelas": "Pertahankan prestasi belajar dan aktif dalam kegiatan sekolah.",
-      "status": "DRAFT",
-      "updatedAt": "2026-10-20T10:00:00.000Z"
+      "status": "PUBLISHED",
+      "updatedAt": "2026-10-25T16:22:35.702Z"
     },
     {
       "id": "rap-siswa-profile-5",
@@ -108385,8 +108425,8 @@
       "totalAlfa": 0,
       "rataRataNilai": 84.5,
       "catatanWaliKelas": "Pertahankan prestasi belajar dan aktif dalam kegiatan sekolah.",
-      "status": "DRAFT",
-      "updatedAt": "2026-10-20T10:00:00.000Z"
+      "status": "PUBLISHED",
+      "updatedAt": "2026-10-25T16:22:35.702Z"
     },
     {
       "id": "rap-siswa-profile-6",
@@ -108400,8 +108440,8 @@
       "totalAlfa": 0,
       "rataRataNilai": 84.5,
       "catatanWaliKelas": "Pertahankan prestasi belajar dan aktif dalam kegiatan sekolah.",
-      "status": "DRAFT",
-      "updatedAt": "2026-10-20T10:00:00.000Z"
+      "status": "PUBLISHED",
+      "updatedAt": "2026-10-25T16:22:35.702Z"
     },
     {
       "id": "rap-siswa-profile-7",
@@ -108415,8 +108455,8 @@
       "totalAlfa": 0,
       "rataRataNilai": 84.5,
       "catatanWaliKelas": "Pertahankan prestasi belajar dan aktif dalam kegiatan sekolah.",
-      "status": "DRAFT",
-      "updatedAt": "2026-10-20T10:00:00.000Z"
+      "status": "PUBLISHED",
+      "updatedAt": "2026-10-25T16:22:35.702Z"
     },
     {
       "id": "rap-siswa-profile-8",
@@ -108430,8 +108470,8 @@
       "totalAlfa": 0,
       "rataRataNilai": 84.5,
       "catatanWaliKelas": "Pertahankan prestasi belajar dan aktif dalam kegiatan sekolah.",
-      "status": "DRAFT",
-      "updatedAt": "2026-10-20T10:00:00.000Z"
+      "status": "PUBLISHED",
+      "updatedAt": "2026-10-25T16:22:35.702Z"
     },
     {
       "id": "rap-siswa-profile-9",
@@ -108445,8 +108485,8 @@
       "totalAlfa": 0,
       "rataRataNilai": 84.5,
       "catatanWaliKelas": "Pertahankan prestasi belajar dan aktif dalam kegiatan sekolah.",
-      "status": "DRAFT",
-      "updatedAt": "2026-10-20T10:00:00.000Z"
+      "status": "PUBLISHED",
+      "updatedAt": "2026-10-25T16:22:35.702Z"
     },
     {
       "id": "rap-siswa-profile-10",
@@ -108460,8 +108500,8 @@
       "totalAlfa": 0,
       "rataRataNilai": 84.5,
       "catatanWaliKelas": "Pertahankan prestasi belajar dan aktif dalam kegiatan sekolah.",
-      "status": "DRAFT",
-      "updatedAt": "2026-10-20T10:00:00.000Z"
+      "status": "PUBLISHED",
+      "updatedAt": "2026-10-25T16:22:35.702Z"
     },
     {
       "id": "rap-siswa-profile-11",
@@ -108475,8 +108515,8 @@
       "totalAlfa": 0,
       "rataRataNilai": 84.5,
       "catatanWaliKelas": "Pertahankan prestasi belajar dan aktif dalam kegiatan sekolah.",
-      "status": "DRAFT",
-      "updatedAt": "2026-10-20T10:00:00.000Z"
+      "status": "PUBLISHED",
+      "updatedAt": "2026-10-25T16:22:35.702Z"
     },
     {
       "id": "rap-siswa-profile-12",
@@ -108490,8 +108530,8 @@
       "totalAlfa": 0,
       "rataRataNilai": 84.5,
       "catatanWaliKelas": "Pertahankan prestasi belajar dan aktif dalam kegiatan sekolah.",
-      "status": "DRAFT",
-      "updatedAt": "2026-10-20T10:00:00.000Z"
+      "status": "PUBLISHED",
+      "updatedAt": "2026-10-25T16:22:35.702Z"
     },
     {
       "id": "rap-siswa-profile-13",
@@ -108505,8 +108545,8 @@
       "totalAlfa": 0,
       "rataRataNilai": 84.5,
       "catatanWaliKelas": "Pertahankan prestasi belajar dan aktif dalam kegiatan sekolah.",
-      "status": "DRAFT",
-      "updatedAt": "2026-10-20T10:00:00.000Z"
+      "status": "PUBLISHED",
+      "updatedAt": "2026-10-25T16:22:35.702Z"
     },
     {
       "id": "rap-siswa-profile-14",
@@ -108520,8 +108560,8 @@
       "totalAlfa": 0,
       "rataRataNilai": 84.5,
       "catatanWaliKelas": "Pertahankan prestasi belajar dan aktif dalam kegiatan sekolah.",
-      "status": "DRAFT",
-      "updatedAt": "2026-10-20T10:00:00.000Z"
+      "status": "PUBLISHED",
+      "updatedAt": "2026-10-25T16:22:35.702Z"
     },
     {
       "id": "rap-siswa-profile-15",
@@ -108535,8 +108575,8 @@
       "totalAlfa": 0,
       "rataRataNilai": 84.5,
       "catatanWaliKelas": "Pertahankan prestasi belajar dan aktif dalam kegiatan sekolah.",
-      "status": "DRAFT",
-      "updatedAt": "2026-10-20T10:00:00.000Z"
+      "status": "PUBLISHED",
+      "updatedAt": "2026-10-25T16:22:35.702Z"
     },
     {
       "id": "rap-siswa-profile-16",
@@ -108550,8 +108590,8 @@
       "totalAlfa": 0,
       "rataRataNilai": 84.5,
       "catatanWaliKelas": "Pertahankan prestasi belajar dan aktif dalam kegiatan sekolah.",
-      "status": "DRAFT",
-      "updatedAt": "2026-10-20T10:00:00.000Z"
+      "status": "PUBLISHED",
+      "updatedAt": "2026-10-25T16:22:35.702Z"
     },
     {
       "id": "rap-siswa-profile-17",
@@ -108565,8 +108605,8 @@
       "totalAlfa": 0,
       "rataRataNilai": 84.5,
       "catatanWaliKelas": "Pertahankan prestasi belajar dan aktif dalam kegiatan sekolah.",
-      "status": "DRAFT",
-      "updatedAt": "2026-10-20T10:00:00.000Z"
+      "status": "PUBLISHED",
+      "updatedAt": "2026-10-25T16:22:35.702Z"
     },
     {
       "id": "rap-siswa-profile-18",
@@ -108580,8 +108620,8 @@
       "totalAlfa": 0,
       "rataRataNilai": 84.5,
       "catatanWaliKelas": "Pertahankan prestasi belajar dan aktif dalam kegiatan sekolah.",
-      "status": "DRAFT",
-      "updatedAt": "2026-10-20T10:00:00.000Z"
+      "status": "PUBLISHED",
+      "updatedAt": "2026-10-25T16:22:35.702Z"
     },
     {
       "id": "rap-siswa-profile-19",
@@ -108595,8 +108635,8 @@
       "totalAlfa": 0,
       "rataRataNilai": 84.5,
       "catatanWaliKelas": "Pertahankan prestasi belajar dan aktif dalam kegiatan sekolah.",
-      "status": "DRAFT",
-      "updatedAt": "2026-10-20T10:00:00.000Z"
+      "status": "PUBLISHED",
+      "updatedAt": "2026-10-25T16:22:35.702Z"
     },
     {
       "id": "rap-siswa-profile-20",
@@ -108610,8 +108650,8 @@
       "totalAlfa": 0,
       "rataRataNilai": 84.5,
       "catatanWaliKelas": "Pertahankan prestasi belajar dan aktif dalam kegiatan sekolah.",
-      "status": "DRAFT",
-      "updatedAt": "2026-10-20T10:00:00.000Z"
+      "status": "PUBLISHED",
+      "updatedAt": "2026-10-25T16:22:35.702Z"
     },
     {
       "id": "rap-siswa-profile-21",
@@ -108625,8 +108665,8 @@
       "totalAlfa": 0,
       "rataRataNilai": 84.5,
       "catatanWaliKelas": "Pertahankan prestasi belajar dan aktif dalam kegiatan sekolah.",
-      "status": "DRAFT",
-      "updatedAt": "2026-10-20T10:00:00.000Z"
+      "status": "PUBLISHED",
+      "updatedAt": "2026-10-25T16:22:35.702Z"
     },
     {
       "id": "rap-siswa-profile-22",
@@ -108640,8 +108680,8 @@
       "totalAlfa": 0,
       "rataRataNilai": 84.5,
       "catatanWaliKelas": "Pertahankan prestasi belajar dan aktif dalam kegiatan sekolah.",
-      "status": "DRAFT",
-      "updatedAt": "2026-10-20T10:00:00.000Z"
+      "status": "PUBLISHED",
+      "updatedAt": "2026-10-25T16:22:35.702Z"
     },
     {
       "id": "rap-siswa-profile-23",
@@ -108655,8 +108695,8 @@
       "totalAlfa": 0,
       "rataRataNilai": 84.5,
       "catatanWaliKelas": "Pertahankan prestasi belajar dan aktif dalam kegiatan sekolah.",
-      "status": "DRAFT",
-      "updatedAt": "2026-10-20T10:00:00.000Z"
+      "status": "PUBLISHED",
+      "updatedAt": "2026-10-25T16:22:35.702Z"
     },
     {
       "id": "rap-siswa-profile-24",
@@ -108670,8 +108710,8 @@
       "totalAlfa": 0,
       "rataRataNilai": 84.5,
       "catatanWaliKelas": "Pertahankan prestasi belajar dan aktif dalam kegiatan sekolah.",
-      "status": "DRAFT",
-      "updatedAt": "2026-10-20T10:00:00.000Z"
+      "status": "PUBLISHED",
+      "updatedAt": "2026-10-25T16:22:35.702Z"
     },
     {
       "id": "rap-siswa-profile-25",
@@ -108685,8 +108725,8 @@
       "totalAlfa": 0,
       "rataRataNilai": 84.5,
       "catatanWaliKelas": "Pertahankan prestasi belajar dan aktif dalam kegiatan sekolah.",
-      "status": "DRAFT",
-      "updatedAt": "2026-10-20T10:00:00.000Z"
+      "status": "PUBLISHED",
+      "updatedAt": "2026-10-25T16:22:35.702Z"
     },
     {
       "id": "rap-siswa-profile-26",
@@ -108700,8 +108740,8 @@
       "totalAlfa": 0,
       "rataRataNilai": 84.5,
       "catatanWaliKelas": "Pertahankan prestasi belajar dan aktif dalam kegiatan sekolah.",
-      "status": "DRAFT",
-      "updatedAt": "2026-10-20T10:00:00.000Z"
+      "status": "PUBLISHED",
+      "updatedAt": "2026-10-25T16:22:35.702Z"
     },
     {
       "id": "rap-siswa-profile-27",
@@ -112995,6 +113035,41 @@
     }
   ],
   "auditLogs": [
+    {
+      "id": "log-1792945628123",
+      "userId": "usr-guru-01",
+      "action": "UPDATE_RAPORT_STATUS",
+      "detail": "GURU memperbarui status raport siswa siswa-profile-1: PUBLISHED",
+      "createdAt": "2026-10-25T16:27:08.123Z"
+    },
+    {
+      "id": "log-1792945614861",
+      "userId": "usr-guru-01",
+      "action": "UPDATE_RAPORT_STATUS",
+      "detail": "GURU memperbarui status raport siswa siswa-profile-1: DRAFT",
+      "createdAt": "2026-10-25T16:26:54.861Z"
+    },
+    {
+      "id": "log-1792945575828",
+      "userId": "usr-siswa-1",
+      "action": "SUBMIT_HOMEWORK",
+      "detail": "Siswa Ahmad Santoso menginput tugas PR: Tugas Latihan Aljabar Bab 2 (Halaman 45 No. 1-10)",
+      "createdAt": "2026-10-25T16:26:15.828Z"
+    },
+    {
+      "id": "log-1792945355702",
+      "userId": "usr-guru-01",
+      "action": "BULK_RAPORT_STATUS",
+      "detail": "GURU mengubah status izin raport seluruh kelas kelas-10-mipa1 menjadi: PUBLISHED (26 siswa)",
+      "createdAt": "2026-10-25T16:22:35.702Z"
+    },
+    {
+      "id": "log-1792945339951",
+      "userId": "usr-guru-01",
+      "action": "UPDATE_RAPORT_STATUS",
+      "detail": "GURU memperbarui status raport siswa siswa-profile-1: PUBLISHED",
+      "createdAt": "2026-10-25T16:22:19.951Z"
+    },
     {
       "id": "log-1792164045607",
       "userId": "usr-admin-01",

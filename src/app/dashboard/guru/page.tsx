@@ -80,16 +80,16 @@ interface MapelOption {
 const DEFAULT_KELAS_LIST: KelasOption[] = [
   { id: 'kelas-10-mipa1', namaKelas: 'X MIPA 1', tingkat: '10' },
   { id: 'kelas-10-mipa2', namaKelas: 'X MIPA 2', tingkat: '10' },
-  { id: 'kelas-10-ips1',  namaKelas: 'X IPS 1',  tingkat: '10' },
-  { id: 'kelas-10-ips2',  namaKelas: 'X IPS 2',  tingkat: '10' },
+  { id: 'kelas-10-ips1', namaKelas: 'X IPS 1', tingkat: '10' },
+  { id: 'kelas-10-ips2', namaKelas: 'X IPS 2', tingkat: '10' },
   { id: 'kelas-11-mipa1', namaKelas: 'XI MIPA 1', tingkat: '11' },
   { id: 'kelas-11-mipa2', namaKelas: 'XI MIPA 2', tingkat: '11' },
-  { id: 'kelas-11-ips1',  namaKelas: 'XI IPS 1',  tingkat: '11' },
-  { id: 'kelas-11-ips2',  namaKelas: 'XI IPS 2',  tingkat: '11' },
+  { id: 'kelas-11-ips1', namaKelas: 'XI IPS 1', tingkat: '11' },
+  { id: 'kelas-11-ips2', namaKelas: 'XI IPS 2', tingkat: '11' },
   { id: 'kelas-12-mipa1', namaKelas: 'XII MIPA 1', tingkat: '12' },
   { id: 'kelas-12-mipa2', namaKelas: 'XII MIPA 2', tingkat: '12' },
-  { id: 'kelas-12-ips1',  namaKelas: 'XII IPS 1',  tingkat: '12' },
-  { id: 'kelas-12-ips2',  namaKelas: 'XII IPS 2',  tingkat: '12' },
+  { id: 'kelas-12-ips1', namaKelas: 'XII IPS 1', tingkat: '12' },
+  { id: 'kelas-12-ips2', namaKelas: 'XII IPS 2', tingkat: '12' },
 ]
 
 const DEFAULT_MAPEL_LIST: MapelOption[] = [
@@ -442,7 +442,7 @@ export default function GuruDashboardPage() {
     isOpen: false,
     title: '',
     message: '',
-    onConfirm: () => {},
+    onConfirm: () => { },
   })
 
   // Toast feedback
@@ -595,7 +595,7 @@ export default function GuruDashboardPage() {
       const tabParam = params.get('tab')
       if (
         tabParam &&
-        ['ringkasan', 'kelas_siswa', 'presensi', 'nilai', 'tugas_materi', 'pengumuman_bimbingan', 'profil'].includes(
+        ['ringkasan', 'kelas_siswa', 'presensi', 'nilai', 'tugas_materi', 'raport', 'pengumuman_bimbingan', 'profil'].includes(
           tabParam
         )
       ) {
@@ -678,7 +678,7 @@ export default function GuruDashboardPage() {
         initGradesForClass(studentsInClass, j.data, selectedMapelNilai)
         return
       }
-    } catch {}
+    } catch { }
     initGradesForClass(studentsInClass, [], selectedMapelNilai)
   }
 
@@ -693,7 +693,7 @@ export default function GuruDashboardPage() {
         initGradesForClass(studentsInClass, j.data, mId)
         return
       }
-    } catch {}
+    } catch { }
     initGradesForClass(studentsInClass, [], mId)
   }
 
@@ -1179,7 +1179,7 @@ export default function GuruDashboardPage() {
       if (j.success && Array.isArray(j.data)) {
         studentNilais = j.data
       }
-    } catch {}
+    } catch { }
 
     setSelectedStudentForRaport({
       siswa: student,
@@ -1401,8 +1401,8 @@ export default function GuruDashboardPage() {
           </thead>
           <tbody>
             ${nilaiRows
-              .map(
-                (r, idx) => `
+        .map(
+          (r, idx) => `
               <tr>
                 <td>${idx + 1}</td>
                 <td>${r.nisn || '-'}</td>
@@ -1418,8 +1418,8 @@ export default function GuruDashboardPage() {
                 </td>
               </tr>
             `
-              )
-              .join('')}
+        )
+        .join('')}
           </tbody>
         </table>
 
@@ -1517,8 +1517,8 @@ export default function GuruDashboardPage() {
           </thead>
           <tbody>
             ${rekapPresensiList
-              .map(
-                (r, idx) => `
+        .map(
+          (r, idx) => `
               <tr>
                 <td>${idx + 1}</td>
                 <td>${r.nisn || '-'}</td>
@@ -1534,8 +1534,8 @@ export default function GuruDashboardPage() {
                 </td>
               </tr>
             `
-              )
-              .join('')}
+        )
+        .join('')}
           </tbody>
         </table>
 
@@ -1692,51 +1692,46 @@ export default function GuruDashboardPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex overflow-x-auto border-t border-slate-100 no-scrollbar">
           <button
             onClick={() => setActiveTab('ringkasan')}
-            className={`py-3 px-4 font-semibold text-xs sm:text-sm flex items-center gap-2 border-b-2 whitespace-nowrap transition-all ${
-              activeTab === 'ringkasan'
+            className={`py-3 px-4 font-semibold text-xs sm:text-sm flex items-center gap-2 border-b-2 whitespace-nowrap transition-all ${activeTab === 'ringkasan'
                 ? 'border-blue-600 text-blue-600 bg-blue-50/50'
                 : 'border-transparent text-slate-600 hover:text-slate-900 hover:border-slate-300'
-            }`}
+              }`}
           >
             <BarChart3 className="w-4 h-4" /> Dashboard Guru
           </button>
           <button
             onClick={() => setActiveTab('kelas_siswa')}
-            className={`py-3 px-4 font-semibold text-xs sm:text-sm flex items-center gap-2 border-b-2 whitespace-nowrap transition-all ${
-              activeTab === 'kelas_siswa'
+            className={`py-3 px-4 font-semibold text-xs sm:text-sm flex items-center gap-2 border-b-2 whitespace-nowrap transition-all ${activeTab === 'kelas_siswa'
                 ? 'border-blue-600 text-blue-600 bg-blue-50/50'
                 : 'border-transparent text-slate-600 hover:text-slate-900 hover:border-slate-300'
-            }`}
+              }`}
           >
             <Users className="w-4 h-4" /> Kelas & Siswa
           </button>
           <button
             onClick={() => setActiveTab('presensi')}
-            className={`py-3 px-4 font-semibold text-xs sm:text-sm flex items-center gap-2 border-b-2 whitespace-nowrap transition-all ${
-              activeTab === 'presensi'
+            className={`py-3 px-4 font-semibold text-xs sm:text-sm flex items-center gap-2 border-b-2 whitespace-nowrap transition-all ${activeTab === 'presensi'
                 ? 'border-blue-600 text-blue-600 bg-blue-50/50'
                 : 'border-transparent text-slate-600 hover:text-slate-900 hover:border-slate-300'
-            }`}
+              }`}
           >
             <UserCheck className="w-4 h-4" /> Presensi Siswa
           </button>
           <button
             onClick={() => setActiveTab('nilai')}
-            className={`py-3 px-4 font-semibold text-xs sm:text-sm flex items-center gap-2 border-b-2 whitespace-nowrap transition-all ${
-              activeTab === 'nilai'
+            className={`py-3 px-4 font-semibold text-xs sm:text-sm flex items-center gap-2 border-b-2 whitespace-nowrap transition-all ${activeTab === 'nilai'
                 ? 'border-blue-600 text-blue-600 bg-blue-50/50'
                 : 'border-transparent text-slate-600 hover:text-slate-900 hover:border-slate-300'
-            }`}
+              }`}
           >
             <Award className="w-4 h-4" /> Input & Rekap Nilai
           </button>
           <button
             onClick={() => setActiveTab('tugas_materi')}
-            className={`py-3 px-4 font-semibold text-xs sm:text-sm flex items-center gap-2 border-b-2 whitespace-nowrap transition-all ${
-              activeTab === 'tugas_materi'
+            className={`py-3 px-4 font-semibold text-xs sm:text-sm flex items-center gap-2 border-b-2 whitespace-nowrap transition-all ${activeTab === 'tugas_materi'
                 ? 'border-blue-600 text-blue-600 bg-blue-50/50'
                 : 'border-transparent text-slate-600 hover:text-slate-900 hover:border-slate-300'
-            }`}
+              }`}
           >
             <BookOpen className="w-4 h-4" /> Tugas & Materi
           </button>
@@ -1745,21 +1740,19 @@ export default function GuruDashboardPage() {
               setActiveTab('raport')
               loadRaportForClass(selectedKelasRaport)
             }}
-            className={`py-3 px-4 font-semibold text-xs sm:text-sm flex items-center gap-2 border-b-2 whitespace-nowrap transition-all ${
-              activeTab === 'raport'
+            className={`py-3 px-4 font-semibold text-xs sm:text-sm flex items-center gap-2 border-b-2 whitespace-nowrap transition-all ${activeTab === 'raport'
                 ? 'border-blue-600 text-blue-600 bg-blue-50/50'
                 : 'border-transparent text-slate-600 hover:text-slate-900 hover:border-slate-300'
-            }`}
+              }`}
           >
             <FileSpreadsheet className="w-4 h-4" /> Raport Digital
           </button>
           <button
             onClick={() => setActiveTab('profil')}
-            className={`py-3 px-4 font-semibold text-xs sm:text-sm flex items-center gap-2 border-b-2 whitespace-nowrap transition-all ${
-              activeTab === 'profil'
+            className={`py-3 px-4 font-semibold text-xs sm:text-sm flex items-center gap-2 border-b-2 whitespace-nowrap transition-all ${activeTab === 'profil'
                 ? 'border-blue-600 text-blue-600 bg-blue-50/50'
                 : 'border-transparent text-slate-600 hover:text-slate-900 hover:border-slate-300'
-            }`}
+              }`}
           >
             <User className="w-4 h-4" /> Profil & Akun
           </button>
@@ -1770,11 +1763,10 @@ export default function GuruDashboardPage() {
       {feedback && (
         <div className="fixed top-24 right-6 z-50 animate-bounce">
           <div
-            className={`px-4 py-3 rounded-2xl shadow-xl border text-sm font-semibold flex items-center gap-3 ${
-              feedback.type === 'success'
+            className={`px-4 py-3 rounded-2xl shadow-xl border text-sm font-semibold flex items-center gap-3 ${feedback.type === 'success'
                 ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
                 : 'bg-rose-50 border-rose-200 text-rose-800'
-            }`}
+              }`}
           >
             {feedback.type === 'success' ? (
               <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
@@ -2102,11 +2094,10 @@ export default function GuruDashboardPage() {
                                 <div className="flex items-start justify-between gap-2">
                                   <h4 className="font-bold text-slate-900 text-xs line-clamp-1">{t.judul}</h4>
                                   <span
-                                    className={`text-[10px] font-bold px-2 py-0.5 rounded shrink-0 ${
-                                      isOverdue
+                                    className={`text-[10px] font-bold px-2 py-0.5 rounded shrink-0 ${isOverdue
                                         ? 'bg-rose-100 text-rose-700'
                                         : 'bg-amber-100 text-amber-800'
-                                    }`}
+                                      }`}
                                   >
                                     {isOverdue ? 'Lewat Batas' : 'Aktif'}
                                   </span>
@@ -2209,22 +2200,20 @@ export default function GuruDashboardPage() {
                     <button
                       type="button"
                       onClick={() => setDirektoriMode('siswa')}
-                      className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 ${
-                        direktoriMode === 'siswa'
+                      className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 ${direktoriMode === 'siswa'
                           ? 'bg-white text-blue-700 shadow-xs'
                           : 'text-slate-600 hover:text-slate-900'
-                      }`}
+                        }`}
                     >
                       <Users className="w-4 h-4" /> Direktori Siswa ({allSiswa.length})
                     </button>
                     <button
                       type="button"
                       onClick={() => setDirektoriMode('guru')}
-                      className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 ${
-                        direktoriMode === 'guru'
+                      className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 ${direktoriMode === 'guru'
                           ? 'bg-white text-blue-700 shadow-xs'
                           : 'text-slate-600 hover:text-slate-900'
-                      }`}
+                        }`}
                     >
                       <User className="w-4 h-4" /> Direktori Guru ({guruList.length})
                     </button>
@@ -2234,237 +2223,236 @@ export default function GuruDashboardPage() {
                 {direktoriMode === 'siswa' ? (
                   <>
 
-                {/* KELAS CARDS */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-                  {kelasList.map((k) => {
-                    const countStudents = allSiswa.filter((s) => s.kelasId === k.id).length
-                    const isWali = k.waliKelas?.namaLengkap === teacherProfile.namaLengkap
-                    return (
-                      <div
-                        key={k.id}
-                        className={`p-5 rounded-2xl border transition shadow-xs ${
-                          isWali ? 'bg-blue-50/40 border-blue-200' : 'bg-white border-slate-200'
-                        }`}
-                      >
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs font-bold text-slate-500 uppercase">Tingkat {k.tingkat}</span>
-                          {isWali && (
-                            <span className="px-2 py-0.5 bg-blue-600 text-white text-[10px] font-bold rounded-md">
-                              Wali Kelas
-                            </span>
-                          )}
-                        </div>
-                        <h3 className="text-lg font-extrabold text-slate-900 mt-2">{k.namaKelas}</h3>
-                        <p className="text-xs text-slate-500 mt-1">
-                          {countStudents || k._count?.siswas || 0} Siswa Terdaftar
-                        </p>
-                        <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between">
-                          <button
-                            onClick={() => {
-                              setSiswaKelasFilter(k.id)
-                              setSelectedKelasAbsensi(k.id)
-                              setSelectedKelasNilai(k.id)
-                            }}
-                            className="text-xs text-blue-600 hover:text-blue-800 font-bold flex items-center gap-1"
+                    {/* KELAS CARDS */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+                      {kelasList.map((k) => {
+                        const countStudents = allSiswa.filter((s) => s.kelasId === k.id).length
+                        const isWali = k.waliKelas?.namaLengkap === teacherProfile.namaLengkap
+                        return (
+                          <div
+                            key={k.id}
+                            className={`p-5 rounded-2xl border transition shadow-xs ${isWali ? 'bg-blue-50/40 border-blue-200' : 'bg-white border-slate-200'
+                              }`}
                           >
-                            Filter Kelas Ini <ChevronRight className="w-3.5 h-3.5" />
-                          </button>
+                            <div className="flex items-center justify-between">
+                              <span className="text-xs font-bold text-slate-500 uppercase">Tingkat {k.tingkat}</span>
+                              {isWali && (
+                                <span className="px-2 py-0.5 bg-blue-600 text-white text-[10px] font-bold rounded-md">
+                                  Wali Kelas
+                                </span>
+                              )}
+                            </div>
+                            <h3 className="text-lg font-extrabold text-slate-900 mt-2">{k.namaKelas}</h3>
+                            <p className="text-xs text-slate-500 mt-1">
+                              {countStudents || k._count?.siswas || 0} Siswa Terdaftar
+                            </p>
+                            <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between">
+                              <button
+                                onClick={() => {
+                                  setSiswaKelasFilter(k.id)
+                                  setSelectedKelasAbsensi(k.id)
+                                  setSelectedKelasNilai(k.id)
+                                }}
+                                className="text-xs text-blue-600 hover:text-blue-800 font-bold flex items-center gap-1"
+                              >
+                                Filter Kelas Ini <ChevronRight className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          </div>
+                        )
+                      })}
+                    </div>
+
+                    {/* DIRECTORY SEARCH & FILTER */}
+                    <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs space-y-4">
+                      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+                        <div className="relative flex-1">
+                          <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                          <input
+                            type="text"
+                            placeholder="Cari siswa berdasarkan NISN, NIS, atau Nama Lengkap..."
+                            value={siswaSearch}
+                            onChange={(e) => setSiswaSearch(e.target.value)}
+                            className="w-full pl-10 pr-4 py-2 text-xs sm:text-sm rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                          />
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-semibold text-slate-500 shrink-0">Filter Kelas:</span>
+                          <select
+                            value={siswaKelasFilter}
+                            onChange={(e) => setSiswaKelasFilter(e.target.value)}
+                            className="text-xs sm:text-sm px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:border-blue-500 font-semibold"
+                          >
+                            <option value="Semua">Semua Kelas</option>
+                            {kelasList.map((k) => (
+                              <option key={k.id} value={k.id}>
+                                {k.namaKelas}
+                              </option>
+                            ))}
+                          </select>
                         </div>
                       </div>
-                    )
-                  })}
-                </div>
 
-                {/* DIRECTORY SEARCH & FILTER */}
-                <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs space-y-4">
-                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-                    <div className="relative flex-1">
-                      <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-                      <input
-                        type="text"
-                        placeholder="Cari siswa berdasarkan NISN, NIS, atau Nama Lengkap..."
-                        value={siswaSearch}
-                        onChange={(e) => setSiswaSearch(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2 text-xs sm:text-sm rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
-                      />
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-semibold text-slate-500 shrink-0">Filter Kelas:</span>
-                      <select
-                        value={siswaKelasFilter}
-                        onChange={(e) => setSiswaKelasFilter(e.target.value)}
-                        className="text-xs sm:text-sm px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:border-blue-500 font-semibold"
-                      >
-                        <option value="Semua">Semua Kelas</option>
-                        {kelasList.map((k) => (
-                          <option key={k.id} value={k.id}>
-                            {k.namaKelas}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
-
-                  {/* STUDENTS TABLE */}
-                  <div className="overflow-x-auto rounded-xl border border-slate-200">
-                    <table className="w-full text-left border-collapse text-xs sm:text-sm">
-                      <thead>
-                        <tr className="bg-slate-50 border-b border-slate-200 text-slate-600 font-bold text-[11px] uppercase tracking-wider">
-                          <th className="py-3 px-4">No</th>
-                          <th className="py-3 px-4">NISN</th>
-                          <th className="py-3 px-4">NIS</th>
-                          <th className="py-3 px-4">Nama Lengkap</th>
-                          <th className="py-3 px-4">Kelas</th>
-                          <th className="py-3 px-4">Password Siswa</th>
-                          <th className="py-3 px-4">L/P</th>
-                          <th className="py-3 px-4">Kontak / No HP</th>
-                          <th className="py-3 px-4 text-center">Aksi Cepat</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-100">
-                        {filteredStudentsDirectory.length === 0 ? (
-                          <tr>
-                            <td colSpan={9} className="py-8 text-center text-slate-400">
-                              Tidak ada siswa yang cocok dengan kriteria pencarian
-                            </td>
-                          </tr>
-                        ) : (
-                          filteredStudentsDirectory.map((st, idx) => {
-                            const kObj = kelasList.find((k) => k.id === st.kelasId)
-                            const isPassVisible = !!visibleStudentPasswords[st.id]
-                            const studentPass = st.password || `siswa${st.nis || '123'}`
-                            return (
-                              <tr key={st.id} className="hover:bg-slate-50/70 transition">
-                                <td className="py-3 px-4 text-slate-500 font-medium">{idx + 1}</td>
-                                <td className="py-3 px-4 font-mono font-bold text-blue-700">{st.nisn || '-'}</td>
-                                <td className="py-3 px-4 font-mono text-slate-600">{st.nis || '-'}</td>
-                                <td className="py-3 px-4 font-bold text-slate-900">{st.namaLengkap}</td>
-                                <td className="py-3 px-4">
-                                  <span className="px-2 py-0.5 bg-blue-50 text-blue-700 font-bold rounded text-xs">
-                                    {kObj?.namaKelas || 'X MIPA 1'}
-                                  </span>
-                                </td>
-                                <td className="py-3 px-4">
-                                  <div className="flex items-center gap-1.5">
-                                    <span className="font-mono text-xs px-2 py-0.5 rounded bg-slate-100 text-slate-800 border border-slate-200">
-                                      {isPassVisible ? studentPass : '••••••••'}
-                                    </span>
-                                    <button
-                                      type="button"
-                                      onClick={() => toggleStudentPasswordVisibility(st.id)}
-                                      className="p-1 text-slate-400 hover:text-blue-600 transition"
-                                      title={isPassVisible ? "Sembunyikan password" : "Lihat password"}
-                                    >
-                                      {isPassVisible ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
-                                    </button>
-                                  </div>
-                                </td>
-                                <td className="py-3 px-4 font-semibold text-slate-600">{st.jenisKelamin || 'L'}</td>
-                                <td className="py-3 px-4 text-slate-500">{st.noHp || '-'}</td>
-                                <td className="py-3 px-4 text-center">
-                                  <button
-                                    onClick={() => {
-                                      setSelectedKelasRaport(st.kelasId)
-                                      setActiveTab('raport')
-                                      loadRaportForClass(st.kelasId)
-                                      handleOpenRaportModal(st)
-                                    }}
-                                    className="px-2.5 py-1 text-xs font-semibold text-blue-600 hover:bg-blue-50 rounded-lg border border-blue-200 transition flex items-center gap-1 mx-auto"
-                                  >
-                                    <FileSpreadsheet className="w-3.5 h-3.5" /> Buka Raport
-                                  </button>
+                      {/* STUDENTS TABLE */}
+                      <div className="overflow-x-auto rounded-xl border border-slate-200">
+                        <table className="w-full text-left border-collapse text-xs sm:text-sm">
+                          <thead>
+                            <tr className="bg-slate-50 border-b border-slate-200 text-slate-600 font-bold text-[11px] uppercase tracking-wider">
+                              <th className="py-3 px-4">No</th>
+                              <th className="py-3 px-4">NISN</th>
+                              <th className="py-3 px-4">NIS</th>
+                              <th className="py-3 px-4">Nama Lengkap</th>
+                              <th className="py-3 px-4">Kelas</th>
+                              <th className="py-3 px-4">Password Siswa</th>
+                              <th className="py-3 px-4">L/P</th>
+                              <th className="py-3 px-4">Kontak / No HP</th>
+                              <th className="py-3 px-4 text-center">Aksi Cepat</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-slate-100">
+                            {filteredStudentsDirectory.length === 0 ? (
+                              <tr>
+                                <td colSpan={9} className="py-8 text-center text-slate-400">
+                                  Tidak ada siswa yang cocok dengan kriteria pencarian
                                 </td>
                               </tr>
-                            )
-                          })
-                        )}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              </>
-            ) : (
-              /* GURU DIRECTORY */
-              <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs space-y-4">
-                <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-                  <div className="relative flex-1">
-                    <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-                    <input
-                      type="text"
-                      placeholder="Cari guru berdasarkan Nama Lengkap, NIP, atau Mata Pelajaran..."
-                      value={guruSearch}
-                      onChange={(e) => setGuruSearch(e.target.value)}
-                      className="w-full pl-10 pr-4 py-2 text-xs sm:text-sm rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
-                    />
-                  </div>
-                  <span className="text-xs px-3 py-2 bg-slate-100 text-slate-600 font-bold rounded-xl border border-slate-200">
-                    Total {filteredGuruDirectory.length} Guru
-                  </span>
-                </div>
+                            ) : (
+                              filteredStudentsDirectory.map((st, idx) => {
+                                const kObj = kelasList.find((k) => k.id === st.kelasId)
+                                const isPassVisible = !!visibleStudentPasswords[st.id]
+                                const studentPass = st.password || `siswa${st.nis || '123'}`
+                                return (
+                                  <tr key={st.id} className="hover:bg-slate-50/70 transition">
+                                    <td className="py-3 px-4 text-slate-500 font-medium">{idx + 1}</td>
+                                    <td className="py-3 px-4 font-mono font-bold text-blue-700">{st.nisn || '-'}</td>
+                                    <td className="py-3 px-4 font-mono text-slate-600">{st.nis || '-'}</td>
+                                    <td className="py-3 px-4 font-bold text-slate-900">{st.namaLengkap}</td>
+                                    <td className="py-3 px-4">
+                                      <span className="px-2 py-0.5 bg-blue-50 text-blue-700 font-bold rounded text-xs">
+                                        {kObj?.namaKelas || 'X MIPA 1'}
+                                      </span>
+                                    </td>
+                                    <td className="py-3 px-4">
+                                      <div className="flex items-center gap-1.5">
+                                        <span className="font-mono text-xs px-2 py-0.5 rounded bg-slate-100 text-slate-800 border border-slate-200">
+                                          {isPassVisible ? studentPass : '••••••••'}
+                                        </span>
+                                        <button
+                                          type="button"
+                                          onClick={() => toggleStudentPasswordVisibility(st.id)}
+                                          className="p-1 text-slate-400 hover:text-blue-600 transition"
+                                          title={isPassVisible ? "Sembunyikan password" : "Lihat password"}
+                                        >
+                                          {isPassVisible ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                                        </button>
+                                      </div>
+                                    </td>
+                                    <td className="py-3 px-4 font-semibold text-slate-600">{st.jenisKelamin || 'L'}</td>
+                                    <td className="py-3 px-4 text-slate-500">{st.noHp || '-'}</td>
+                                    <td className="py-3 px-4 text-center">
+                                      <button
+                                        onClick={() => {
+                                          setSelectedKelasRaport(st.kelasId)
+                                          setActiveTab('raport')
+                                          loadRaportForClass(st.kelasId)
+                                          handleOpenRaportModal(st)
+                                        }}
+                                        className="px-2.5 py-1 text-xs font-semibold text-blue-600 hover:bg-blue-50 rounded-lg border border-blue-200 transition flex items-center gap-1 mx-auto"
+                                      >
+                                        <FileSpreadsheet className="w-3.5 h-3.5" /> Buka Raport
+                                      </button>
+                                    </td>
+                                  </tr>
+                                )
+                              })
+                            )}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  /* GURU DIRECTORY */
+                  <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs space-y-4">
+                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+                      <div className="relative flex-1">
+                        <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                        <input
+                          type="text"
+                          placeholder="Cari guru berdasarkan Nama Lengkap, NIP, atau Mata Pelajaran..."
+                          value={guruSearch}
+                          onChange={(e) => setGuruSearch(e.target.value)}
+                          className="w-full pl-10 pr-4 py-2 text-xs sm:text-sm rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                        />
+                      </div>
+                      <span className="text-xs px-3 py-2 bg-slate-100 text-slate-600 font-bold rounded-xl border border-slate-200">
+                        Total {filteredGuruDirectory.length} Guru
+                      </span>
+                    </div>
 
-                <div className="overflow-x-auto rounded-xl border border-slate-200">
-                  <table className="w-full text-left border-collapse text-xs sm:text-sm">
-                    <thead>
-                      <tr className="bg-slate-50 border-b border-slate-200 text-slate-600 font-bold text-[11px] uppercase tracking-wider">
-                        <th className="py-3 px-4">No</th>
-                        <th className="py-3 px-4">NIP</th>
-                        <th className="py-3 px-4">Nama Lengkap</th>
-                        <th className="py-3 px-4">Mata Pelajaran</th>
-                        <th className="py-3 px-4">Username / Email</th>
-                        <th className="py-3 px-4">Kontak / No HP</th>
-                        <th className="py-3 px-4">Password Guru</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100">
-                      {filteredGuruDirectory.length === 0 ? (
-                        <tr>
-                          <td colSpan={7} className="py-8 text-center text-slate-400">
-                            Tidak ada guru yang cocok dengan kriteria pencarian
-                          </td>
-                        </tr>
-                      ) : (
-                        filteredGuruDirectory.map((g, idx) => {
-                          const isPassVisible = !!visibleTeacherPasswords[g.id]
-                          const teacherPass = g.password || 'guru123'
-                          return (
-                            <tr key={g.id} className="hover:bg-slate-50/70 transition">
-                              <td className="py-3 px-4 text-slate-500 font-medium">{idx + 1}</td>
-                              <td className="py-3 px-4 font-mono font-bold text-indigo-700">{g.nip}</td>
-                              <td className="py-3 px-4 font-bold text-slate-900">{g.namaLengkap}</td>
-                              <td className="py-3 px-4">
-                                <span className="px-2 py-0.5 bg-indigo-50 text-indigo-700 font-bold rounded text-xs">
-                                  {g.mataPelajaranUtama || 'Guru Mata Pelajaran'}
-                                </span>
-                              </td>
-                              <td className="py-3 px-4 text-slate-600">
-                                <span className="font-mono text-xs">{g.username || g.email || '-'}</span>
-                              </td>
-                              <td className="py-3 px-4 text-slate-500">{g.noHp || '-'}</td>
-                              <td className="py-3 px-4">
-                                <div className="flex items-center gap-1.5">
-                                  <span className="font-mono text-xs px-2 py-0.5 rounded bg-slate-100 text-slate-800 border border-slate-200">
-                                    {isPassVisible ? teacherPass : '••••••••'}
-                                  </span>
-                                  <button
-                                    type="button"
-                                    onClick={() => toggleTeacherPasswordVisibility(g.id)}
-                                    className="p-1 text-slate-400 hover:text-indigo-600 transition"
-                                    title={isPassVisible ? "Sembunyikan password" : "Lihat password"}
-                                  >
-                                    {isPassVisible ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
-                                  </button>
-                                </div>
+                    <div className="overflow-x-auto rounded-xl border border-slate-200">
+                      <table className="w-full text-left border-collapse text-xs sm:text-sm">
+                        <thead>
+                          <tr className="bg-slate-50 border-b border-slate-200 text-slate-600 font-bold text-[11px] uppercase tracking-wider">
+                            <th className="py-3 px-4">No</th>
+                            <th className="py-3 px-4">NIP</th>
+                            <th className="py-3 px-4">Nama Lengkap</th>
+                            <th className="py-3 px-4">Mata Pelajaran</th>
+                            <th className="py-3 px-4">Username / Email</th>
+                            <th className="py-3 px-4">Kontak / No HP</th>
+                            <th className="py-3 px-4">Password Guru</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100">
+                          {filteredGuruDirectory.length === 0 ? (
+                            <tr>
+                              <td colSpan={7} className="py-8 text-center text-slate-400">
+                                Tidak ada guru yang cocok dengan kriteria pencarian
                               </td>
                             </tr>
-                          )
-                        })
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            )}
+                          ) : (
+                            filteredGuruDirectory.map((g, idx) => {
+                              const isPassVisible = !!visibleTeacherPasswords[g.id]
+                              const teacherPass = g.password || 'guru123'
+                              return (
+                                <tr key={g.id} className="hover:bg-slate-50/70 transition">
+                                  <td className="py-3 px-4 text-slate-500 font-medium">{idx + 1}</td>
+                                  <td className="py-3 px-4 font-mono font-bold text-indigo-700">{g.nip}</td>
+                                  <td className="py-3 px-4 font-bold text-slate-900">{g.namaLengkap}</td>
+                                  <td className="py-3 px-4">
+                                    <span className="px-2 py-0.5 bg-indigo-50 text-indigo-700 font-bold rounded text-xs">
+                                      {g.mataPelajaranUtama || 'Guru Mata Pelajaran'}
+                                    </span>
+                                  </td>
+                                  <td className="py-3 px-4 text-slate-600">
+                                    <span className="font-mono text-xs">{g.username || g.email || '-'}</span>
+                                  </td>
+                                  <td className="py-3 px-4 text-slate-500">{g.noHp || '-'}</td>
+                                  <td className="py-3 px-4">
+                                    <div className="flex items-center gap-1.5">
+                                      <span className="font-mono text-xs px-2 py-0.5 rounded bg-slate-100 text-slate-800 border border-slate-200">
+                                        {isPassVisible ? teacherPass : '••••••••'}
+                                      </span>
+                                      <button
+                                        type="button"
+                                        onClick={() => toggleTeacherPasswordVisibility(g.id)}
+                                        className="p-1 text-slate-400 hover:text-indigo-600 transition"
+                                        title={isPassVisible ? "Sembunyikan password" : "Lihat password"}
+                                      >
+                                        {isPassVisible ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                                      </button>
+                                    </div>
+                                  </td>
+                                </tr>
+                              )
+                            })
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
 
                 {/* JADWAL MINGGUAN LENGKAP */}
                 <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs space-y-4">
@@ -2558,17 +2546,15 @@ export default function GuruDashboardPage() {
                     <div className="bg-slate-100 p-1 rounded-xl flex items-center">
                       <button
                         onClick={() => setPresensiSubTab('input')}
-                        className={`px-3 py-1.5 text-xs font-bold rounded-lg transition ${
-                          presensiSubTab === 'input' ? 'bg-white text-blue-700 shadow-xs' : 'text-slate-600'
-                        }`}
+                        className={`px-3 py-1.5 text-xs font-bold rounded-lg transition ${presensiSubTab === 'input' ? 'bg-white text-blue-700 shadow-xs' : 'text-slate-600'
+                          }`}
                       >
                         Input Presensi
                       </button>
                       <button
                         onClick={() => setPresensiSubTab('rekap')}
-                        className={`px-3 py-1.5 text-xs font-bold rounded-lg transition ${
-                          presensiSubTab === 'rekap' ? 'bg-white text-blue-700 shadow-xs' : 'text-slate-600'
-                        }`}
+                        className={`px-3 py-1.5 text-xs font-bold rounded-lg transition ${presensiSubTab === 'rekap' ? 'bg-white text-blue-700 shadow-xs' : 'text-slate-600'
+                          }`}
                       >
                         Rekap Bulanan
                       </button>
@@ -2761,17 +2747,16 @@ export default function GuruDashboardPage() {
                                                 },
                                               }))
                                             }
-                                            className={`px-3 py-1 text-xs font-bold rounded-md transition ${
-                                              currentStatus === stat
+                                            className={`px-3 py-1 text-xs font-bold rounded-md transition ${currentStatus === stat
                                                 ? stat === 'HADIR'
                                                   ? 'bg-emerald-600 text-white shadow-xs'
                                                   : stat === 'IZIN'
-                                                  ? 'bg-blue-600 text-white shadow-xs'
-                                                  : stat === 'SAKIT'
-                                                  ? 'bg-amber-600 text-white shadow-xs'
-                                                  : 'bg-rose-600 text-white shadow-xs'
+                                                    ? 'bg-blue-600 text-white shadow-xs'
+                                                    : stat === 'SAKIT'
+                                                      ? 'bg-amber-600 text-white shadow-xs'
+                                                      : 'bg-rose-600 text-white shadow-xs'
                                                 : 'text-slate-600 hover:text-slate-900'
-                                            }`}
+                                              }`}
                                           >
                                             {stat}
                                           </button>
@@ -2867,11 +2852,10 @@ export default function GuruDashboardPage() {
                                 <td className="py-3 px-4 text-center font-semibold text-slate-600">{r.totalSesi}</td>
                                 <td className="py-3 px-4 text-center">
                                   <span
-                                    className={`px-2.5 py-1 rounded-full font-extrabold text-xs ${
-                                      r.persentase < 75
+                                    className={`px-2.5 py-1 rounded-full font-extrabold text-xs ${r.persentase < 75
                                         ? 'bg-rose-100 text-rose-700 border border-rose-200'
                                         : 'bg-emerald-100 text-emerald-800'
-                                    }`}
+                                      }`}
                                   >
                                     {r.persentase}%
                                   </span>
@@ -3081,9 +3065,8 @@ export default function GuruDashboardPage() {
                                 {/* Nilai Akhir (Calculated) */}
                                 <td className="py-3 px-2 text-center">
                                   <span
-                                    className={`text-sm font-extrabold ${
-                                      isBelowKkm ? 'text-rose-600' : 'text-slate-900'
-                                    }`}
+                                    className={`text-sm font-extrabold ${isBelowKkm ? 'text-rose-600' : 'text-slate-900'
+                                      }`}
                                   >
                                     {row.nilaiAkhir}
                                   </span>
@@ -3092,15 +3075,14 @@ export default function GuruDashboardPage() {
                                 {/* Predikat */}
                                 <td className="py-3 px-2 text-center">
                                   <span
-                                    className={`px-2 py-0.5 rounded text-xs font-bold ${
-                                      row.predikat === 'A'
+                                    className={`px-2 py-0.5 rounded text-xs font-bold ${row.predikat === 'A'
                                         ? 'bg-emerald-100 text-emerald-800'
                                         : row.predikat === 'B'
-                                        ? 'bg-blue-100 text-blue-800'
-                                        : row.predikat === 'C'
-                                        ? 'bg-amber-100 text-amber-800'
-                                        : 'bg-rose-100 text-rose-800'
-                                    }`}
+                                          ? 'bg-blue-100 text-blue-800'
+                                          : row.predikat === 'C'
+                                            ? 'bg-amber-100 text-amber-800'
+                                            : 'bg-rose-100 text-rose-800'
+                                      }`}
                                   >
                                     {row.predikat}
                                   </span>
@@ -3160,17 +3142,15 @@ export default function GuruDashboardPage() {
                     <div className="bg-slate-100 p-1 rounded-xl flex items-center">
                       <button
                         onClick={() => setTugasSubTab('tugas')}
-                        className={`px-3 py-1.5 text-xs font-bold rounded-lg transition ${
-                          tugasSubTab === 'tugas' ? 'bg-white text-blue-700 shadow-xs' : 'text-slate-600'
-                        }`}
+                        className={`px-3 py-1.5 text-xs font-bold rounded-lg transition ${tugasSubTab === 'tugas' ? 'bg-white text-blue-700 shadow-xs' : 'text-slate-600'
+                          }`}
                       >
                         Tugas & Pengumpulan
                       </button>
                       <button
                         onClick={() => setTugasSubTab('materi')}
-                        className={`px-3 py-1.5 text-xs font-bold rounded-lg transition ${
-                          tugasSubTab === 'materi' ? 'bg-white text-blue-700 shadow-xs' : 'text-slate-600'
-                        }`}
+                        className={`px-3 py-1.5 text-xs font-bold rounded-lg transition ${tugasSubTab === 'materi' ? 'bg-white text-blue-700 shadow-xs' : 'text-slate-600'
+                          }`}
                       >
                         Materi Pelajaran
                       </button>
@@ -3227,9 +3207,8 @@ export default function GuruDashboardPage() {
                                 </div>
 
                                 <span
-                                  className={`px-2 py-1 text-[11px] font-bold rounded-md shrink-0 ${
-                                    isOverdue ? 'bg-rose-100 text-rose-700' : 'bg-emerald-100 text-emerald-800'
-                                  }`}
+                                  className={`px-2 py-1 text-[11px] font-bold rounded-md shrink-0 ${isOverdue ? 'bg-rose-100 text-rose-700' : 'bg-emerald-100 text-emerald-800'
+                                    }`}
                                 >
                                   {isOverdue ? 'Lewat Tenggat' : 'Aktif'}
                                 </span>
@@ -3496,11 +3475,10 @@ export default function GuruDashboardPage() {
                                   <div className="flex items-center justify-center gap-2">
                                     <button
                                       onClick={() => handleToggleStudentRaportStatus(st.id, rap?.status || 'DRAFT')}
-                                      className={`px-3 py-1 text-xs font-bold rounded-lg transition flex items-center gap-1 ${
-                                        isPub
+                                      className={`px-3 py-1 text-xs font-bold rounded-lg transition flex items-center gap-1 ${isPub
                                           ? 'bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200'
                                           : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200'
-                                      }`}
+                                        }`}
                                       title={isPub ? 'Kunci kembali raport siswa ini' : 'Buka & izinkan raport siswa ini'}
                                     >
                                       {isPub ? <Lock className="w-3 h-3" /> : <Unlock className="w-3 h-3" />}
@@ -3552,7 +3530,7 @@ export default function GuruDashboardPage() {
                           alt="Avatar Guru"
                           className="w-full h-full object-cover"
                           onError={(e) => {
-                            ;(e.target as HTMLElement).style.display = 'none'
+                            ; (e.target as HTMLElement).style.display = 'none'
                           }}
                         />
                       ) : (
@@ -3801,11 +3779,10 @@ export default function GuruDashboardPage() {
               </div>
 
               <div
-                className={`p-3 rounded-xl text-center text-xs font-bold ${
-                  tempBobot.tugas + tempBobot.uh + tempBobot.uts + tempBobot.uas === 100
+                className={`p-3 rounded-xl text-center text-xs font-bold ${tempBobot.tugas + tempBobot.uh + tempBobot.uts + tempBobot.uas === 100
                     ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
                     : 'bg-rose-50 text-rose-800 border border-rose-200'
-                }`}
+                  }`}
               >
                 Total Bobot: {tempBobot.tugas + tempBobot.uh + tempBobot.uts + tempBobot.uas}%
                 {tempBobot.tugas + tempBobot.uh + tempBobot.uts + tempBobot.uas !== 100 && ' (Harus 100%)'}
@@ -4291,18 +4268,16 @@ export default function GuruDashboardPage() {
                 <button
                   type="button"
                   onClick={() => setRaportDetailForm((prev) => ({ ...prev, status: 'PUBLISHED' }))}
-                  className={`p-3 rounded-xl border text-left flex items-start gap-3 transition ${
-                    raportDetailForm.status === 'PUBLISHED'
+                  className={`p-3 rounded-xl border text-left flex items-start gap-3 transition ${raportDetailForm.status === 'PUBLISHED'
                       ? 'bg-emerald-50 border-emerald-300 ring-2 ring-emerald-500/20'
                       : 'bg-white border-slate-200 hover:bg-slate-100/50'
-                  }`}
+                    }`}
                 >
                   <div
-                    className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
-                      raportDetailForm.status === 'PUBLISHED'
+                    className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${raportDetailForm.status === 'PUBLISHED'
                         ? 'bg-emerald-600 text-white'
                         : 'bg-slate-100 text-slate-400'
-                    }`}
+                      }`}
                   >
                     <Unlock className="w-4 h-4" />
                   </div>
@@ -4317,18 +4292,16 @@ export default function GuruDashboardPage() {
                 <button
                   type="button"
                   onClick={() => setRaportDetailForm((prev) => ({ ...prev, status: 'DRAFT' }))}
-                  className={`p-3 rounded-xl border text-left flex items-start gap-3 transition ${
-                    raportDetailForm.status === 'DRAFT'
+                  className={`p-3 rounded-xl border text-left flex items-start gap-3 transition ${raportDetailForm.status === 'DRAFT'
                       ? 'bg-rose-50 border-rose-300 ring-2 ring-rose-500/20'
                       : 'bg-white border-slate-200 hover:bg-slate-100/50'
-                  }`}
+                    }`}
                 >
                   <div
-                    className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
-                      raportDetailForm.status === 'DRAFT'
+                    className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${raportDetailForm.status === 'DRAFT'
                         ? 'bg-rose-600 text-white'
                         : 'bg-slate-100 text-slate-400'
-                    }`}
+                      }`}
                   >
                     <Lock className="w-4 h-4" />
                   </div>
@@ -4378,13 +4351,12 @@ export default function GuruDashboardPage() {
                             </td>
                             <td className="py-2 px-3 text-center font-bold">
                               <span
-                                className={`px-1.5 py-0.5 rounded text-[10px] ${
-                                  n.predikat === 'A'
+                                className={`px-1.5 py-0.5 rounded text-[10px] ${n.predikat === 'A'
                                     ? 'bg-emerald-100 text-emerald-800'
                                     : n.predikat === 'B'
-                                    ? 'bg-blue-100 text-blue-800'
-                                    : 'bg-amber-100 text-amber-800'
-                                }`}
+                                      ? 'bg-blue-100 text-blue-800'
+                                      : 'bg-amber-100 text-amber-800'
+                                  }`}
                               >
                                 {n.predikat || '-'}
                               </span>

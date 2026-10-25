@@ -228,16 +228,16 @@ const DEFAULT_DATABASE: SchoolDatabase = {
   kelas: [
     { id: 'kelas-10-mipa1', namaKelas: 'X MIPA 1', tingkat: '10', waliKelasId: 'guru-profile-01' },
     { id: 'kelas-10-mipa2', namaKelas: 'X MIPA 2', tingkat: '10', waliKelasId: 'guru-profile-02' },
-    { id: 'kelas-10-ips1',  namaKelas: 'X IPS 1',  tingkat: '10' },
-    { id: 'kelas-10-ips2',  namaKelas: 'X IPS 2',  tingkat: '10' },
+    { id: 'kelas-10-ips1', namaKelas: 'X IPS 1', tingkat: '10' },
+    { id: 'kelas-10-ips2', namaKelas: 'X IPS 2', tingkat: '10' },
     { id: 'kelas-11-mipa1', namaKelas: 'XI MIPA 1', tingkat: '11', waliKelasId: 'guru-profile-01' },
     { id: 'kelas-11-mipa2', namaKelas: 'XI MIPA 2', tingkat: '11', waliKelasId: 'guru-profile-02' },
-    { id: 'kelas-11-ips1',  namaKelas: 'XI IPS 1',  tingkat: '11' },
-    { id: 'kelas-11-ips2',  namaKelas: 'XI IPS 2',  tingkat: '11' },
+    { id: 'kelas-11-ips1', namaKelas: 'XI IPS 1', tingkat: '11' },
+    { id: 'kelas-11-ips2', namaKelas: 'XI IPS 2', tingkat: '11' },
     { id: 'kelas-12-mipa1', namaKelas: 'XII MIPA 1', tingkat: '12', waliKelasId: 'guru-profile-01' },
     { id: 'kelas-12-mipa2', namaKelas: 'XII MIPA 2', tingkat: '12', waliKelasId: 'guru-profile-02' },
-    { id: 'kelas-12-ips1',  namaKelas: 'XII IPS 1',  tingkat: '12' },
-    { id: 'kelas-12-ips2',  namaKelas: 'XII IPS 2',  tingkat: '12' },
+    { id: 'kelas-12-ips1', namaKelas: 'XII IPS 1', tingkat: '12' },
+    { id: 'kelas-12-ips2', namaKelas: 'XII IPS 2', tingkat: '12' },
   ],
   mapel: [
     { id: 'mapel-mtk', kodeMapel: 'MTK-W', namaMapel: 'Matematika Wajib', kkm: 75 },
@@ -957,6 +957,10 @@ export function getSchoolDb(): SchoolDatabase {
         }
         if (!parsed.catatanBimbingan) {
           parsed.catatanBimbingan = DEFAULT_DATABASE.catatanBimbingan
+          needsSync = true
+        }
+        if (!parsed.pekerjaanRumah || parsed.pekerjaanRumah.length === 0) {
+          parsed.pekerjaanRumah = DEFAULT_DATABASE.pekerjaanRumah
           needsSync = true
         }
         if (!parsed.bobotNilai) {

@@ -33,10 +33,10 @@ export async function GET() {
 
     return NextResponse.json({
       success: true,
-        ...profile,
-        username: user.username,
-        email: user.email,
-        role: user.role,
+      ...profile,
+      username: user.username,
+      email: user.email,
+      role: user.role,
     })
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Server error'

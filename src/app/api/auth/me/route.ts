@@ -54,19 +54,19 @@ export async function GET() {
         siswaProfile:
           session.role === 'SISWA'
             ? {
-                id: session.profileId || 'siswa-profile-01',
-                namaLengkap: session.namaLengkap || 'Ahmad Fauzi',
-                nisn: '0051234567',
-                kelas: { id: 'kelas-10-mipa1', namaKelas: 'X MIPA 1' },
-              }
+              id: session.profileId || 'siswa-profile-01',
+              namaLengkap: session.namaLengkap || 'Ahmad Fauzi',
+              nisn: '0051234567',
+              kelas: { id: 'kelas-10-mipa1', namaKelas: 'X MIPA 1' },
+            }
             : undefined,
         guruProfile:
           session.role === 'GURU'
             ? {
-                id: session.profileId || 'guru-profile-01',
-                namaLengkap: session.namaLengkap || 'Budi Santoso, S.Pd.',
-                nip: '198501012010011001',
-              }
+              id: session.profileId || 'guru-profile-01',
+              namaLengkap: session.namaLengkap || 'Budi Santoso, S.Pd.',
+              nip: '198501012010011001',
+            }
             : undefined,
       },
     },
