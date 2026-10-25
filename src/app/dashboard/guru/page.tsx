@@ -399,7 +399,7 @@ export default function GuruDashboardPage() {
 
   const countPublished = useMemo(() => {
     return studentsInSelectedRaportClass.filter((st) => {
-      const rap = raportRecords.find((r) => r.siswaId === st.id)
+      const rap = raportRecords.find((r) => r.siswaId === st.id || r.siswaId === st.userId)
       return rap?.status === 'PUBLISHED'
     }).length
   }, [studentsInSelectedRaportClass, raportRecords])
@@ -1095,7 +1095,10 @@ export default function GuruDashboardPage() {
   const loadRaportForClass = async (kId: string) => {
     setLoadingRaport(true)
     try {
-      const res = await fetch(`/api/raport?kelasId=${kId}`, { credentials: 'include' })
+      const res = await fetch(`/api/raport?kelasId=${kId}&_t=${Date.now()}`, {
+        credentials: 'include',
+        cache: 'no-store',
+      })
       const j = await res.json()
       if (j.success && Array.isArray(j.data)) {
         setRaportRecords(j.data)
@@ -1146,6 +1149,31 @@ export default function GuruDashboardPage() {
   }
 
   const handleBulkRaportStatus = async (kelasId: string, newStatus: 'PUBLISHED' | 'DRAFT') => {
+    // Immediate optimistic update: all student badges and summary cards update instantly
+    setRaportRecords((prev) => {
+      const copy = [...prev]
+      copy.forEach((r) => {
+        if (kelasId === 'ALL' || r.kelasId === kelasId) {
+          r.status = newStatus
+        }
+      })
+      const classStudents = allSiswa.filter((s) => kelasId === 'ALL' || s.kelasId === kelasId)
+      classStudents.forEach((st) => {
+        const found = copy.find((r) => r.siswaId === st.id || r.siswaId === st.userId)
+        if (found) {
+          found.status = newStatus
+        } else {
+          copy.push({
+            id: `raport-${st.id}`,
+            siswaId: st.id,
+            kelasId: st.kelasId || kelasId,
+            status: newStatus,
+          })
+        }
+      })
+      return copy
+    })
+
     try {
       const res = await fetch('/api/raport', {
         method: 'POST',
@@ -1161,13 +1189,21 @@ export default function GuruDashboardPage() {
       })
       const j = await res.json()
       if (j.success) {
-        showFeedback('success', j.message || 'Izin raport kelas berhasil diperbarui!')
-        loadRaportForClass(kelasId)
+        showFeedback(
+          'success',
+          j.message ||
+            (newStatus === 'PUBLISHED'
+              ? 'Seluruh raport kelas berhasil dibuka (Diizinkan)'
+              : 'Seluruh raport kelas berhasil dikunci kembali')
+        )
+        await loadRaportForClass(kelasId)
       } else {
         showFeedback('error', j.message || 'Gagal mengubah status kelas')
+        loadRaportForClass(kelasId)
       }
     } catch {
       showFeedback('error', 'Gagal memproses perubahan izin raport')
+      loadRaportForClass(kelasId)
     }
   }
 
@@ -3444,7 +3480,7 @@ export default function GuruDashboardPage() {
                           </tr>
                         ) : (
                           studentsInSelectedRaportClass.map((st, idx) => {
-                            const rap = raportRecords.find((r) => r.siswaId === st.id)
+                            const rap = raportRecords.find((r) => r.siswaId === st.id || r.siswaId === st.userId)
                             const isPub = rap?.status === 'PUBLISHED'
                             return (
                               <tr key={st.id} className="hover:bg-slate-50/70 transition">

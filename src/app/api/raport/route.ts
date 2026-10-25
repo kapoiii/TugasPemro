@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSchoolDb, saveSchoolDb, RaportData } from '@/lib/schoolStore'
 import { getSession } from '@/lib/auth'
+import { fetchAllUsersFromSupabase } from '@/lib/supabaseDb'
 
 export async function GET(request: NextRequest) {
   try {
@@ -46,12 +47,13 @@ export async function GET(request: NextRequest) {
           possibleIds.has(r.id.replace('rap-', '').replace('raport-', ''))
       )
 
-      // Raport is considered unlocked if either:
+      // Raport is considered unlocked if:
       // 1. That student's raport has been explicitly PUBLISHED by teacher
-      // 2. Or school settings has pembagianRaportDibuka set to true
-      const isPublished =
-        (studentRaport && studentRaport.status === 'PUBLISHED') ||
-        Boolean(db.settings.pembagianRaportDibuka)
+      // 2. If studentRaport exists and status is 'DRAFT', it is explicitly locked by teacher!
+      // 3. Only if no studentRaport record exists, fall back to db.settings.pembagianRaportDibuka
+      const isPublished = studentRaport
+        ? studentRaport.status === 'PUBLISHED'
+        : Boolean(db.settings.pembagianRaportDibuka)
 
       // Tanpa izin guru (status !== 'PUBLISHED'), raport TIDAK BISA DIBUKA
       if (!isPublished) {
@@ -189,14 +191,42 @@ export async function POST(request: NextRequest) {
     const actorRole = roleUpper || body.callerRole || 'GURU'
     const actorUserId = session?.userId || body.guruId || 'guru-wali-kelas'
 
+    // Sync live Supabase users into db.users so newly registered students (like roy kuncir) are included
+    try {
+      const supabaseUsers = await fetchAllUsersFromSupabase()
+      if (Array.isArray(supabaseUsers) && supabaseUsers.length > 0) {
+        supabaseUsers.forEach((su) => {
+          const exists = db.users.some(
+            (u) =>
+              u.id === su.id ||
+              (su.siswaProfile?.id && u.siswaProfile?.id === su.siswaProfile.id)
+          )
+          if (!exists) {
+            db.users.push(su)
+          }
+        })
+      }
+    } catch {}
+
     // 1. Bulk Update Permission for an Entire Class
     if (body.action === 'BULK_UPDATE_STATUS' && body.kelasId) {
       const { kelasId, status } = body
       const newStatus = status === 'PUBLISHED' ? 'PUBLISHED' : 'DRAFT'
       let updatedCount = 0
 
-      // Find all students in this class
-      const classStudents = db.users.filter((u) => u.siswaProfile?.kelasId === kelasId)
+      // Update all existing records in db.raports matching this class
+      db.raports.forEach((r) => {
+        if (kelasId === 'ALL' || r.kelasId === kelasId) {
+          r.status = newStatus
+          r.updatedAt = new Date().toISOString()
+        }
+      })
+
+      // Find all students in this class (from db and supabase)
+      const classStudents = db.users.filter(
+        (u) => u.role === 'SISWA' && u.siswaProfile && (kelasId === 'ALL' || u.siswaProfile.kelasId === kelasId)
+      )
+
       classStudents.forEach((st) => {
         const sId = st.siswaProfile!.id
         const possibleIds = new Set([
@@ -219,7 +249,7 @@ export async function POST(request: NextRequest) {
           db.raports.push({
             id: `raport-${sId}`,
             siswaId: sId,
-            kelasId,
+            kelasId: st.siswaProfile?.kelasId || kelasId,
             semester: '1 (Ganjil)',
             tahunAjaran: '2025/2026',
             totalHadir: 24,
