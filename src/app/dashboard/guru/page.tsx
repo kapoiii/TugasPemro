@@ -1095,7 +1095,7 @@ export default function GuruDashboardPage() {
   const loadRaportForClass = async (kId: string) => {
     setLoadingRaport(true)
     try {
-      const res = await fetch(`/api/raport?kelasId=${kId}`)
+      const res = await fetch(`/api/raport?kelasId=${kId}`, { credentials: 'include' })
       const j = await res.json()
       if (j.success && Array.isArray(j.data)) {
         setRaportRecords(j.data)
@@ -1113,10 +1113,13 @@ export default function GuruDashboardPage() {
       const res = await fetch('/api/raport', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({
           siswaId,
           kelasId: selectedKelasRaport,
           status: nextStatus,
+          callerRole: 'GURU',
+          guruId: teacherProfile.id,
         }),
       })
       const j = await res.json()
@@ -1147,10 +1150,13 @@ export default function GuruDashboardPage() {
       const res = await fetch('/api/raport', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({
           action: 'BULK_UPDATE_STATUS',
           kelasId,
           status: newStatus,
+          callerRole: 'GURU',
+          guruId: teacherProfile.id,
         }),
       })
       const j = await res.json()
@@ -1168,7 +1174,7 @@ export default function GuruDashboardPage() {
   const handleOpenRaportModal = async (student: SiswaItem, existingRaport?: any) => {
     let studentNilais: any[] = []
     try {
-      const res = await fetch(`/api/nilai?siswaId=${student.id}`)
+      const res = await fetch(`/api/nilai?siswaId=${student.id}`, { credentials: 'include' })
       const j = await res.json()
       if (j.success && Array.isArray(j.data)) {
         studentNilais = j.data
@@ -1196,11 +1202,14 @@ export default function GuruDashboardPage() {
       const res = await fetch('/api/raport', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({
           siswaId: selectedStudentForRaport.siswa.id,
           kelasId: selectedKelasRaport,
           catatanWaliKelas: raportDetailForm.catatanWaliKelas,
           status: raportDetailForm.status,
+          callerRole: 'GURU',
+          guruId: teacherProfile.id,
         }),
       })
       const j = await res.json()

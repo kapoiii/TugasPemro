@@ -34,15 +34,54 @@ export async function signToken(payload: JWTPayload): Promise<string> {
 export async function verifyToken(token: string): Promise<JWTPayload | null> {
   try {
     const { payload } = await jwtVerify(token, JWT_SECRET)
-    return payload as unknown as JWTPayload
+    const rawRole = (payload as any).role || ''
+    const roleUpper = String(rawRole).trim().toUpperCase()
+    const validRole: 'ADMIN' | 'GURU' | 'SISWA' =
+      roleUpper === 'ADMIN' ? 'ADMIN' : roleUpper === 'GURU' ? 'GURU' : 'SISWA'
+
+    return {
+      ...(payload as unknown as JWTPayload),
+      role: validRole,
+    }
   } catch {
     return null
   }
 }
 
-export async function getSession(): Promise<JWTPayload | null> {
-  const cookieStore = await cookies()
-  const token = cookieStore.get('auth_token')?.value
+export async function getSession(req?: any): Promise<JWTPayload | null> {
+  let token: string | undefined
+
+  // 1. Direct NextRequest / Request cookies
+  if (req && typeof req.cookies?.get === 'function') {
+    token = req.cookies.get('auth_token')?.value
+  }
+
+  // 2. Direct request headers (cookie string or Authorization Bearer)
+  if (!token && req && typeof req.headers?.get === 'function') {
+    const rawCookie = req.headers.get('cookie') || ''
+    const match = rawCookie.match(/auth_token=([^;]+)/)
+    if (match) {
+      token = decodeURIComponent(match[1].trim())
+    }
+
+    if (!token) {
+      const authHeader = req.headers.get('authorization') || ''
+      if (authHeader.startsWith('Bearer ')) {
+        token = authHeader.substring(7).trim()
+      }
+    }
+  }
+
+  // 3. Fallback: next/headers cookies()
+  if (!token) {
+    try {
+      const cookieStore = await cookies()
+      token = cookieStore.get('auth_token')?.value
+    } catch {
+      // Cookies context might not be available in certain route handlers
+    }
+  }
+
   if (!token) return null
   return verifyToken(token)
 }

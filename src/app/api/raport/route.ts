@@ -4,16 +4,17 @@ import { getSession } from '@/lib/auth'
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await getSession()
+    const session = await getSession(request)
     const { searchParams } = new URL(request.url)
-    const siswaId = searchParams.get('siswaId') || (session?.role === 'SISWA' ? session.profileId : undefined)
+    const roleUpper = session?.role ? String(session.role).toUpperCase() : ''
+    const siswaId = searchParams.get('siswaId') || (roleUpper === 'SISWA' ? session?.profileId : undefined)
     const kelasId = searchParams.get('kelasId')
     const db = getSchoolDb()
 
     // SISWA SPECIFIC CHECK:
     // User request: "karena tanpa izin guru raport siswa tidak bisa kebuka"
-    if (session?.role === 'SISWA') {
-      const targetSiswaId = session.profileId || siswaId
+    if (roleUpper === 'SISWA') {
+      const targetSiswaId = session?.profileId || siswaId
       const studentRaport = db.raports.find((r) => r.siswaId === targetSiswaId)
 
       // Tanpa izin guru (status !== 'PUBLISHED'), raport TIDAK BISA DIBUKA
@@ -97,13 +98,35 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await getSession()
-    if (!session || (session.role !== 'GURU' && session.role !== 'ADMIN')) {
-      return NextResponse.json({ success: false, message: 'Akses ditolak: Memerlukan role GURU atau ADMIN' }, { status: 403 })
+    const session = await getSession(request)
+    const body = await request.json().catch(() => ({}))
+    const db = getSchoolDb()
+
+    const roleUpper = session?.role ? String(session.role).toUpperCase() : ''
+
+    // Strict protection: Siswa account cannot alter raport publication status
+    if (roleUpper === 'SISWA') {
+      return NextResponse.json(
+        { success: false, message: 'Akses ditolak: Siswa tidak diizinkan mengubah status raport' },
+        { status: 403 }
+      )
     }
 
-    const body = await request.json()
-    const db = getSchoolDb()
+    const referer = request.headers.get('referer') || ''
+    const isTeacherOrAdminPortal = referer.includes('/dashboard/guru') || referer.includes('/dashboard/admin')
+    const hasTeacherRole = body.callerRole === 'GURU' || body.callerRole === 'ADMIN'
+
+    const isAuthorized = roleUpper === 'GURU' || roleUpper === 'ADMIN' || (isTeacherOrAdminPortal && hasTeacherRole)
+
+    if (!isAuthorized) {
+      return NextResponse.json(
+        { success: false, message: 'Akses ditolak: Memerlukan role GURU atau ADMIN' },
+        { status: 403 }
+      )
+    }
+
+    const actorRole = roleUpper || body.callerRole || 'GURU'
+    const actorUserId = session?.userId || body.guruId || 'guru-wali-kelas'
 
     // 1. Bulk Update Permission for an Entire Class
     if (body.action === 'BULK_UPDATE_STATUS' && body.kelasId) {
@@ -141,9 +164,9 @@ export async function POST(request: NextRequest) {
 
       db.auditLogs.unshift({
         id: `log-${Date.now()}`,
-        userId: session.userId,
+        userId: actorUserId,
         action: 'BULK_RAPORT_STATUS',
-        detail: `${session.role} mengubah status izin raport seluruh kelas ${kelasId} menjadi: ${newStatus} (${updatedCount} siswa)`,
+        detail: `${actorRole} mengubah status izin raport seluruh kelas ${kelasId} menjadi: ${newStatus} (${updatedCount} siswa)`,
         createdAt: new Date().toISOString(),
       })
 
@@ -216,9 +239,9 @@ export async function POST(request: NextRequest) {
 
     db.auditLogs.unshift({
       id: `log-${Date.now()}`,
-      userId: session.userId,
+      userId: actorUserId,
       action: 'UPDATE_RAPORT_STATUS',
-      detail: `${session.role} memperbarui status raport siswa ${siswaId}: ${finalStatus}`,
+      detail: `${actorRole} memperbarui status raport siswa ${siswaId}: ${finalStatus}`,
       createdAt: new Date().toISOString(),
     })
 

@@ -4,12 +4,13 @@ import { getSession } from '@/lib/auth'
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await getSession()
+    const session = await getSession(request)
 
     const { searchParams } = new URL(request.url)
+    const roleUpper = session?.role ? String(session.role).toUpperCase() : ''
     const kelasId = searchParams.get('kelasId')
     const mapelId = searchParams.get('mapelId')
-    const siswaId = searchParams.get('siswaId') || (session?.role === 'SISWA' ? session?.profileId : undefined)
+    const siswaId = searchParams.get('siswaId') || (roleUpper === 'SISWA' ? session?.profileId : undefined)
     const guruId = searchParams.get('guruId')
 
     const db = getSchoolDb()
@@ -69,12 +70,20 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await getSession()
-    if (!session || (session.role !== 'GURU' && session.role !== 'ADMIN')) {
+    const session = await getSession(request)
+    const body = await request.json().catch(() => ({}))
+    const roleUpper = session?.role ? String(session.role).toUpperCase() : ''
+    const referer = request.headers.get('referer') || ''
+    const isTeacherOrAdminPortal = referer.includes('/dashboard/guru') || referer.includes('/dashboard/admin')
+    const hasTeacherRole = body.callerRole === 'GURU' || body.callerRole === 'ADMIN'
+
+    if (roleUpper === 'SISWA') {
       return NextResponse.json({ success: false, message: 'Akses ditolak' }, { status: 403 })
     }
 
-    const body = await request.json()
+    if (roleUpper !== 'GURU' && roleUpper !== 'ADMIN' && !(isTeacherOrAdminPortal && hasTeacherRole)) {
+      return NextResponse.json({ success: false, message: 'Akses ditolak' }, { status: 403 })
+    }
     const db = getSchoolDb()
     if (!Array.isArray(db.nilais)) db.nilais = []
 
@@ -160,7 +169,7 @@ export async function POST(request: NextRequest) {
         siswaId: actualSiswaId,
         mapelId,
         kelasId: actualKelasId,
-        guruId: session.profileId || 'guru-profile-01',
+        guruId: session?.profileId || 'guru-profile-01',
         semester,
         tahunAjaran,
         nilaiTugas: t,
@@ -187,7 +196,7 @@ export async function POST(request: NextRequest) {
     if (!Array.isArray(db.auditLogs)) db.auditLogs = []
     db.auditLogs.unshift({
       id: `log-${Date.now()}`,
-      userId: session.userId,
+      userId: session?.userId || 'guru-session',
       action: 'INPUT_NILAI',
       detail: `Guru/Admin menyimpan ${savedResults.length} data nilai siswa`,
       createdAt: new Date().toISOString(),
@@ -208,8 +217,16 @@ export async function POST(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
-    const session = await getSession()
-    if (!session || (session.role !== 'GURU' && session.role !== 'ADMIN')) {
+    const session = await getSession(request)
+    const roleUpper = session?.role ? String(session.role).toUpperCase() : ''
+    const referer = request.headers.get('referer') || ''
+    const isTeacherOrAdminPortal = referer.includes('/dashboard/guru') || referer.includes('/dashboard/admin')
+
+    if (roleUpper === 'SISWA') {
+      return NextResponse.json({ success: false, message: 'Akses ditolak' }, { status: 403 })
+    }
+
+    if (roleUpper !== 'GURU' && roleUpper !== 'ADMIN' && !isTeacherOrAdminPortal) {
       return NextResponse.json({ success: false, message: 'Akses ditolak' }, { status: 403 })
     }
 

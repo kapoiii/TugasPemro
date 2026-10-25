@@ -56,12 +56,13 @@ export default function GuruRaportPage() {
       const res = await fetch('/api/raport', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formRaport),
+        credentials: 'include',
+        body: JSON.stringify({ ...formRaport, callerRole: 'GURU' }),
       })
       const data = await res.json()
       if (data.success) {
         setShowModal(false)
-        const updatedRes = await fetch('/api/raport')
+        const updatedRes = await fetch('/api/raport', { credentials: 'include' })
         const updatedData = await updatedRes.json()
         if (updatedData.success) {
           setRaportList(updatedData.data)

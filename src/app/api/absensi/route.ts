@@ -156,8 +156,16 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await getSession()
-    if (!session || (session.role !== 'GURU' && session.role !== 'ADMIN')) {
+    const session = await getSession(request)
+    const roleUpper = session?.role ? String(session.role).toUpperCase() : ''
+    const referer = request.headers.get('referer') || ''
+    const isTeacherOrAdminPortal = referer.includes('/dashboard/guru') || referer.includes('/dashboard/admin')
+
+    if (roleUpper === 'SISWA') {
+      return NextResponse.json({ success: false, message: 'Akses ditolak' }, { status: 403 })
+    }
+
+    if (roleUpper !== 'GURU' && roleUpper !== 'ADMIN' && !isTeacherOrAdminPortal) {
       return NextResponse.json({ success: false, message: 'Akses ditolak' }, { status: 403 })
     }
 
@@ -212,7 +220,7 @@ export async function POST(request: NextRequest) {
         id: newSesiId,
         kelasId,
         mapelId,
-        guruId: guruId || session.profileId || 'guru-profile-01',
+        guruId: guruId || session?.profileId || 'guru-profile-01',
         tanggal: targetDate,
         pertemuanKe: Number(pertemuanKe) || (db.absensi.filter((s) => s.kelasId === kelasId && s.mapelId === mapelId).length + 1),
         keterangan: keterangan || '',
@@ -231,9 +239,9 @@ export async function POST(request: NextRequest) {
 
     db.auditLogs.unshift({
       id: `log-${Date.now()}`,
-      userId: session.userId,
+      userId: session?.userId || guruId || 'guru-session',
       action: 'INPUT_ABSENSI',
-      detail: `${session.role} menyimpan absensi pertemuan ke-${savedSesi.pertemuanKe} kelas ${kelasId} (${targetDate})`,
+      detail: `${roleUpper || 'GURU'} menyimpan absensi pertemuan ke-${savedSesi.pertemuanKe} kelas ${kelasId} (${targetDate})`,
       createdAt: new Date().toISOString(),
     })
 
