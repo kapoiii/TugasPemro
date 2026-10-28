@@ -937,6 +937,364 @@ function ensureMinimumStudentsPerClass(db: SchoolDatabase): boolean {
   return modified
 }
 
+function ensureComprehensiveCurriculum(db: SchoolDatabase): boolean {
+  let modified = false
+
+  // 1. Ensure Teachers for all subjects exist
+  const extraTeachers = [
+    {
+      id: 'usr-guru-04',
+      username: 'guru4',
+      email: 'siti.rahmawati@sekolah.sch.id',
+      password: 'guru123',
+      role: 'GURU' as const,
+      createdAt: '2026-01-01T08:00:00.000Z',
+      updatedAt: '2026-01-01T08:00:00.000Z',
+      guruProfile: {
+        id: 'guru-profile-04',
+        userId: 'usr-guru-04',
+        nip: '198804152012022004',
+        namaLengkap: 'Siti Rahmawati, S.Sos., M.Pd.',
+        mataPelajaranUtama: 'Sosiologi',
+        noHp: '081234567894',
+        bio: 'Guru Pengampu Sosiologi & Pembina Ekstrakurikuler Debat Sosial',
+      },
+    },
+    {
+      id: 'usr-guru-05',
+      username: 'guru5',
+      email: 'bambang.sutrisno@sekolah.sch.id',
+      password: 'guru123',
+      role: 'GURU' as const,
+      createdAt: '2026-01-01T08:00:00.000Z',
+      updatedAt: '2026-01-01T08:00:00.000Z',
+      guruProfile: {
+        id: 'guru-profile-05',
+        userId: 'usr-guru-05',
+        nip: '198402102009011005',
+        namaLengkap: 'Bambang Sutrisno, S.Pd., M.Sc.',
+        mataPelajaranUtama: 'Geografi',
+        noHp: '081234567895',
+        bio: 'Guru Pengampu Geografi & Pembina Pecinta Alam',
+      },
+    },
+    {
+      id: 'usr-guru-06',
+      username: 'guru6',
+      email: 'sri.wahyuni@sekolah.sch.id',
+      password: 'guru123',
+      role: 'GURU' as const,
+      createdAt: '2026-01-01T08:00:00.000Z',
+      updatedAt: '2026-01-01T08:00:00.000Z',
+      guruProfile: {
+        id: 'guru-profile-06',
+        userId: 'usr-guru-06',
+        nip: '198108222006042006',
+        namaLengkap: 'Dra. Hj. Sri Wahyuni, M.M.',
+        mataPelajaranUtama: 'Ekonomi',
+        noHp: '081234567896',
+        bio: 'Guru Pengampu Ekonomi & Pembina Koperasi Siswa',
+      },
+    },
+    {
+      id: 'usr-guru-07',
+      username: 'guru7',
+      email: 'anwar.sanusi@sekolah.sch.id',
+      password: 'guru123',
+      role: 'GURU' as const,
+      createdAt: '2026-01-01T08:00:00.000Z',
+      updatedAt: '2026-01-01T08:00:00.000Z',
+      guruProfile: {
+        id: 'guru-profile-07',
+        userId: 'usr-guru-07',
+        nip: '197906152005011007',
+        namaLengkap: 'Drs. Anwar Sanusi, M.Hum.',
+        mataPelajaranUtama: 'Sejarah Indonesia',
+        noHp: '081234567897',
+        bio: 'Guru Pengampu Sejarah Indonesia & Sejarah Kebangsaan',
+      },
+    },
+    {
+      id: 'usr-guru-08',
+      username: 'guru8',
+      email: 'ahmad.hidayat@sekolah.sch.id',
+      password: 'guru123',
+      role: 'GURU' as const,
+      createdAt: '2026-01-01T08:00:00.000Z',
+      updatedAt: '2026-01-01T08:00:00.000Z',
+      guruProfile: {
+        id: 'guru-profile-08',
+        userId: 'usr-guru-08',
+        nip: '198603202011011008',
+        namaLengkap: 'Ahmad Hidayat, S.Ag., M.Pd.I.',
+        mataPelajaranUtama: 'Pendidikan Agama & Budi Pekerti',
+        noHp: '081234567898',
+        bio: 'Guru Pengampu Pendidikan Agama & Rohani Islam',
+      },
+    },
+    {
+      id: 'usr-guru-09',
+      username: 'guru9',
+      email: 'agus.pratama@sekolah.sch.id',
+      password: 'guru123',
+      role: 'GURU' as const,
+      createdAt: '2026-01-01T08:00:00.000Z',
+      updatedAt: '2026-01-01T08:00:00.000Z',
+      guruProfile: {
+        id: 'guru-profile-09',
+        userId: 'usr-guru-09',
+        nip: '199009122015031009',
+        namaLengkap: 'Agus Pratama, S.Pd.',
+        mataPelajaranUtama: 'PJOK',
+        noHp: '081234567899',
+        bio: 'Guru Pengampu PJOK & Pelatih Tim Bola Basket Sekolah',
+      },
+    },
+    {
+      id: 'usr-guru-10',
+      username: 'guru10',
+      email: 'diana.lestari@sekolah.sch.id',
+      password: 'guru123',
+      role: 'GURU' as const,
+      createdAt: '2026-01-01T08:00:00.000Z',
+      updatedAt: '2026-01-01T08:00:00.000Z',
+      guruProfile: {
+        id: 'guru-profile-10',
+        userId: 'usr-guru-10',
+        nip: '198911042014022010',
+        namaLengkap: 'Diana Lestari, S.Pd., M.Ed.',
+        mataPelajaranUtama: 'Bahasa Inggris',
+        noHp: '081234567810',
+        bio: 'Guru Pengampu Bahasa Inggris & English Debate Society',
+      },
+    },
+    {
+      id: 'usr-guru-11',
+      username: 'guru11',
+      email: 'eko.prasetyo@sekolah.sch.id',
+      password: 'guru123',
+      role: 'GURU' as const,
+      createdAt: '2026-01-01T08:00:00.000Z',
+      updatedAt: '2026-01-01T08:00:00.000Z',
+      guruProfile: {
+        id: 'guru-profile-11',
+        userId: 'usr-guru-11',
+        nip: '199205182018011011',
+        namaLengkap: 'Eko Prasetyo, S.Kom., M.T.',
+        mataPelajaranUtama: 'Informatika',
+        noHp: '081234567811',
+        bio: 'Guru Pengampu Informatika & Coding Club',
+      },
+    },
+  ]
+
+  extraTeachers.forEach((t) => {
+    if (!db.users.some((u) => u.id === t.id || u.username === t.username)) {
+      db.users.push(t)
+      modified = true
+    }
+  })
+
+  // 2. Ensure Comprehensive Schedules for All 12 Classes
+  if (!Array.isArray(db.jadwal) || db.jadwal.length < 50) {
+    modified = true
+    const ipsTemplates = [
+      { hari: 'Senin' as const, jamMulai: '07:30', jamSelesai: '09:00', mapelId: 'mapel-sos', guruId: 'guru-profile-04', ruangan: 'Ruang IPS' },
+      { hari: 'Senin' as const, jamMulai: '09:15', jamSelesai: '10:45', mapelId: 'mapel-bin', guruId: 'guru-profile-02', ruangan: 'Ruang IPS' },
+      { hari: 'Senin' as const, jamMulai: '11:00', jamSelesai: '12:30', mapelId: 'mapel-pabp', guruId: 'guru-profile-08', ruangan: 'Ruang IPS' },
+      { hari: 'Selasa' as const, jamMulai: '07:30', jamSelesai: '09:00', mapelId: 'mapel-geo', guruId: 'guru-profile-05', ruangan: 'Ruang IPS' },
+      { hari: 'Selasa' as const, jamMulai: '09:15', jamSelesai: '10:45', mapelId: 'mapel-ing', guruId: 'guru-profile-10', ruangan: 'Ruang IPS' },
+      { hari: 'Selasa' as const, jamMulai: '11:00', jamSelesai: '12:30', mapelId: 'mapel-ppkn', guruId: 'guru-profile-07', ruangan: 'Ruang IPS' },
+      { hari: 'Rabu' as const, jamMulai: '07:30', jamSelesai: '09:00', mapelId: 'mapel-eko', guruId: 'guru-profile-06', ruangan: 'Ruang IPS' },
+      { hari: 'Rabu' as const, jamMulai: '09:15', jamSelesai: '10:45', mapelId: 'mapel-mtk', guruId: 'guru-profile-01', ruangan: 'Ruang IPS' },
+      { hari: 'Rabu' as const, jamMulai: '11:00', jamSelesai: '12:30', mapelId: 'mapel-seni', guruId: 'guru-profile-02', ruangan: 'Ruang Seni' },
+      { hari: 'Kamis' as const, jamMulai: '07:30', jamSelesai: '09:00', mapelId: 'mapel-sej', guruId: 'guru-profile-07', ruangan: 'Ruang IPS' },
+      { hari: 'Kamis' as const, jamMulai: '09:15', jamSelesai: '10:45', mapelId: 'mapel-sos', guruId: 'guru-profile-04', ruangan: 'Ruang IPS' },
+      { hari: 'Kamis' as const, jamMulai: '11:00', jamSelesai: '12:30', mapelId: 'mapel-pjok', guruId: 'guru-profile-09', ruangan: 'Lapangan Olahraga' },
+      { hari: 'Jumat' as const, jamMulai: '07:30', jamSelesai: '09:00', mapelId: 'mapel-inf', guruId: 'guru-profile-11', ruangan: 'Lab Komputer' },
+      { hari: 'Jumat' as const, jamMulai: '09:15', jamSelesai: '10:45', mapelId: 'mapel-pkwu', guruId: 'guru-profile-06', ruangan: 'Ruang Praktik' },
+    ]
+
+    const mipaTemplates = [
+      { hari: 'Senin' as const, jamMulai: '07:30', jamSelesai: '09:00', mapelId: 'mapel-mtk', guruId: 'guru-profile-01', ruangan: 'Ruang MIPA' },
+      { hari: 'Senin' as const, jamMulai: '09:15', jamSelesai: '10:45', mapelId: 'mapel-bin', guruId: 'guru-profile-02', ruangan: 'Ruang MIPA' },
+      { hari: 'Senin' as const, jamMulai: '11:00', jamSelesai: '12:30', mapelId: 'mapel-pabp', guruId: 'guru-profile-08', ruangan: 'Ruang MIPA' },
+      { hari: 'Selasa' as const, jamMulai: '07:30', jamSelesai: '09:00', mapelId: 'mapel-fis', guruId: 'guru-profile-03', ruangan: 'Lab Fisika' },
+      { hari: 'Selasa' as const, jamMulai: '09:15', jamSelesai: '10:45', mapelId: 'mapel-ing', guruId: 'guru-profile-10', ruangan: 'Ruang MIPA' },
+      { hari: 'Selasa' as const, jamMulai: '11:00', jamSelesai: '12:30', mapelId: 'mapel-ppkn', guruId: 'guru-profile-07', ruangan: 'Ruang MIPA' },
+      { hari: 'Rabu' as const, jamMulai: '07:30', jamSelesai: '09:00', mapelId: 'mapel-kim', guruId: 'guru-profile-03', ruangan: 'Lab Kimia' },
+      { hari: 'Rabu' as const, jamMulai: '09:15', jamSelesai: '10:45', mapelId: 'mapel-bio', guruId: 'guru-profile-03', ruangan: 'Lab Biologi' },
+      { hari: 'Rabu' as const, jamMulai: '11:00', jamSelesai: '12:30', mapelId: 'mapel-mtk-minat', guruId: 'guru-profile-01', ruangan: 'Ruang MIPA' },
+      { hari: 'Kamis' as const, jamMulai: '07:30', jamSelesai: '09:00', mapelId: 'mapel-inf', guruId: 'guru-profile-11', ruangan: 'Lab Komputer' },
+      { hari: 'Kamis' as const, jamMulai: '09:15', jamSelesai: '10:45', mapelId: 'mapel-sej', guruId: 'guru-profile-07', ruangan: 'Ruang MIPA' },
+      { hari: 'Kamis' as const, jamMulai: '11:00', jamSelesai: '12:30', mapelId: 'mapel-pjok', guruId: 'guru-profile-09', ruangan: 'Lapangan Olahraga' },
+      { hari: 'Jumat' as const, jamMulai: '07:30', jamSelesai: '09:00', mapelId: 'mapel-pkwu', guruId: 'guru-profile-06', ruangan: 'Ruang Praktik' },
+      { hari: 'Jumat' as const, jamMulai: '09:15', jamSelesai: '10:45', mapelId: 'mapel-seni', guruId: 'guru-profile-02', ruangan: 'Ruang Seni' },
+    ]
+
+    const newJadwal: JadwalPelajaran[] = []
+    let jId = 1
+    db.kelas.forEach((kls) => {
+      const isIps = kls.namaKelas.toLowerCase().includes('ips')
+      const template = isIps ? ipsTemplates : mipaTemplates
+      template.forEach((item) => {
+        newJadwal.push({
+          id: `jdw-${String(jId++).padStart(3, '0')}`,
+          hari: item.hari,
+          jamMulai: item.jamMulai,
+          jamSelesai: item.jamSelesai,
+          kelasId: kls.id,
+          mapelId: item.mapelId,
+          guruId: item.guruId,
+          ruangan: `${item.ruangan} ${kls.namaKelas}`,
+        })
+      })
+    })
+    db.jadwal = newJadwal
+  }
+
+  // 3. Ensure Rich Attendance History
+  if (!Array.isArray(db.absensi) || db.absensi.length < 20) {
+    modified = true
+    const sampleDates = [
+      { tanggal: '2026-08-03', pertemuan: 1, materi: 'Pengantar Silabus & Kontrak Belajar' },
+      { tanggal: '2026-08-10', pertemuan: 2, materi: 'Konsep Dasar & Teori Utama' },
+      { tanggal: '2026-08-17', pertemuan: 3, materi: 'Diskusi Studi Kasus Terapan' },
+      { tanggal: '2026-08-24', pertemuan: 4, materi: 'Eksplorasi Fenomena Nyata & Tanya Jawab' },
+      { tanggal: '2026-08-31', pertemuan: 5, materi: 'Latihan Soal Formatif Bab 1' },
+      { tanggal: '2026-09-07', pertemuan: 6, materi: 'Pembahasan Analisis Kritis & Presentasi' },
+      { tanggal: '2026-09-14', pertemuan: 7, materi: 'Ulangan Harian Bab 1' },
+      { tanggal: '2026-09-21', pertemuan: 8, materi: 'Pengenalan Pokok Bahasan Bab 2' },
+      { tanggal: '2026-09-28', pertemuan: 9, materi: 'Pendalaman Materi & Analisis Data' },
+      { tanggal: '2026-10-05', pertemuan: 10, materi: 'Praktik Lapangan & Pengamatan Terstruktur' },
+      { tanggal: '2026-10-12', pertemuan: 11, materi: 'Evaluasi Pembelajaran & Diskusi Kelompok' },
+      { tanggal: '2026-10-19', pertemuan: 12, materi: 'Review Menjelang Penilaian Tengah Semester' },
+    ]
+
+    const newAbsensi: SesiAbsensi[] = []
+    let sesiCounter = 1
+
+    db.kelas.forEach((kls) => {
+      const isIps = kls.namaKelas.toLowerCase().includes('ips')
+      const mainMapel = isIps
+        ? ['mapel-sos', 'mapel-geo', 'mapel-eko', 'mapel-bin', 'mapel-mtk']
+        : ['mapel-fis', 'mapel-kim', 'mapel-bio', 'mapel-mtk', 'mapel-bin']
+      const studentsInClass = db.users.filter(
+        (u) => u.role === 'SISWA' && u.siswaProfile && u.siswaProfile.kelasId === kls.id
+      )
+
+      mainMapel.forEach((mId, mIdx) => {
+        sampleDates.slice(mIdx * 2, mIdx * 2 + 3).forEach((d) => {
+          const guruObj = db.jadwal.find((j) => j.kelasId === kls.id && j.mapelId === mId)
+          const guruId = guruObj ? guruObj.guruId : 'guru-profile-01'
+
+          const details = studentsInClass.map((st, stIdx) => {
+            let status: 'HADIR' | 'IZIN' | 'SAKIT' | 'ALFA' = 'HADIR'
+            let catatan = 'Hadir tepat waktu dan aktif'
+
+            if ((stIdx + d.pertemuan) % 17 === 0) {
+              status = 'IZIN'
+              catatan = 'Izin keperluan keluarga (surat terlampir)'
+            } else if ((stIdx + d.pertemuan) % 23 === 0) {
+              status = 'SAKIT'
+              catatan = 'Surat keterangan dokter'
+            }
+
+            if (st.siswaProfile && st.siswaProfile.namaLengkap.includes('Danu')) {
+              status = 'HADIR'
+              catatan = 'Hadir tepat waktu, interaktif dan memahami materi'
+            }
+
+            return {
+              id: `det-${sesiCounter}-${st.siswaProfile ? st.siswaProfile.id : st.id}`,
+              siswaId: st.siswaProfile ? st.siswaProfile.id : st.id,
+              status,
+              catatan,
+            }
+          })
+
+          newAbsensi.push({
+            id: `sesi-${String(sesiCounter++).padStart(4, '0')}`,
+            kelasId: kls.id,
+            mapelId: mId,
+            guruId,
+            tanggal: d.tanggal,
+            pertemuanKe: d.pertemuan,
+            keterangan: `Pertemuan ${d.pertemuan}: ${d.materi}`,
+            createdAt: `${d.tanggal}T08:00:00.000Z`,
+            details,
+          })
+        })
+      })
+    })
+    db.absensi = newAbsensi
+  }
+
+  // 4. Ensure Homework for All Majors
+  if (!Array.isArray(db.pekerjaanRumah) || db.pekerjaanRumah.length < 5) {
+    modified = true
+    db.pekerjaanRumah = [
+      {
+        id: 'pr-ips-x-01',
+        judul: 'Analisis Struktur Sosial dan Diferensiasi Masyarakat Perkotaan',
+        deskripsi: 'Amati bentuk interaksi sosial dan diferensiasi di sekitar tempat tinggal Anda. Buat laporan analisis ringkas 1-2 halaman, lalu foto lembar jawaban atau upload dokumen tugas Anda di sini.',
+        mapelId: 'mapel-sos',
+        kelasId: 'kelas-10-ips2',
+        guruId: 'guru-profile-04',
+        tenggatWaktu: '2026-11-05T23:59:00.000Z',
+        createdAt: '2026-10-20T08:00:00.000Z',
+        submissions: [],
+      },
+      {
+        id: 'pr-ips-x-02',
+        judul: 'Pemetaan Wilayah Spasial dan Tata Guna Lahan Lokal',
+        deskripsi: 'Gambarlah sketsa peta kontur dan tata guna lahan lingkungan kecamatan Anda. Foto hasil karya peta Anda dari galeri HP atau upload berkas dari file manager laptop.',
+        mapelId: 'mapel-geo',
+        kelasId: 'kelas-10-ips2',
+        guruId: 'guru-profile-05',
+        tenggatWaktu: '2026-11-08T23:59:00.000Z',
+        createdAt: '2026-10-22T08:00:00.000Z',
+        submissions: [],
+      },
+      {
+        id: 'pr-ips-x-03',
+        judul: 'Analisis Kurva Permintaan, Penawaran, dan Keseimbangan Pasar',
+        deskripsi: 'Kerjakan soal latihan halaman 52 nomor 1 sampai 8 tentang perhitungan elastisitas harga dan penawaran. Foto catatan pengerjaan di buku tugas Anda.',
+        mapelId: 'mapel-eko',
+        kelasId: 'kelas-10-ips2',
+        guruId: 'guru-profile-06',
+        tenggatWaktu: '2026-11-12T23:59:00.000Z',
+        createdAt: '2026-10-24T08:00:00.000Z',
+        submissions: [],
+      },
+      {
+        id: 'pr-ips-x1-01',
+        judul: 'Analisis Struktur Sosial dan Diferensiasi Masyarakat Perkotaan',
+        deskripsi: 'Amati bentuk interaksi sosial dan diferensiasi di sekitar tempat tinggal Anda. Buat laporan analisis ringkas 1-2 halaman, lalu foto lembar jawaban atau upload dokumen tugas Anda di sini.',
+        mapelId: 'mapel-sos',
+        kelasId: 'kelas-10-ips1',
+        guruId: 'guru-profile-04',
+        tenggatWaktu: '2026-11-05T23:59:00.000Z',
+        createdAt: '2026-10-20T08:00:00.000Z',
+        submissions: [],
+      },
+      {
+        id: 'pr-01',
+        judul: 'Tugas Latihan Aljabar Bab 2 (Halaman 45 No. 1-10)',
+        deskripsi: 'Kerjakan soal latihan nomor 1 sampai 10 di buku latihan matematika. Tuliskan langkah pengerjaan dengan jelas, lalu foto atau upload rangkuman jawaban di sini.',
+        mapelId: 'mapel-mtk',
+        kelasId: 'kelas-10-mipa1',
+        guruId: 'guru-profile-01',
+        tenggatWaktu: '2026-11-05T23:59:00.000Z',
+        createdAt: '2026-10-14T09:00:00.000Z',
+        submissions: [],
+      },
+    ]
+  }
+
+  return modified
+}
+
 // Persistent File Database
 export function getSchoolDb(): SchoolDatabase {
   try {
@@ -983,6 +1341,11 @@ export function getSchoolDb(): SchoolDatabase {
           needsSync = true
         }
 
+        // Ensure full curriculum, teachers, attendance logs, and homework for all majors
+        if (ensureComprehensiveCurriculum(parsed)) {
+          needsSync = true
+        }
+
         if (needsSync) {
           saveSchoolDb(parsed)
         }
@@ -996,6 +1359,7 @@ export function getSchoolDb(): SchoolDatabase {
   // Initialize file with default data if missing or empty
   const defaultCopy: SchoolDatabase = JSON.parse(JSON.stringify(DEFAULT_DATABASE))
   ensureMinimumStudentsPerClass(defaultCopy)
+  ensureComprehensiveCurriculum(defaultCopy)
   saveSchoolDb(defaultCopy)
   return defaultCopy
 }

@@ -12,7 +12,14 @@ export async function GET() {
   }
 
   const db = getSchoolDb()
-  const user = db.users.find((u) => u.id === session.userId || u.username === session.username)
+  const user = db.users.find(
+    (u) =>
+      u.id === session.userId ||
+      (session.username && u.username?.toLowerCase() === session.username.toLowerCase()) ||
+      (session.profileId && (u.siswaProfile?.id === session.profileId || u.guruProfile?.id === session.profileId)) ||
+      (session.nisn && u.siswaProfile?.nisn === session.nisn) ||
+      (session.nip && u.guruProfile?.nip === session.nip)
+  )
 
   if (user) {
     let siswaProfile = user.siswaProfile
@@ -42,7 +49,9 @@ export async function GET() {
     })
   }
 
-  // Graceful fallback from session
+  // Graceful fallback purely constructed from verified session data
+  const fallbackKelas = session.kelasId ? db.kelas.find((k) => k.id === session.kelasId) : undefined
+
   return NextResponse.json({
     success: true,
     data: {
@@ -54,18 +63,23 @@ export async function GET() {
         siswaProfile:
           session.role === 'SISWA'
             ? {
-              id: session.profileId || 'siswa-profile-01',
-              namaLengkap: session.namaLengkap || 'Ahmad Fauzi',
-              nisn: '0051234567',
-              kelas: { id: 'kelas-10-mipa1', namaKelas: 'X MIPA 1' },
+              id: session.profileId || `siswa-profile-${session.userId}`,
+              namaLengkap: session.namaLengkap || session.username,
+              nisn: session.nisn || '',
+              nis: session.nis || '',
+              kelasId: session.kelasId || fallbackKelas?.id,
+              kelas: {
+                id: session.kelasId || fallbackKelas?.id || '',
+                namaKelas: session.kelasNama || fallbackKelas?.namaKelas || 'Kelas Terdaftar',
+              },
             }
             : undefined,
         guruProfile:
           session.role === 'GURU'
             ? {
-              id: session.profileId || 'guru-profile-01',
-              namaLengkap: session.namaLengkap || 'Budi Santoso, S.Pd.',
-              nip: '198501012010011001',
+              id: session.profileId || `guru-profile-${session.userId}`,
+              namaLengkap: session.namaLengkap || session.username,
+              nip: session.nip || '',
             }
             : undefined,
       },

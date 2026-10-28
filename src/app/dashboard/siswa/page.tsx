@@ -116,22 +116,19 @@ export default function SiswaDashboardPage() {
   const [activeTab, setActiveTab] = useState<'absen' | 'jadwal' | 'pr' | 'raport'>('absen')
   const [loading, setLoading] = useState(true)
 
-  // Profile
-  const [profile, setProfile] = useState<SiswaProfile>({
-    namaLengkap: 'Ahmad Fauzi',
-    nisn: '0051234567',
-    nis: '1001',
-    kelas: 'X MIPA 1',
-  })
+  // Profile (strictly loaded from session, never hardcoded)
+  const [profile, setProfile] = useState<SiswaProfile | null>(null)
 
   // 1. Absensi States
   const [absensiSummary, setAbsensiSummary] = useState<AbsensiSummary>({
-    HADIR: 18,
-    IZIN: 1,
-    SAKIT: 1,
+    HADIR: 0,
+    IZIN: 0,
+    SAKIT: 0,
     ALFA: 0,
   })
   const [absensiDetails, setAbsensiDetails] = useState<AbsensiDetail[]>([])
+  const [filterMapelAbsen, setFilterMapelAbsen] = useState<string>('Semua')
+  const [filterStatusAbsen, setFilterStatusAbsen] = useState<string>('Semua')
 
   // 2. Jadwal States
   const [jadwalList, setJadwalList] = useState<JadwalItem[]>([])
@@ -143,6 +140,13 @@ export default function SiswaDashboardPage() {
   const [submissionText, setSubmissionText] = useState('')
   const [fileUrl, setFileUrl] = useState('')
   const [submittingLoading, setSubmittingLoading] = useState(false)
+  const [selectedFile, setSelectedFile] = useState<{
+    name: string
+    size: number
+    dataUrl: string
+    isImage: boolean
+  } | null>(null)
+  const fileInputRef = React.useRef<HTMLInputElement | null>(null)
 
   // 4. Raport States
   const [isRaportPublished, setIsRaportPublished] = useState(false)
@@ -172,6 +176,22 @@ export default function SiswaDashboardPage() {
       ])
 
       const dataMe = await resMe.json()
+
+      // Role check: Strictly ensure only SISWA (or ADMIN) stays here
+      if (!resMe.ok || !dataMe.success || !dataMe.data) {
+        router.push('/login')
+        return
+      }
+
+      if (dataMe.data.role !== 'SISWA' && dataMe.data.role !== 'ADMIN') {
+        if (dataMe.data.role === 'GURU') {
+          router.push('/dashboard/guru')
+          return
+        }
+        router.push('/login')
+        return
+      }
+
       const dataAbsensi = await resAbsensi.json()
       const dataJadwal = await resJadwal.json()
       const dataPr = await resPr.json()
@@ -179,16 +199,14 @@ export default function SiswaDashboardPage() {
       const dataNilai = await resNilai.json()
 
       // 1. Profile
-      if (dataMe.success && dataMe.data) {
-        const p = dataMe.data.details?.siswaProfile || {}
-        setProfile({
-          namaLengkap: p.namaLengkap || dataMe.data.namaLengkap || 'Ahmad Fauzi',
-          nisn: p.nisn || '0051234567',
-          nis: p.nis || '1001',
-          kelas: p.kelas?.namaKelas || 'X MIPA 1',
-          kelasId: p.kelasId,
-        })
-      }
+      const p = dataMe.data.details?.siswaProfile || {}
+      setProfile({
+        namaLengkap: p.namaLengkap || dataMe.data.namaLengkap || dataMe.data.username || '',
+        nisn: p.nisn || (dataMe.data as any).nisn || '',
+        nis: p.nis || (dataMe.data as any).nis || '',
+        kelas: p.kelas?.namaKelas || (dataMe.data as any).kelasNama || 'Kelas Siswa',
+        kelasId: p.kelasId || (dataMe.data as any).kelasId,
+      })
 
       // 2. Absensi
       if (dataAbsensi.success && dataAbsensi.data) {
@@ -304,6 +322,39 @@ export default function SiswaDashboardPage() {
     }
   }, [activeTab, checkRaportStatus])
 
+  // File upload change handler (supports gallery on mobile, file dialog on PC)
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    if (file.size > 10 * 1024 * 1024) {
+      showFeedback('error', 'Ukuran berkas melebihi batas 10MB.')
+      return
+    }
+
+    const isImage = file.type.startsWith('image/')
+    const reader = new FileReader()
+    reader.onload = () => {
+      const result = reader.result as string
+      setSelectedFile({
+        name: file.name,
+        size: file.size,
+        dataUrl: result,
+        isImage,
+      })
+      setFileUrl(result)
+    }
+    reader.readAsDataURL(file)
+  }
+
+  const handleRemoveFile = () => {
+    setSelectedFile(null)
+    setFileUrl('')
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ''
+    }
+  }
+
   // Handle Homework Submission (Input Pekerjaan Rumah)
   const handleSubmitPr = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -317,7 +368,7 @@ export default function SiswaDashboardPage() {
         body: JSON.stringify({
           prId: submittingPrId,
           submissionText,
-          fileUrl,
+          fileUrl: selectedFile?.dataUrl || fileUrl,
         }),
       })
 
@@ -327,6 +378,8 @@ export default function SiswaDashboardPage() {
         setSubmittingPrId(null)
         setSubmissionText('')
         setFileUrl('')
+        setSelectedFile(null)
+        if (fileInputRef.current) fileInputRef.current.value = ''
         // Refresh PR list
         const updatedRes = await fetch('/api/pr')
         const updatedJson = await updatedRes.json()
@@ -372,9 +425,15 @@ export default function SiswaDashboardPage() {
                   Akun Siswa
                 </span>
               </div>
-              <p className="text-xs text-slate-500">
-                {profile.namaLengkap} • Kelas {profile.kelas} (NISN: {profile.nisn})
-              </p>
+              <div className="text-xs text-slate-500 min-h-[16px] flex items-center">
+                {profile ? (
+                  <span>
+                    {profile.namaLengkap} • Kelas {profile.kelas} (NISN: {profile.nisn})
+                  </span>
+                ) : (
+                  <span className="inline-block w-48 h-3.5 bg-slate-200 dark:bg-slate-700 rounded animate-pulse" />
+                )}
+              </div>
             </div>
           </div>
 
@@ -481,14 +540,41 @@ export default function SiswaDashboardPage() {
                       <Calendar className="w-5 h-5 text-blue-600" /> Rekap & Riwayat Kehadiran Siswa
                     </h2>
                     <p className="text-sm text-slate-500 mt-0.5">
-                      Catatan resmi kehadiran Anda pada seluruh sesi mata pelajaran di kelas {profile.kelas}
+                      Catatan resmi kehadiran Anda pada seluruh sesi mata pelajaran di kelas {profile?.kelas || ''}
                     </p>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
                     <span className="px-3 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-bold rounded-lg flex items-center gap-1.5">
-                      <CheckCircle2 className="w-4 h-4 text-emerald-600" /> Status: {persentaseKehadiran >= 85 ? 'Memenuhi Syarat' : 'Perlu Ditingkatkan'}
+                      <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                      Live Sync Aktif (Kelas & Rumah)
+                    </span>
+                    <span className="px-3 py-1 bg-blue-50 text-blue-700 border border-blue-200 text-xs font-bold rounded-lg flex items-center gap-1.5">
+                      <CheckCircle2 className="w-4 h-4 text-blue-600" /> Status: {persentaseKehadiran >= 85 ? 'Memenuhi Syarat' : 'Perlu Ditingkatkan'}
                     </span>
                   </div>
+                </div>
+
+                {/* Live Real-Time Banner */}
+                <div className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50/60 rounded-2xl border border-blue-200/80 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-xl bg-blue-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+                      <Clock className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <p className="font-bold text-slate-800">
+                        Log Riwayat Kehadiran Real-Time per Pertemuan Aktif
+                      </p>
+                      <p className="text-slate-500">
+                        Memantau absensi tatap muka di ruang kelas maupun pembelajaran online dari rumah secara langsung dan transparan.
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => loadData()}
+                    className="px-3 py-1.5 bg-white hover:bg-slate-50 text-blue-700 font-semibold border border-blue-200 rounded-xl flex items-center gap-1.5 shadow-2xs transition-all cursor-pointer shrink-0"
+                  >
+                    <RefreshCw className="w-3.5 h-3.5" /> Segarkan Data
+                  </button>
                 </div>
 
                 {/* Metric Summary Cards */}
@@ -526,9 +612,37 @@ export default function SiswaDashboardPage() {
 
                 {/* Detailed Attendance History Table */}
                 <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs space-y-4">
-                  <h3 className="font-bold text-slate-800 text-base flex items-center gap-2">
-                    <UserCheck className="w-4 h-4 text-blue-600" /> Log Riwayat Kehadiran per Pertemuan
-                  </h3>
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <h3 className="font-bold text-slate-800 text-base flex items-center gap-2">
+                      <UserCheck className="w-4 h-4 text-blue-600" /> Log Riwayat Kehadiran per Pertemuan
+                    </h3>
+
+                    {/* Filter controls */}
+                    <div className="flex flex-wrap items-center gap-2">
+                      <select
+                        value={filterMapelAbsen}
+                        onChange={(e) => setFilterMapelAbsen(e.target.value)}
+                        className="px-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-xl text-slate-700 font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
+                      >
+                        <option value="Semua">Semua Mata Pelajaran</option>
+                        {Array.from(new Set(absensiDetails.map((d) => d.sesi.mapel?.namaMapel).filter(Boolean))).map((m) => (
+                          <option key={m as string} value={m as string}>{m}</option>
+                        ))}
+                      </select>
+
+                      <select
+                        value={filterStatusAbsen}
+                        onChange={(e) => setFilterStatusAbsen(e.target.value)}
+                        className="px-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-xl text-slate-700 font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
+                      >
+                        <option value="Semua">Semua Status</option>
+                        <option value="HADIR">Hadir</option>
+                        <option value="IZIN">Izin</option>
+                        <option value="SAKIT">Sakit</option>
+                        <option value="ALFA">Alfa</option>
+                      </select>
+                    </div>
+                  </div>
 
                   {absensiDetails.length === 0 ? (
                     <div className="p-8 text-center text-slate-400 text-xs">
@@ -544,18 +658,24 @@ export default function SiswaDashboardPage() {
                             <th className="p-3">Pertemuan</th>
                             <th className="p-3">Status Masuk</th>
                             <th className="p-3">Guru Pengajar</th>
-                            <th className="p-3">Keterangan / Catatan</th>
+                            <th className="p-3">Keterangan / Catatan Pembelajaran</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100 bg-white">
-                          {absensiDetails.map((det) => (
+                          {absensiDetails
+                            .filter((det) => {
+                              const matchMapel = filterMapelAbsen === 'Semua' || det.sesi.mapel?.namaMapel === filterMapelAbsen
+                              const matchStatus = filterStatusAbsen === 'Semua' || det.status === filterStatusAbsen
+                              return matchMapel && matchStatus
+                            })
+                            .map((det) => (
                             <tr key={det.id} className="hover:bg-slate-50/50">
                               <td className="p-3 font-semibold text-slate-800">{det.sesi.tanggal}</td>
                               <td className="p-3 font-bold text-slate-700">{det.sesi.mapel?.namaMapel || '-'}</td>
-                              <td className="p-3 text-slate-600">Pertemuan ke-{det.sesi.pertemuanKe}</td>
+                              <td className="p-3 text-slate-600 font-medium">Pertemuan ke-{det.sesi.pertemuanKe}</td>
                               <td className="p-3">
                                 <span
-                                  className={`px-2.5 py-1 rounded-lg font-bold text-xs ${det.status === 'HADIR'
+                                  className={`px-2.5 py-1 rounded-lg font-bold text-xs inline-flex items-center gap-1 ${det.status === 'HADIR'
                                       ? 'bg-emerald-100 text-emerald-800'
                                       : det.status === 'IZIN'
                                         ? 'bg-blue-100 text-blue-800'
@@ -564,17 +684,21 @@ export default function SiswaDashboardPage() {
                                           : 'bg-rose-100 text-rose-800'
                                     }`}
                                 >
-                                  {det.status === 'HADIR'
-                                    ? 'Masuk (Hadir)'
-                                    : det.status === 'IZIN'
-                                      ? 'Izin'
-                                      : det.status === 'SAKIT'
-                                        ? 'Sakit'
-                                        : 'Alfa'}
+                                  {det.status === 'HADIR' ? (
+                                    <>
+                                      <Check className="w-3 h-3 text-emerald-600" /> Masuk (Hadir)
+                                    </>
+                                  ) : det.status === 'IZIN' ? (
+                                    'Izin'
+                                  ) : det.status === 'SAKIT' ? (
+                                    'Sakit'
+                                  ) : (
+                                    'Alfa'
+                                  )}
                                 </span>
                               </td>
-                              <td className="p-3 text-slate-600">{det.sesi.guru?.namaLengkap || '-'}</td>
-                              <td className="p-3 text-slate-500 italic">
+                              <td className="p-3 text-slate-600 font-medium">{det.sesi.guru?.namaLengkap || '-'}</td>
+                              <td className="p-3 text-slate-600">
                                 {det.catatan || det.sesi.keterangan || '-'}
                               </td>
                             </tr>
@@ -595,7 +719,7 @@ export default function SiswaDashboardPage() {
                 <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
                   <div>
                     <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
-                      <Clock className="w-5 h-5 text-blue-600" /> Jadwal Mata Pelajaran Kelas {profile.kelas}
+                      <Clock className="w-5 h-5 text-blue-600" /> Jadwal Mata Pelajaran Kelas {profile?.kelas || ''}
                     </h2>
                     <p className="text-sm text-slate-500 mt-0.5">
                       Jadwal kegiatan belajar mengajar resmi semester ganjil tahun ajaran 2025/2026
@@ -755,14 +879,40 @@ export default function SiswaDashboardPage() {
                             </div>
                             <p className="text-emerald-800 italic">&quot;{pr.mySubmission.submissionText}&quot;</p>
                             {pr.mySubmission.fileUrl && (
-                              <a
-                                href={pr.mySubmission.fileUrl}
-                                target="_blank"
-                                rel="noreferrer"
-                                className="inline-flex items-center gap-1 text-blue-600 font-bold hover:underline"
-                              >
-                                <ExternalLink className="w-3.5 h-3.5" /> Buka Tautan Berkas Tugas Lampiran
-                              </a>
+                              <div className="space-y-1.5 pt-1">
+                                {pr.mySubmission.fileUrl.startsWith('data:image') ||
+                                /\.(png|jpe?g|webp|gif)$/i.test(pr.mySubmission.fileUrl) ? (
+                                  <div className="space-y-1">
+                                    <span className="text-[11px] font-bold text-emerald-800 flex items-center gap-1">
+                                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> Foto Bukti Tugas Terunggah:
+                                    </span>
+                                    <a
+                                      href={pr.mySubmission.fileUrl}
+                                      target="_blank"
+                                      rel="noreferrer"
+                                      className="block max-w-xs group relative rounded-xl overflow-hidden border border-emerald-200 shadow-2xs"
+                                    >
+                                      <img
+                                        src={pr.mySubmission.fileUrl}
+                                        alt="Foto Bukti Tugas"
+                                        className="w-full h-36 object-cover group-hover:scale-105 transition-transform"
+                                      />
+                                      <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-xs font-bold gap-1">
+                                        <ExternalLink className="w-3.5 h-3.5" /> Buka Foto Penuh
+                                      </div>
+                                    </a>
+                                  </div>
+                                ) : (
+                                  <a
+                                    href={pr.mySubmission.fileUrl}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="inline-flex items-center gap-1 text-blue-600 font-bold hover:underline"
+                                  >
+                                    <ExternalLink className="w-3.5 h-3.5" /> Buka Tautan Berkas Tugas Lampiran
+                                  </a>
+                                )}
+                              </div>
                             )}
                             {pr.mySubmission.nilai !== undefined && (
                               <div className="mt-2 pt-2 border-t border-emerald-200 text-emerald-900">
@@ -788,7 +938,10 @@ export default function SiswaDashboardPage() {
                           <Upload className="w-5 h-5 text-blue-600" /> Input Pengumpulan Pekerjaan Rumah
                         </h3>
                         <button
-                          onClick={() => setSubmittingPrId(null)}
+                          onClick={() => {
+                            setSubmittingPrId(null)
+                            setSelectedFile(null)
+                          }}
                           className="w-8 h-8 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-600 flex items-center justify-center font-bold"
                         >
                           ✕
@@ -801,7 +954,7 @@ export default function SiswaDashboardPage() {
                             Jawaban / Keterangan Pengerjaan PR:
                           </label>
                           <textarea
-                            rows={4}
+                            rows={3}
                             required
                             placeholder="Tuliskan jawaban singkat atau rangkuman pengerjaan tugas Anda di sini..."
                             value={submissionText}
@@ -810,20 +963,93 @@ export default function SiswaDashboardPage() {
                           />
                         </div>
 
+                        {/* File Upload from Mobile Gallery or Laptop File Manager */}
+                        <div>
+                          <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-2">
+                            Unggah Foto / Berkas Tugas (Galeri HP / File Manager Laptop):
+                          </label>
+
+                          <input
+                            type="file"
+                            ref={fileInputRef}
+                            accept="image/*,application/pdf,.doc,.docx"
+                            onChange={handleFileChange}
+                            className="hidden"
+                          />
+
+                          {!selectedFile ? (
+                            <button
+                              type="button"
+                              onClick={() => fileInputRef.current?.click()}
+                              className="w-full p-4 border-2 border-dashed border-blue-300 hover:border-blue-500 bg-blue-50/50 hover:bg-blue-50 rounded-2xl flex flex-col items-center justify-center gap-2 text-blue-600 transition-all cursor-pointer group"
+                            >
+                              <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center group-hover:scale-110 transition-transform">
+                                <Upload className="w-5 h-5 text-blue-600" />
+                              </div>
+                              <span className="font-bold text-xs text-slate-800">
+                                Pilih Foto dari Galeri HP / File Manager Laptop
+                              </span>
+                              <span className="text-[11px] text-slate-500 text-center">
+                                Bisa langsung dari Galeri Kamera HP atau File Explorer Laptop (Maks. 10MB)
+                              </span>
+                            </button>
+                          ) : (
+                            <div className="p-3.5 bg-blue-50 rounded-2xl border border-blue-200 flex items-center justify-between gap-3">
+                              <div className="flex items-center gap-3 overflow-hidden">
+                                {selectedFile.isImage ? (
+                                  <img
+                                    src={selectedFile.dataUrl}
+                                    alt="Preview Tugas"
+                                    className="w-12 h-12 object-cover rounded-xl border border-blue-200 shrink-0 shadow-xs"
+                                  />
+                                ) : (
+                                  <div className="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center shrink-0">
+                                    <FileText className="w-6 h-6 text-blue-600" />
+                                  </div>
+                                )}
+                                <div className="truncate">
+                                  <p className="text-xs font-bold text-slate-800 truncate">
+                                    {selectedFile.name}
+                                  </p>
+                                  <p className="text-[11px] text-slate-500">
+                                    {(selectedFile.size / 1024).toFixed(1)} KB • Siap dikumpulkan
+                                  </p>
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-1 shrink-0">
+                                <button
+                                  type="button"
+                                  onClick={() => fileInputRef.current?.click()}
+                                  className="px-2.5 py-1 text-xs font-semibold text-blue-600 hover:bg-blue-100 rounded-lg transition-colors cursor-pointer"
+                                >
+                                  Ganti
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={handleRemoveFile}
+                                  className="px-2.5 py-1 text-xs font-semibold text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
+                                >
+                                  Hapus
+                                </button>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+
                         <div>
                           <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1.5">
-                            Tautan Berkas Tugas / Google Drive / Foto:
+                            Atau Tautan Dokumen / Google Drive (Opsional):
                           </label>
                           <input
                             type="text"
                             placeholder="Contoh: https://drive.google.com/file/d/..."
-                            value={fileUrl}
-                            onChange={(e) => setFileUrl(e.target.value)}
+                            value={fileUrl.startsWith('data:') ? '' : fileUrl}
+                            onChange={(e) => {
+                              setSelectedFile(null)
+                              setFileUrl(e.target.value)
+                            }}
                             className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-800 focus:bg-white focus:ring-2 focus:ring-blue-500"
                           />
-                          <p className="text-[11px] text-slate-400 mt-1">
-                            Anda dapat menyertakan link PDF atau gambar hasil foto tugas rumah Anda.
-                          </p>
                         </div>
 
                         <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
@@ -960,21 +1186,21 @@ export default function SiswaDashboardPage() {
                         <div className="space-y-1.5">
                           <div>
                             <span className="text-slate-400">Nama Siswa:</span>{' '}
-                            <strong className="text-slate-800 text-sm">{profile.namaLengkap}</strong>
+                            <strong className="text-slate-800 text-sm">{profile?.namaLengkap || '-'}</strong>
                           </div>
                           <div>
                             <span className="text-slate-400">Nomor Induk Siswa (NIS):</span>{' '}
-                            <strong className="text-slate-800">{profile.nis}</strong>
+                            <strong className="text-slate-800">{profile?.nis || '-'}</strong>
                           </div>
                           <div>
                             <span className="text-slate-400">NISN:</span>{' '}
-                            <strong className="text-slate-800">{profile.nisn}</strong>
+                            <strong className="text-slate-800">{profile?.nisn || '-'}</strong>
                           </div>
                         </div>
                         <div className="space-y-1.5 text-right sm:text-left">
                           <div>
                             <span className="text-slate-400">Kelas:</span>{' '}
-                            <strong className="text-slate-800">{profile.kelas}</strong>
+                            <strong className="text-slate-800">{profile?.kelas || '-'}</strong>
                           </div>
                           <div>
                             <span className="text-slate-400">Semester:</span>{' '}

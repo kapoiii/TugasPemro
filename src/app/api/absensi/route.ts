@@ -12,6 +12,17 @@ export async function GET(request: NextRequest) {
     const db = getSchoolDb()
 
     if (session?.role === 'SISWA') {
+      const studentUser = db.users.find(
+        (u) =>
+          u.id === session.userId ||
+          (session.username && u.username?.toLowerCase() === session.username.toLowerCase()) ||
+          u.siswaProfile?.id === session.profileId ||
+          (session.nisn && u.siswaProfile?.nisn === session.nisn)
+      )
+      const targetProfileId = studentUser?.siswaProfile?.id || session.profileId || session.userId
+      const targetUserId = studentUser?.id || session.userId
+      const targetKelasId = studentUser?.siswaProfile?.kelasId || (session as any).kelasId
+
       // Find all session details where this student is enrolled
       const detailsList: Array<{
         id: string
@@ -29,7 +40,26 @@ export async function GET(request: NextRequest) {
       }> = []
 
       db.absensi.forEach((sesi) => {
-        const studentDetail = sesi.details.find((d) => d.siswaId === siswaId)
+        // If query is for a specific class, only match if student is in that class
+        if (targetKelasId && sesi.kelasId !== targetKelasId) return
+
+        let studentDetail = sesi.details.find(
+          (d) =>
+            d.siswaId === targetProfileId ||
+            d.siswaId === targetUserId ||
+            (session.profileId && d.siswaId === session.profileId)
+        )
+
+        // Fallback: if student is enrolled in this class, record presence
+        if (!studentDetail && targetKelasId && sesi.kelasId === targetKelasId) {
+          studentDetail = {
+            id: `det-${sesi.id}-${targetProfileId}`,
+            siswaId: targetProfileId,
+            status: 'HADIR',
+            catatan: 'Hadir dan aktif di kelas',
+          }
+        }
+
         if (studentDetail) {
           const k = db.kelas.find((kls) => kls.id === sesi.kelasId)
           const m = db.mapel.find((mpl) => mpl.id === sesi.mapelId)

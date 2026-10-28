@@ -10,13 +10,22 @@ export async function GET(request: NextRequest) {
     }
 
     const db = getSchoolDb()
-    const studentProfileId = session.role === 'SISWA' ? session.profileId || 'siswa-profile-01' : undefined
-
     let prList = db.pekerjaanRumah
 
+    let studentProfileId = session.role === 'SISWA' ? session.profileId : undefined
+    let studentKelasId: string | undefined
+
     if (session.role === 'SISWA') {
-      const studentUser = db.users.find((u) => u.siswaProfile?.id === studentProfileId)
-      const studentKelasId = studentUser?.siswaProfile?.kelasId || 'kelas-10-mipa1'
+      const studentUser = db.users.find(
+        (u) =>
+          u.id === session.userId ||
+          (session.username && u.username?.toLowerCase() === session.username.toLowerCase()) ||
+          u.siswaProfile?.id === session.profileId ||
+          (session.nisn && u.siswaProfile?.nisn === session.nisn)
+      )
+      studentProfileId = studentUser?.siswaProfile?.id || session.profileId || session.userId
+      studentKelasId =
+        studentUser?.siswaProfile?.kelasId || (session as any).kelasId || 'kelas-10-ips2'
       prList = prList.filter((p) => p.kelasId === studentKelasId)
     }
 
@@ -172,7 +181,14 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ success: false, message: 'Tugas PR tidak ditemukan' }, { status: 404 })
       }
 
-      const studentId = session.profileId || 'siswa-profile-01'
+      const studentUser = db.users.find(
+        (u) =>
+          u.id === session.userId ||
+          (session.username && u.username?.toLowerCase() === session.username.toLowerCase()) ||
+          u.siswaProfile?.id === session.profileId ||
+          (session.nisn && u.siswaProfile?.nisn === session.nisn)
+      )
+      const studentId = studentUser?.siswaProfile?.id || session.profileId || session.userId
       const existingSubmissionIdx = pr.submissions.findIndex((s) => s.siswaId === studentId)
 
       const submissionData: HomeworkSubmission = {

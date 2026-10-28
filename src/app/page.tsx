@@ -19,11 +19,11 @@ export default function BerandaPage() {
   return (
     <>
       {/* ======= HERO ======= */}
-      <section className="relative pt-32 pb-20 overflow-hidden bg-white">
-        <div className="absolute top-0 left-0 right-0 h-[500px] bg-gradient-to-b from-[#F0F4F8] to-white pointer-events-none" />
+      <section className="relative pt-32 pb-20 overflow-hidden bg-[var(--bg-primary)]">
+        <div className="absolute top-0 left-0 right-0 h-[500px] bg-gradient-to-b from-[var(--bg-secondary)] via-[var(--bg-primary)]/80 to-[var(--bg-primary)] pointer-events-none" />
 
         <div className="relative max-w-[1200px] mx-auto px-6 text-center animate-fade-up">
-          <div className="inline-flex items-center gap-2 bg-white border border-[var(--border-light)] px-4 py-1.5 rounded-full shadow-sm mb-8">
+          <div className="inline-flex items-center gap-2 bg-[var(--bg-primary)] dark:bg-slate-800 border border-[var(--border-light)] dark:border-slate-700 px-4 py-1.5 rounded-full shadow-sm mb-8">
             <svg className="w-4 h-4 text-[var(--accent-blue)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="8" r="6" /><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11" /></svg>
             <span className="text-sm font-medium text-[var(--text-secondary)]">{content.general.heroBadge}</span>
           </div>
@@ -45,7 +45,7 @@ export default function BerandaPage() {
             </Link>
           </div>
 
-          <div className="relative max-w-5xl mx-auto rounded-gemini overflow-hidden border border-[var(--border-light)] shadow-elevated group aspect-[2/1]">
+          <div className="relative max-w-5xl mx-auto rounded-gemini overflow-hidden border border-[var(--border-light)] dark:border-slate-700 shadow-elevated group aspect-[2/1]">
             <Image
               src={content.general.heroImage}
               alt={content.general.schoolName}
@@ -59,9 +59,9 @@ export default function BerandaPage() {
       </section>
 
       {/* ======= STATS ======= */}
-      <section className="py-16 bg-white border-b border-[var(--border-light)]">
+      <section className="py-16 bg-[var(--bg-primary)] border-b border-[var(--border-light)] dark:border-slate-800">
         <div className="max-w-[1200px] mx-auto px-6">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8 divide-x divide-[var(--border-light)]">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8 divide-x divide-[var(--border-light)] dark:divide-slate-800">
             {stats.map((s, i) => (
               <div key={s.label} className={`text-center ${i % 2 === 0 ? 'border-none md:border-solid' : 'border-none'}`}>
                 <div className="text-[2.5rem] md:text-[3rem] font-[var(--font-outfit)] font-light text-[var(--text-primary)] leading-tight">{s.num}</div>
@@ -89,12 +89,12 @@ export default function BerandaPage() {
               <Link
                 key={ann.id}
                 href="/pengumuman"
-                className="bg-white rounded-gemini p-6 md:p-8 gemini-border gemini-card-hover flex flex-col md:flex-row gap-4 justify-between items-start md:items-center group"
+                className="bg-[var(--bg-primary)] dark:bg-slate-800/90 rounded-gemini p-6 md:p-8 gemini-border dark:border-slate-700 gemini-card-hover flex flex-col md:flex-row gap-4 justify-between items-start md:items-center group"
               >
                 <div>
                   <div className="flex items-center gap-3 mb-2">
                     {ann.penting && (
-                      <span className="bg-[#FEF7E0] text-[#B06000] text-xs font-semibold px-3 py-1 rounded-full">
+                      <span className="bg-[#FEF7E0] dark:bg-amber-950/60 text-[#B06000] dark:text-amber-300 border border-amber-300/40 text-xs font-semibold px-3 py-1 rounded-full">
                         Penting
                       </span>
                     )}
@@ -104,7 +104,7 @@ export default function BerandaPage() {
                     {ann.judul}
                   </h3>
                 </div>
-                <div className="w-10 h-10 rounded-full bg-[var(--bg-tertiary)] flex items-center justify-center flex-shrink-0 group-hover:bg-[#E8F0FE] transition-colors">
+                <div className="w-10 h-10 rounded-full bg-[var(--bg-tertiary)] flex items-center justify-center flex-shrink-0 group-hover:bg-[#E8F0FE] dark:group-hover:bg-slate-700 transition-colors">
                   <svg className="w-5 h-5 text-[var(--text-secondary)] group-hover:text-[var(--accent-blue)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
                 </div>
               </Link>
@@ -114,7 +114,7 @@ export default function BerandaPage() {
       </section>
 
       {/* ======= BERITA ======= */}
-      <section className="py-24 bg-white">
+      <section className="py-24 bg-[var(--bg-primary)]">
         <div className="max-w-[1200px] mx-auto px-6">
           <div className="flex flex-col md:flex-row items-baseline justify-between gap-4 mb-12">
             <h2 className="text-[2rem] md:text-[2.5rem] font-[var(--font-outfit)] font-medium text-[var(--text-primary)]">
@@ -127,7 +127,7 @@ export default function BerandaPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {latestBerita.map((b) => (
-              <article key={b.id} className="bg-white gemini-border rounded-gemini overflow-hidden flex flex-col gemini-card-hover group">
+              <article key={b.id} className="bg-[var(--bg-primary)] dark:bg-slate-800/90 gemini-border dark:border-slate-700 rounded-gemini overflow-hidden flex flex-col gemini-card-hover group">
                 <Link href={`/berita/${b.id}`} className="block overflow-hidden relative aspect-[4/3] bg-[var(--bg-tertiary)]">
                   <Image
                     src={b.gambar}
@@ -137,7 +137,7 @@ export default function BerandaPage() {
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   />
                   <div className="absolute top-4 left-4">
-                    <span className="bg-white/90 backdrop-blur-md text-[var(--text-primary)] text-xs font-semibold px-3 py-1.5 rounded-full">
+                    <span className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-md text-[var(--text-primary)] text-xs font-semibold px-3 py-1.5 rounded-full shadow-xs">
                       {b.kategori}
                     </span>
                   </div>
@@ -190,8 +190,8 @@ export default function BerandaPage() {
       </section>
 
       {/* ======= CTA PPDB ======= */}
-      <section className="py-24 bg-white relative overflow-hidden">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-gradient-to-tr from-[#E8F0FE] to-[#F3E8FD] rounded-full blur-3xl opacity-50 pointer-events-none" />
+      <section className="py-24 bg-[var(--bg-primary)] relative overflow-hidden border-t border-[var(--border-light)] dark:border-slate-800">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-gradient-to-tr from-[#E8F0FE] to-[#F3E8FD] dark:from-blue-900/20 dark:to-purple-900/20 rounded-full blur-3xl opacity-50 pointer-events-none" />
 
         <div className="relative max-w-[800px] mx-auto px-6 text-center">
           <h2 className="font-[var(--font-outfit)] text-[2.5rem] md:text-[3.5rem] font-medium text-[var(--text-primary)] leading-tight mb-6">

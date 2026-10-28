@@ -5,56 +5,57 @@
 :root {
   --font-inter: 'Inter', system-ui, -apple-system, sans-serif;
   --font-outfit: 'Outfit', system-ui, -apple-system, sans-serif;
-  
+
   --bg-primary: #FFFFFF;
-  --bg-secondary: #F0F4F8; /* Subtle blueish gray like Gemini */
+  --bg-secondary: #F0F4F8;
   --bg-tertiary: #F8F9FA;
-  
+
   --text-primary: #1F1F1F;
   --text-secondary: #444746;
   --text-tertiary: #5F6368;
-  
+
   --border-color: #DADCE0;
   --border-light: #E3E3E3;
-  
+
   /* Gemini-like gradient and accents */
   --accent-blue: #1A73E8;
   --accent-purple: #A152F9;
   --accent-pink: #F748A5;
   --accent-orange: #FF8D50;
-  
-  --shadow-subtle: 0 1px 2px 0 rgba(60,64,67,0.1), 0 1px 3px 1px rgba(60,64,67,0.06);
-  --shadow-medium: 0 4px 6px -1px rgba(60,64,67,0.1), 0 2px 4px -1px rgba(60,64,67,0.06);
-  --shadow-elevated: 0 10px 20px rgba(60,64,67,0.15);
+
+  --shadow-subtle: 0 1px 2px 0 rgba(60, 64, 67, 0.1), 0 1px 3px 1px rgba(60, 64, 67, 0.06);
+  --shadow-medium: 0 4px 6px -1px rgba(60, 64, 67, 0.1), 0 2px 4px -1px rgba(60, 64, 67, 0.06);
+  --shadow-elevated: 0 10px 20px rgba(60, 64, 67, 0.15);
 }
 
-html.dark, [data-theme="dark"] {
+html.dark,
+[data-theme="dark"] {
   --bg-primary: #0F172A;
   --bg-secondary: #1E293B;
   --bg-tertiary: #334155;
-  
+
   --text-primary: #F8FAFC;
   --text-secondary: #CBD5E1;
   --text-tertiary: #94A3B8;
-  
+
   --border-color: #334155;
   --border-light: #1E293B;
-  
+
   --shadow-subtle: 0 1px 3px 0 rgba(0, 0, 0, 0.4);
   --shadow-medium: 0 4px 8px -1px rgba(0, 0, 0, 0.5);
   --shadow-elevated: 0 12px 24px rgba(0, 0, 0, 0.6);
   color-scheme: dark;
 }
 
-html { 
-  scroll-behavior: smooth; 
+html {
+  scroll-behavior: smooth;
   background-color: var(--bg-secondary);
   transition: background-color 0.2s ease, color 0.2s ease;
 }
 
-body { 
-  font-family: var(--font-inter), system-ui, sans-serif; 
-  color: var(--text-primary); 
+body {
+  font-family: var(--font-inter), system-ui, sans-serif;
+  color: var(--text-primary);
   background-color: var(--bg-primary);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -66,6 +67,7 @@ html.dark .bg-white {
   background-color: #1E293B !important;
   color: #F8FAFC;
 }
+
 html.dark .bg-white\/95,
 html.dark .bg-white\/90,
 html.dark .bg-white\/80,
@@ -79,6 +81,7 @@ html.dark .bg-white\/50 {
 html.dark .bg-slate-50 {
   background-color: #0F172A !important;
 }
+
 html.dark .bg-slate-50\/50,
 html.dark .bg-slate-50\/60,
 html.dark .bg-slate-50\/70,
@@ -90,6 +93,7 @@ html.dark .bg-slate-100 {
   background-color: #334155 !important;
   color: #F8FAFC !important;
 }
+
 html.dark .bg-slate-100\/50,
 html.dark .bg-slate-100\/60,
 html.dark .bg-slate-100\/70 {
@@ -101,28 +105,43 @@ html.dark .text-slate-800,
 html.dark .text-slate-700 {
   color: #F8FAFC !important;
 }
+
 html.dark .text-slate-600,
 html.dark .text-slate-500 {
   color: #94A3B8 !important;
 }
+
 html.dark .border-slate-200,
 html.dark .border-slate-100,
 html.dark .border-slate-200\/80 {
   border-color: #334155 !important;
 }
 
+/* Gradients in dark mode safeguard */
+html.dark [class*="to-white"] {
+  --tw-gradient-to: #0F172A !important;
+}
+html.dark [class*="from-[#F0F4F8]"],
+html.dark [class*="from-[#f0f4f8]"] {
+  --tw-gradient-from: #1E293B !important;
+  --tw-gradient-to: #0F172A !important;
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
+}
+
 /* Form inputs & selects in dark mode */
-html.dark input, 
-html.dark select, 
+html.dark input,
+html.dark select,
 html.dark textarea {
   background-color: #0F172A !important;
   color: #F8FAFC !important;
   border-color: #334155 !important;
 }
+
 html.dark select option {
   background-color: #1E293B !important;
   color: #F8FAFC !important;
 }
+
 html.dark input::placeholder,
 html.dark textarea::placeholder {
   color: #64748B !important;
@@ -134,26 +153,34 @@ html.dark .bg-blue-50 {
   color: #93C5FD !important;
   border-color: rgba(59, 130, 246, 0.3) !important;
 }
-html.dark .bg-emerald-50, html.dark .bg-emerald-100 {
+
+html.dark .bg-emerald-50,
+html.dark .bg-emerald-100 {
   background-color: rgba(6, 78, 59, 0.35) !important;
   color: #6EE7B7 !important;
   border-color: rgba(16, 185, 129, 0.3) !important;
 }
-html.dark .bg-amber-50, html.dark .bg-amber-100 {
+
+html.dark .bg-amber-50,
+html.dark .bg-amber-100 {
   background-color: rgba(120, 53, 15, 0.35) !important;
   color: #FCD34D !important;
   border-color: rgba(245, 158, 11, 0.3) !important;
 }
-html.dark .bg-rose-50, html.dark .bg-rose-100 {
+
+html.dark .bg-rose-50,
+html.dark .bg-rose-100 {
   background-color: rgba(136, 19, 55, 0.35) !important;
   color: #FDA4AF !important;
   border-color: rgba(244, 63, 94, 0.3) !important;
 }
+
 html.dark .bg-indigo-50 {
   background-color: rgba(49, 46, 129, 0.35) !important;
   color: #A5B4FC !important;
   border-color: rgba(99, 102, 241, 0.3) !important;
 }
+
 html.dark .bg-purple-50 {
   background-color: rgba(88, 28, 135, 0.35) !important;
   color: #D8B4FE !important;
@@ -164,16 +191,24 @@ html.dark table thead {
   background-color: #0F172A !important;
   color: #CBD5E1 !important;
 }
+
 html.dark table tbody tr:hover {
   background-color: rgba(51, 65, 85, 0.4) !important;
 }
+
 html.dark .glass-effect {
   background: rgba(15, 23, 42, 0.92) !important;
   border-bottom: 1px solid #334155 !important;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: .01ms !important;
+    transition-duration: .01ms !important;
+  }
 }
 
 /* Gemini gradient text utility */
@@ -195,6 +230,7 @@ html.dark .glass-effect {
 .gemini-card-hover {
   transition: all 0.25s cubic-bezier(0.2, 0, 0, 1);
 }
+
 .gemini-card-hover:hover {
   box-shadow: var(--shadow-medium);
   transform: translateY(-2px);
@@ -212,9 +248,11 @@ html.dark .glass-effect {
 .rounded-gemini {
   border-radius: 24px;
 }
+
 .rounded-gemini-sm {
   border-radius: 12px;
 }
+
 .rounded-gemini-full {
   border-radius: 9999px;
 }
@@ -231,32 +269,57 @@ html.dark .glass-effect {
   border-radius: 9999px;
   transition: all 0.2s ease;
 }
+
 .btn-gemini-primary {
   background-color: var(--text-primary);
   color: white;
 }
+
 .btn-gemini-primary:hover {
   background-color: #3C4043;
   box-shadow: var(--shadow-subtle);
 }
+
 .btn-gemini-secondary {
   background-color: transparent;
   color: var(--text-primary);
   border: 1px solid var(--border-color);
 }
+
 .btn-gemini-secondary:hover {
   background-color: var(--bg-tertiary);
 }
 
 /* gallery & lightbox */
-.lb-open { overflow: hidden; }
+.lb-open {
+  overflow: hidden;
+}
 
 /* animate fade-up */
 @keyframes fadeUp {
-  from { opacity: 0; transform: translateY(20px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
-.animate-fade-up { animation: fadeUp 0.6s cubic-bezier(0.2, 0, 0, 1) both; }
-.animation-delay-100 { animation-delay: .1s; }
-.animation-delay-200 { animation-delay: .2s; }
-.animation-delay-300 { animation-delay: .3s; }
+
+.animate-fade-up {
+  animation: fadeUp 0.6s cubic-bezier(0.2, 0, 0, 1) both;
+}
+
+.animation-delay-100 {
+  animation-delay: .1s;
+}
+
+.animation-delay-200 {
+  animation-delay: .2s;
+}
+
+.animation-delay-300 {
+  animation-delay: .3s;
+}

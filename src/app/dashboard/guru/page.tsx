@@ -279,13 +279,13 @@ export default function GuruDashboardPage() {
   const [teacherProfile, setTeacherProfile] = useState({
     id: '',
     userId: '',
-    namaLengkap: 'Budi Santoso, S.Pd.',
-    nip: '198501012010011001',
-    mapelUtama: 'Matematika Wajib',
-    noHp: '081234567890',
-    email: 'budi.santoso@sekolah.sch.id',
+    namaLengkap: '',
+    nip: '',
+    mapelUtama: '',
+    noHp: '',
+    email: '',
     avatarUrl: '',
-    bio: 'Guru Pengampu Mata Pelajaran Matematika Wajib & Pembina Olimpiade Sains',
+    bio: '',
   })
 
   // Master Data (Initialized with complete 12 classes & 17 subjects)
@@ -487,6 +487,16 @@ export default function GuruDashboardPage() {
       const dataPr = resPr ? await resPr.json().catch(() => ({})) : {}
       const dataMateri = resMateri ? await resMateri.json().catch(() => ({})) : {}
       const dataRaport = resRaport ? await resRaport.json().catch(() => ({})) : {}
+
+      if (!resMe || !dataMe.success || !dataMe.data) {
+        router.push('/login')
+        return
+      }
+
+      if (dataMe.data.role !== 'GURU' && dataMe.data.role !== 'ADMIN') {
+        router.push('/dashboard/siswa')
+        return
+      }
 
       if (dataMe.success && dataMe.data?.details) {
         const d = dataMe.data.details
@@ -1701,9 +1711,15 @@ export default function GuruDashboardPage() {
                   SMA Nusantara Bangsa
                 </span>
               </div>
-              <p className="text-xs text-slate-500 font-medium">
-                {teacherProfile.namaLengkap} • NIP: {teacherProfile.nip} ({teacherProfile.mapelUtama})
-              </p>
+              <div className="text-xs text-slate-500 font-medium min-h-[16px] flex items-center">
+                {teacherProfile.namaLengkap ? (
+                  <span>
+                    {teacherProfile.namaLengkap} • NIP: {teacherProfile.nip} ({teacherProfile.mapelUtama})
+                  </span>
+                ) : (
+                  <span className="inline-block w-48 h-3.5 bg-slate-200 dark:bg-slate-700 rounded animate-pulse" />
+                )}
+              </div>
             </div>
           </div>
 

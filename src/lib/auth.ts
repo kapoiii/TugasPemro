@@ -12,6 +12,11 @@ export interface JWTPayload {
   role: 'ADMIN' | 'GURU' | 'SISWA'
   profileId?: string
   namaLengkap?: string
+  nisn?: string
+  nis?: string
+  kelasId?: string
+  kelasNama?: string
+  nip?: string
 }
 
 export async function hashPassword(password: string): Promise<string> {

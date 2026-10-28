@@ -176,13 +176,24 @@ export async function POST(request: NextRequest) {
     // 5. Build user profile session
     let profileId: string | undefined
     let namaLengkap: string | undefined
+    let nisn: string | undefined
+    let nis: string | undefined
+    let kelasId: string | undefined
+    let kelasNama: string | undefined
+    let nip: string | undefined
 
     if (user.role === 'SISWA') {
       profileId = user.siswaProfile?.id || `siswa-profile-${user.id}`
       namaLengkap = user.siswaProfile?.namaLengkap || user.username
+      nisn = user.siswaProfile?.nisn
+      nis = user.siswaProfile?.nis
+      kelasId = user.siswaProfile?.kelasId
+      const k = db.kelas.find((kls) => kls.id === kelasId)
+      kelasNama = k?.namaKelas
     } else if (user.role === 'GURU') {
       profileId = user.guruProfile?.id || `guru-profile-${user.id}`
       namaLengkap = user.guruProfile?.namaLengkap || user.username
+      nip = user.guruProfile?.nip
     } else {
       namaLengkap = user.username === 'admin' ? 'Administrator Utama' : user.username
     }
@@ -194,6 +205,11 @@ export async function POST(request: NextRequest) {
       role: user.role,
       profileId,
       namaLengkap,
+      nisn,
+      nis,
+      kelasId,
+      kelasNama,
+      nip,
     })
 
     const response = NextResponse.json({

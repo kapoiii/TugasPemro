@@ -9,7 +9,7 @@ const JWT_SECRET = new TextEncoder().encode(
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
 
-  // Protect /dashboard and API endpoints
+  // Protect /dashboard and internal API endpoints
   if (
     pathname.startsWith('/dashboard') ||
     pathname.startsWith('/api/protected') ||
@@ -27,20 +27,21 @@ export async function proxy(request: NextRequest) {
 
     if (!token) {
       if (pathname.startsWith('/api/')) {
-        return NextResponse.json({ success: false, message: 'Unauthorized: Token tidak ditemukan' }, { status: 401 })
+        return NextResponse.json(
+          { success: false, message: 'Unauthorized: Sesi tidak ditemukan. Silakan login kembali.' },
+          { status: 401 }
+        )
       }
       return NextResponse.redirect(new URL('/login', request.url))
     }
 
     try {
       const { payload } = await jwtVerify(token, JWT_SECRET)
-      const role = payload.role as string
+      const role = String(payload.role || '').toUpperCase()
 
-      // Route RBAC Check
-      // 1. Strict protection for Admin path
+      // Strict RBAC: Admin Portal
       if (pathname.startsWith('/dashboard/admin')) {
         if (role !== 'ADMIN') {
-          // Non-admin trying to access admin dashboard
           if (role === 'GURU') {
             return NextResponse.redirect(new URL('/dashboard/guru', request.url))
           }
@@ -48,31 +49,42 @@ export async function proxy(request: NextRequest) {
         }
       }
 
-      // 2. Strict protection for Admin API endpoints
+      // Strict RBAC: Admin API endpoints
       if (pathname.startsWith('/api/admin')) {
-        const isMasterRead = (pathname === '/api/admin/master' || pathname === '/api/admin/siswa-dashboard') && request.method === 'GET'
+        const isMasterRead =
+          (pathname === '/api/admin/master' || pathname === '/api/admin/siswa-dashboard') &&
+          request.method === 'GET'
         if (!isMasterRead && role !== 'ADMIN') {
-          return NextResponse.json({ success: false, message: 'Akses ditolak: Memerlukan role ADMIN' }, { status: 403 })
+          return NextResponse.json(
+            { success: false, message: 'Akses ditolak: Memerlukan role Administrator' },
+            { status: 403 }
+          )
         }
       }
 
-      // 3. Protection for Guru path
-      if (pathname.startsWith('/dashboard/guru') && role !== 'GURU' && role !== 'ADMIN') {
-        return NextResponse.redirect(new URL('/dashboard/siswa', request.url))
+      // Strict RBAC: Guru Portal (Only GURU or ADMIN)
+      if (pathname.startsWith('/dashboard/guru')) {
+        if (role !== 'GURU' && role !== 'ADMIN') {
+          return NextResponse.redirect(new URL('/dashboard/siswa', request.url))
+        }
       }
 
-      // 4. Protection for Siswa path
-      if (pathname.startsWith('/dashboard/siswa') && role !== 'SISWA' && role !== 'ADMIN') {
-        return NextResponse.redirect(new URL('/dashboard/guru', request.url))
+      // Strict RBAC: Siswa Portal (Only SISWA or ADMIN)
+      if (pathname.startsWith('/dashboard/siswa')) {
+        if (role !== 'SISWA' && role !== 'ADMIN') {
+          return NextResponse.redirect(new URL('/dashboard/guru', request.url))
+        }
       }
 
-      // Clone request headers to pass payload data
+      // Clone request headers to pass payload data down to route handlers
       const requestHeaders = new Headers(request.headers)
       requestHeaders.set('x-user-id', (payload.userId as string) || '')
       requestHeaders.set('x-user-role', role)
       if (payload.username) requestHeaders.set('x-user-username', payload.username as string)
       if (payload.profileId) requestHeaders.set('x-user-profile-id', payload.profileId as string)
       if (payload.namaLengkap) requestHeaders.set('x-user-name', payload.namaLengkap as string)
+      if ((payload as any).nisn) requestHeaders.set('x-user-nisn', (payload as any).nisn as string)
+      if ((payload as any).kelasId) requestHeaders.set('x-user-kelas-id', (payload as any).kelasId as string)
 
       return NextResponse.next({
         request: {
@@ -81,7 +93,10 @@ export async function proxy(request: NextRequest) {
       })
     } catch {
       if (pathname.startsWith('/api/')) {
-        return NextResponse.json({ success: false, message: 'Unauthorized: Token invalid' }, { status: 401 })
+        return NextResponse.json(
+          { success: false, message: 'Unauthorized: Sesi kedaluwarsa atau tidak valid' },
+          { status: 401 }
+        )
       }
       return NextResponse.redirect(new URL('/login', request.url))
     }
@@ -111,9 +126,5 @@ export const config = {
     '/api/siswa',
     '/api/guru/:path*',
     '/api/guru',
-    '/api/auth/me',
   ],
 }
-
-export default proxy
-export { proxy as middleware }

@@ -20,8 +20,15 @@ export async function GET(request: NextRequest) {
       schedules = schedules.filter((j) => j.guruId === guruId)
     } else if (session.role === 'SISWA') {
       // Find student's class
-      const studentUser = db.users.find((u) => u.id === session.userId || u.siswaProfile?.id === session.profileId)
-      const studentKelasId = studentUser?.siswaProfile?.kelasId || 'kelas-10-mipa1'
+      const studentUser = db.users.find(
+        (u) =>
+          u.id === session.userId ||
+          (session.username && u.username?.toLowerCase() === session.username.toLowerCase()) ||
+          u.siswaProfile?.id === session.profileId ||
+          (session.nisn && u.siswaProfile?.nisn === session.nisn)
+      )
+      const studentKelasId =
+        studentUser?.siswaProfile?.kelasId || (session as any).kelasId || 'kelas-10-ips2'
       schedules = schedules.filter((j) => j.kelasId === studentKelasId)
     }
 
