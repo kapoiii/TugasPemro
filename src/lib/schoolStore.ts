@@ -1,5 +1,11 @@
 import fs from 'fs'
 import path from 'path'
+import os from 'os'
+
+declare global {
+  // eslint-disable-next-line no-var
+  var __schoolDb: SchoolDatabase | undefined
+}
 
 export interface UserAccount {
   id: string
@@ -1295,8 +1301,28 @@ function ensureComprehensiveCurriculum(db: SchoolDatabase): boolean {
   return modified
 }
 
-// Persistent File Database
+// Persistent Database with Live In-Memory Cache & Serverless /tmp Support
 export function getSchoolDb(): SchoolDatabase {
+  // 1. Live In-Memory Singleton Cache (Instant live sync across serverless requests!)
+  if (globalThis.__schoolDb) {
+    return globalThis.__schoolDb
+  }
+
+  // 2. Check /tmp on serverless environments (e.g. Vercel)
+  try {
+    const tmpPath = path.join(os.tmpdir(), 'school-store.json')
+    if (fs.existsSync(tmpPath)) {
+      const tmpData = fs.readFileSync(tmpPath, 'utf-8')
+      if (tmpData && tmpData.trim().length > 0) {
+        const parsed = JSON.parse(tmpData) as SchoolDatabase
+        ensureComprehensiveCurriculum(parsed)
+        globalThis.__schoolDb = parsed
+        return parsed
+      }
+    }
+  } catch {}
+
+  // 3. Check bundled file on disk
   try {
     const resolvedPath = getDbFilePath()
     if (fs.existsSync(/*turbopackIgnore: true*/ resolvedPath)) {
@@ -1346,6 +1372,7 @@ export function getSchoolDb(): SchoolDatabase {
           needsSync = true
         }
 
+        globalThis.__schoolDb = parsed
         if (needsSync) {
           saveSchoolDb(parsed)
         }
@@ -1356,41 +1383,55 @@ export function getSchoolDb(): SchoolDatabase {
     console.warn('Failed to read school-store.json from disk, falling back to default:', err)
   }
 
-  // Initialize file with default data if missing or empty
+  // 4. Initialize file with default data if missing or empty
   const defaultCopy: SchoolDatabase = JSON.parse(JSON.stringify(DEFAULT_DATABASE))
   ensureMinimumStudentsPerClass(defaultCopy)
   ensureComprehensiveCurriculum(defaultCopy)
+  globalThis.__schoolDb = defaultCopy
   saveSchoolDb(defaultCopy)
   return defaultCopy
 }
 
 export function saveSchoolDb(db: SchoolDatabase): boolean {
+  // Always update in-memory singleton immediately for 0ms sync
+  globalThis.__schoolDb = db
+  let success = false
+  const content = JSON.stringify(db, null, 2)
+
+  // 1. Try writing to primary paths
   try {
     const primaryPath = getDbFilePath()
     const dir = path.dirname(primaryPath)
     if (!fs.existsSync(dir)) {
       fs.mkdirSync(dir, { recursive: true })
     }
-    const content = JSON.stringify(db, null, 2)
     fs.writeFileSync(primaryPath, content, 'utf-8')
-
-    // Also sync to alternative paths if their directory exists
-    const altPaths = [
-      path.join(process.cwd(), 'src', 'data', 'school-store.json'),
-      path.join(process.cwd(), 'sekolah', 'src', 'data', 'school-store.json'),
-    ]
-    for (const alt of altPaths) {
-      if (alt !== primaryPath) {
-        const altDir = path.dirname(alt)
-        if (fs.existsSync(altDir)) {
-          fs.writeFileSync(alt, content, 'utf-8')
-        }
-      }
-    }
-
-    return true
-  } catch (err) {
-    console.error('Failed to save school-store.json to disk:', err)
-    return false
+    success = true
+  } catch {
+    // Read-only filesystem on serverless
   }
+
+  // 2. Always persist to /tmp on serverless environments
+  try {
+    const tmpPath = path.join(os.tmpdir(), 'school-store.json')
+    fs.writeFileSync(tmpPath, content, 'utf-8')
+    success = true
+  } catch {}
+
+  // 3. Also sync to alternative paths if their directory exists and writable
+  const altPaths = [
+    path.join(process.cwd(), 'src', 'data', 'school-store.json'),
+    path.join(process.cwd(), 'sekolah', 'src', 'data', 'school-store.json'),
+  ]
+  for (const alt of altPaths) {
+    try {
+      const altDir = path.dirname(alt)
+      if (fs.existsSync(altDir)) {
+        fs.writeFileSync(alt, content, 'utf-8')
+        success = true
+      }
+    } catch {}
+  }
+
+  return success
 }

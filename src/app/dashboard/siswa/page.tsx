@@ -157,22 +157,88 @@ export default function SiswaDashboardPage() {
   // Feedback Notification
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
 
+  // Real-time synchronization states
+  const [lastSyncTime, setLastSyncTime] = useState<Date | null>(new Date())
+  const [isLiveSyncing, setIsLiveSyncing] = useState(false)
+
   const showFeedback = (type: 'success' | 'error', message: string) => {
     setFeedback({ type, message })
     setTimeout(() => setFeedback(null), 4000)
   }
 
+  // Dedicated real-time attendance polling function
+  const fetchLiveAbsensi = useCallback(async (showIndicator = false) => {
+    if (showIndicator) setIsLiveSyncing(true)
+    try {
+      const res = await fetch(`/api/absensi?t=${Date.now()}`, {
+        cache: 'no-store',
+        headers: { 'Cache-Control': 'no-cache' },
+      })
+      const data = await res.json()
+      if (data.success && data.data) {
+        if (data.data.summary) {
+          setAbsensiSummary(data.data.summary)
+        }
+        if (Array.isArray(data.data.details)) {
+          setAbsensiDetails(data.data.details)
+          setLastSyncTime(new Date())
+        }
+      }
+    } catch (err) {
+      console.warn('Realtime sync error:', err)
+    } finally {
+      if (showIndicator) {
+        setTimeout(() => setIsLiveSyncing(false), 500)
+      }
+    }
+  }, [])
+
+  // Dedicated real-time PR sync function
+  const fetchLivePr = useCallback(async () => {
+    try {
+      const res = await fetch(`/api/pr?t=${Date.now()}`, {
+        cache: 'no-store',
+        headers: { 'Cache-Control': 'no-cache' },
+      })
+      const dataPr = await res.json()
+      if (dataPr.success && Array.isArray(dataPr.data)) {
+        let finalPrList = dataPr.data
+        if (typeof window !== 'undefined') {
+          try {
+            const savedLocal = JSON.parse(localStorage.getItem('pr_submissions_local') || '{}')
+            finalPrList = finalPrList.map((item: any) => {
+              if (savedLocal[item.id]) {
+                return {
+                  ...item,
+                  isSubmitted: true,
+                  mySubmission: item.mySubmission || savedLocal[item.id],
+                }
+              }
+              return item
+            })
+          } catch {
+            // ignore
+          }
+        }
+        setPrList(finalPrList)
+      }
+    } catch (err) {
+      console.warn('Live PR sync error:', err)
+    }
+  }, [])
+
   // Load All Student Data
   const loadData = useCallback(async () => {
     setLoading(true)
     try {
+      const cacheBust = Date.now()
       const [resMe, resAbsensi, resJadwal, resPr, resRaport, resNilai] = await Promise.all([
-        fetch('/api/auth/me'),
-        fetch('/api/absensi'),
-        fetch('/api/jadwal'),
-        fetch('/api/pr'),
-        fetch('/api/raport'),
-        fetch('/api/nilai'),
+        fetch(`/api/auth/me?t=${cacheBust}`, { cache: 'no-store' }),
+        fetch(`/api/absensi?t=${cacheBust}`, { cache: 'no-store' }),
+        fetch(`/api/jadwal?t=${cacheBust}`, { cache: 'no-store' }),
+        fetch(`/api/pr?t=${cacheBust}`, { cache: 'no-store' }),
+        fetch(`/api/raport?t=${cacheBust}`, { cache: 'no-store' }),
+        fetch(`/api/nilai?t=${cacheBust}`, { cache: 'no-store' }),
       ])
 
       const dataMe = await resMe.json()
@@ -211,7 +277,10 @@ export default function SiswaDashboardPage() {
       // 2. Absensi
       if (dataAbsensi.success && dataAbsensi.data) {
         if (dataAbsensi.data.summary) setAbsensiSummary(dataAbsensi.data.summary)
-        if (Array.isArray(dataAbsensi.data.details)) setAbsensiDetails(dataAbsensi.data.details)
+        if (Array.isArray(dataAbsensi.data.details)) {
+          setAbsensiDetails(dataAbsensi.data.details)
+          setLastSyncTime(new Date())
+        }
       }
 
       // 3. Jadwal
@@ -219,9 +288,33 @@ export default function SiswaDashboardPage() {
         setJadwalList(dataJadwal.data)
       }
 
-      // 4. PR
+      // 4. PR (with local persistent cache overlay)
       if (dataPr.success && Array.isArray(dataPr.data)) {
-        setPrList(dataPr.data)
+        let finalPrList = dataPr.data
+        if (typeof window !== 'undefined') {
+          try {
+            const studentNisn = p.nisn || (dataMe.data as any).nisn || ''
+            const savedByNisn = studentNisn
+              ? JSON.parse(localStorage.getItem(`pr_submissions_${studentNisn}`) || '{}')
+              : {}
+            const savedLocal = JSON.parse(localStorage.getItem('pr_submissions_local') || '{}')
+            const mergedLocal = { ...savedLocal, ...savedByNisn }
+
+            finalPrList = finalPrList.map((item: any) => {
+              if (mergedLocal[item.id]) {
+                return {
+                  ...item,
+                  isSubmitted: true,
+                  mySubmission: item.mySubmission || mergedLocal[item.id],
+                }
+              }
+              return item
+            })
+          } catch {
+            // ignore
+          }
+        }
+        setPrList(finalPrList)
       }
 
       // 5. Raport (Only accessible when pembagian raport is open!)
@@ -322,6 +415,59 @@ export default function SiswaDashboardPage() {
     }
   }, [activeTab, checkRaportStatus])
 
+  // Real-time synchronization: polling every 3 seconds + cross-tab BroadcastChannel & storage events
+  useEffect(() => {
+    // 1. Live polling every 3 seconds to immediately reflect teacher's attendance & tasks
+    const pollInterval = setInterval(() => {
+      fetchLiveAbsensi(false)
+      fetchLivePr()
+    }, 3000)
+
+    // 2. Window focus listener: immediately sync when student opens or returns to tab
+    const handleFocus = () => {
+      fetchLiveAbsensi(true)
+      fetchLivePr()
+    }
+    window.addEventListener('focus', handleFocus)
+
+    // 3. BroadcastChannel listener (instant 0ms cross-tab sync with teacher)
+    let channel: BroadcastChannel | null = null
+    try {
+      channel = new BroadcastChannel('sekolah_realtime_sync')
+      channel.onmessage = (event) => {
+        if (event.data?.type === 'ABSENSI_UPDATED') {
+          fetchLiveAbsensi(true)
+          showFeedback('success', 'Presensi diperbarui langsung oleh Guru di kelas!')
+        }
+        if (event.data?.type === 'PR_UPDATED' || event.data?.type === 'PR_SUBMITTED') {
+          fetchLivePr()
+        }
+      }
+    } catch {
+      // BroadcastChannel fallback
+    }
+
+    // 4. Storage event listener (cross-tab fallback for all browsers)
+    const handleStorage = (e: StorageEvent) => {
+      if (e.key === 'sekolah_last_absensi_sync') {
+        fetchLiveAbsensi(true)
+      }
+      if (e.key === 'pr_submissions_local') {
+        fetchLivePr()
+      }
+    }
+    window.addEventListener('storage', handleStorage)
+
+    return () => {
+      clearInterval(pollInterval)
+      window.removeEventListener('focus', handleFocus)
+      window.removeEventListener('storage', handleStorage)
+      if (channel) {
+        channel.close()
+      }
+    }
+  }, [fetchLiveAbsensi, fetchLivePr])
+
   // File upload change handler (supports gallery on mobile, file dialog on PC)
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -355,10 +501,51 @@ export default function SiswaDashboardPage() {
     }
   }
 
-  // Handle Homework Submission (Input Pekerjaan Rumah)
+  // Handle Homework Submission (Input Pekerjaan Rumah) with Optimistic UI & Local Persistence
   const handleSubmitPr = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!submittingPrId) return
+
+    const currentSubmittingId = submittingPrId
+    const currentText = submissionText || 'Tugas telah dikerjakan dan diunggah.'
+    const currentFileUrl = selectedFile?.dataUrl || fileUrl || ''
+
+    const newSubmissionData = {
+      siswaId: profile?.nisn || profile?.namaLengkap || 'siswa',
+      submissionText: currentText,
+      fileUrl: currentFileUrl,
+      submittedAt: new Date().toISOString(),
+      status: 'SUBMITTED' as const,
+    }
+
+    // 1. Optimistic instant UI update
+    setPrList((prev) =>
+      prev.map((item) =>
+        item.id === currentSubmittingId
+          ? {
+              ...item,
+              isSubmitted: true,
+              mySubmission: newSubmissionData,
+            }
+          : item
+      )
+    )
+
+    // 2. Persist to localStorage immediately
+    if (typeof window !== 'undefined') {
+      try {
+        const studentNisn = profile?.nisn || 'global'
+        const existingNisn = JSON.parse(localStorage.getItem(`pr_submissions_${studentNisn}`) || '{}')
+        existingNisn[currentSubmittingId] = newSubmissionData
+        localStorage.setItem(`pr_submissions_${studentNisn}`, JSON.stringify(existingNisn))
+
+        const existingLocal = JSON.parse(localStorage.getItem('pr_submissions_local') || '{}')
+        existingLocal[currentSubmittingId] = newSubmissionData
+        localStorage.setItem('pr_submissions_local', JSON.stringify(existingLocal))
+      } catch {
+        // ignore
+      }
+    }
 
     setSubmittingLoading(true)
     try {
@@ -366,9 +553,9 @@ export default function SiswaDashboardPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          prId: submittingPrId,
-          submissionText,
-          fileUrl: selectedFile?.dataUrl || fileUrl,
+          prId: currentSubmittingId,
+          submissionText: currentText,
+          fileUrl: currentFileUrl,
         }),
       })
 
@@ -380,10 +567,41 @@ export default function SiswaDashboardPage() {
         setFileUrl('')
         setSelectedFile(null)
         if (fileInputRef.current) fileInputRef.current.value = ''
-        // Refresh PR list
-        const updatedRes = await fetch('/api/pr')
+
+        // Real-time broadcast to teacher and other tabs
+        if (typeof window !== 'undefined') {
+          try {
+            const channel = new BroadcastChannel('sekolah_realtime_sync')
+            channel.postMessage({
+              type: 'PR_SUBMITTED',
+              prId: currentSubmittingId,
+              studentNama: profile?.namaLengkap,
+              timestamp: Date.now(),
+            })
+            channel.close()
+          } catch {
+            // ignore
+          }
+        }
+
+        // Refresh PR list with cache bust & merge
+        const updatedRes = await fetch(`/api/pr?t=${Date.now()}`, { cache: 'no-store' })
         const updatedJson = await updatedRes.json()
-        if (updatedJson.success) setPrList(updatedJson.data)
+        if (updatedJson.success && Array.isArray(updatedJson.data)) {
+          const studentNisn = profile?.nisn || 'global'
+          const localSaved = JSON.parse(localStorage.getItem(`pr_submissions_${studentNisn}`) || '{}')
+          const syncedPrList = updatedJson.data.map((item: any) => {
+            if (item.id === currentSubmittingId || localSaved[item.id]) {
+              return {
+                ...item,
+                isSubmitted: true,
+                mySubmission: item.mySubmission || localSaved[item.id] || newSubmissionData,
+              }
+            }
+            return item
+          })
+          setPrList(syncedPrList)
+        }
       } else {
         showFeedback('error', data.message || 'Gagal mengumpulkan pekerjaan rumah')
       }
@@ -613,12 +831,37 @@ export default function SiswaDashboardPage() {
                 {/* Detailed Attendance History Table */}
                 <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs space-y-4">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                    <h3 className="font-bold text-slate-800 text-base flex items-center gap-2">
-                      <UserCheck className="w-4 h-4 text-blue-600" /> Log Riwayat Kehadiran per Pertemuan
-                    </h3>
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2.5">
+                        <h3 className="font-bold text-slate-800 text-base flex items-center gap-2">
+                          <UserCheck className="w-4 h-4 text-blue-600" /> Log Riwayat Kehadiran per Pertemuan
+                        </h3>
+                        <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                          <span className="relative flex h-2 w-2">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                          </span>
+                          <span>Sinkron Guru (Live)</span>
+                        </div>
+                      </div>
+                      <p className="text-xs text-slate-500">
+                        Sinkronisasi otomatis real-time • Terakhir diperbarui: {lastSyncTime ? lastSyncTime.toLocaleTimeString('id-ID') : '-'}
+                      </p>
+                    </div>
 
-                    {/* Filter controls */}
+                    {/* Filter & Live Refresh controls */}
                     <div className="flex flex-wrap items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => fetchLiveAbsensi(true)}
+                        disabled={isLiveSyncing}
+                        className="px-2.5 py-1.5 text-xs bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl text-slate-700 font-semibold flex items-center gap-1 transition-all cursor-pointer"
+                        title="Perbarui Presensi Langsung"
+                      >
+                        <RefreshCw className={`w-3.5 h-3.5 ${isLiveSyncing ? 'animate-spin text-blue-600' : 'text-slate-500'}`} />
+                        <span>{isLiveSyncing ? 'Menyinkron...' : 'Sinkron'}</span>
+                      </button>
+
                       <select
                         value={filterMapelAbsen}
                         onChange={(e) => setFilterMapelAbsen(e.target.value)}

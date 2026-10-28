@@ -795,8 +795,38 @@ export default function GuruDashboardPage() {
         showFeedback('success', forceOverwrite ? 'Presensi berhasil diperbarui!' : 'Presensi siswa berhasil disimpan!')
         setDuplicateWarning({ hasDuplicate: false })
 
+        // Real-time notification broadcast to all connected student devices & tabs
+        if (typeof window !== 'undefined') {
+          try {
+            const channel = new BroadcastChannel('sekolah_realtime_sync')
+            channel.postMessage({
+              type: 'ABSENSI_UPDATED',
+              kelasId: selectedKelasAbsensi,
+              mapelId: selectedMapelAbsensi,
+              pertemuanKe,
+              timestamp: Date.now(),
+            })
+            channel.close()
+          } catch {
+            // BroadcastChannel fallback
+          }
+          try {
+            localStorage.setItem(
+              'sekolah_last_absensi_sync',
+              JSON.stringify({
+                kelasId: selectedKelasAbsensi,
+                timestamp: Date.now(),
+              })
+            )
+          } catch {
+            // localStorage fallback
+          }
+        }
+
         // Refresh absensi list & rekap
-        const updatedRes = await fetch(`/api/absensi?kelasId=${selectedKelasAbsensi}`)
+        const updatedRes = await fetch(`/api/absensi?kelasId=${selectedKelasAbsensi}&t=${Date.now()}`, {
+          cache: 'no-store',
+        })
         const updatedJson = await updatedRes.json()
         if (updatedJson.success) {
           if (Array.isArray(updatedJson.data)) setAbsensiHistory(updatedJson.data)

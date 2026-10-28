@@ -2,11 +2,17 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getSchoolDb, saveSchoolDb, PekerjaanRumah, HomeworkSubmission } from '@/lib/schoolStore'
 import { getSession } from '@/lib/auth'
 
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 export async function GET(request: NextRequest) {
   try {
     const session = await getSession(request)
     if (!session) {
-      return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 })
+      return NextResponse.json(
+        { success: false, message: 'Unauthorized' },
+        { status: 401, headers: { 'Cache-Control': 'no-store, no-cache, must-revalidate' } }
+      )
     }
 
     const db = getSchoolDb()
@@ -14,9 +20,10 @@ export async function GET(request: NextRequest) {
 
     let studentProfileId = session.role === 'SISWA' ? session.profileId : undefined
     let studentKelasId: string | undefined
+    let studentUser = undefined
 
     if (session.role === 'SISWA') {
-      const studentUser = db.users.find(
+      studentUser = db.users.find(
         (u) =>
           u.id === session.userId ||
           (session.username && u.username?.toLowerCase() === session.username.toLowerCase()) ||
@@ -40,19 +47,30 @@ export async function GET(request: NextRequest) {
         .map((u) => u.siswaProfile!)
 
       // Enriched submissions
-      const submissionsEnriched = pr.submissions.map((sub) => {
-        const student = db.users.find((u) => u.siswaProfile?.id === sub.siswaId)?.siswaProfile
+      const submissionsEnriched = pr.submissions.map((sub: any) => {
+        const student = db.users.find(
+          (u) =>
+            u.siswaProfile?.id === sub.siswaId ||
+            u.id === sub.siswaId ||
+            (sub.nisn && u.siswaProfile?.nisn === sub.nisn)
+        )?.siswaProfile
         return {
           ...sub,
-          siswaNama: student?.namaLengkap || 'Siswa',
-          nisn: student?.nisn,
-          nis: student?.nis,
+          siswaNama: sub.siswaNama || student?.namaLengkap || 'Siswa',
+          nisn: sub.nisn || student?.nisn,
+          nis: sub.nis || student?.nis,
         }
       })
 
       // Detailed student submission matrix (who submitted, who has not)
       const submissionRoster = classStudents.map((st) => {
-        const matchSub = submissionsEnriched.find((s) => s.siswaId === st.id)
+        const matchSub = submissionsEnriched.find(
+          (s: any) =>
+            s.siswaId === st.id ||
+            s.siswaId === st.userId ||
+            s.siswaProfileId === st.id ||
+            (s.nisn && s.nisn === st.nisn)
+        )
         return {
           siswaId: st.id,
           namaLengkap: st.namaLengkap,
@@ -74,10 +92,20 @@ export async function GET(request: NextRequest) {
       const belumDinilai = pr.submissions.filter((s) => s.status !== 'GRADED').length
       const isOverdue = new Date() > new Date(pr.tenggatWaktu)
 
-      // Check if logged-in student has submitted
-      const studentSubmission = studentProfileId
-        ? pr.submissions.find((s) => s.siswaId === studentProfileId)
-        : undefined
+      // Robust check if logged-in student has submitted
+      const studentSubmission = pr.submissions.find((s: any) => {
+        if (!studentProfileId && !session.userId && !session.nisn) return false
+        return (
+          (studentProfileId && s.siswaId === studentProfileId) ||
+          (studentProfileId && s.siswaProfileId === studentProfileId) ||
+          (session.userId && (s.siswaId === session.userId || s.userId === session.userId)) ||
+          (studentUser?.id && (s.siswaId === studentUser.id || s.userId === studentUser.id)) ||
+          (studentUser?.siswaProfile?.id &&
+            (s.siswaId === studentUser.siswaProfile.id || s.siswaProfileId === studentUser.siswaProfile.id)) ||
+          (session.nisn && s.nisn === session.nisn) ||
+          (studentUser?.siswaProfile?.nisn && s.nisn === studentUser.siswaProfile.nisn)
+        )
+      })
 
       return {
         ...pr,
@@ -96,10 +124,16 @@ export async function GET(request: NextRequest) {
       }
     })
 
-    return NextResponse.json({ success: true, data: enriched })
+    return NextResponse.json(
+      { success: true, data: enriched },
+      { headers: { 'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate' } }
+    )
   } catch (error: unknown) {
     const errMessage = error instanceof Error ? error.message : 'Server error'
-    return NextResponse.json({ success: false, message: errMessage }, { status: 500 })
+    return NextResponse.json(
+      { success: false, message: errMessage },
+      { status: 500, headers: { 'Cache-Control': 'no-store, no-cache, must-revalidate' } }
+    )
   }
 }
 
@@ -107,7 +141,10 @@ export async function POST(request: NextRequest) {
   try {
     const session = await getSession(request)
     if (!session) {
-      return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 })
+      return NextResponse.json(
+        { success: false, message: 'Unauthorized' },
+        { status: 401, headers: { 'Cache-Control': 'no-store, no-cache, must-revalidate' } }
+      )
     }
 
     const body = await request.json()
@@ -134,7 +171,7 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ success: false, message: 'Tugas tidak ditemukan' }, { status: 404 })
       }
 
-      let submission = pr.submissions.find((s) => s.siswaId === siswaId)
+      let submission = pr.submissions.find((s) => s.siswaId === siswaId || (s as any).siswaProfileId === siswaId)
       if (!submission) {
         // If student hasn't formally uploaded file but teacher wants to assign a grade
         submission = {
@@ -162,11 +199,14 @@ export async function POST(request: NextRequest) {
 
       saveSchoolDb(db)
 
-      return NextResponse.json({
-        success: true,
-        message: 'Nilai dan evaluasi tugas berhasil disimpan',
-        data: submission,
-      })
+      return NextResponse.json(
+        {
+          success: true,
+          message: 'Nilai dan evaluasi tugas berhasil disimpan',
+          data: submission,
+        },
+        { headers: { 'Cache-Control': 'no-store, no-cache, must-revalidate' } }
+      )
     }
 
     // 2. SISWA SUBMITTING HOMEWORK
@@ -189,10 +229,26 @@ export async function POST(request: NextRequest) {
           (session.nisn && u.siswaProfile?.nisn === session.nisn)
       )
       const studentId = studentUser?.siswaProfile?.id || session.profileId || session.userId
-      const existingSubmissionIdx = pr.submissions.findIndex((s) => s.siswaId === studentId)
+      const studentNisn = studentUser?.siswaProfile?.nisn || session.nisn || ''
+      const studentNis = studentUser?.siswaProfile?.nis || (session as any).nis || ''
+      const studentNama = studentUser?.siswaProfile?.namaLengkap || session.namaLengkap || session.username
 
-      const submissionData: HomeworkSubmission = {
+      const existingSubmissionIdx = pr.submissions.findIndex(
+        (s: any) =>
+          s.siswaId === studentId ||
+          s.siswaId === session.userId ||
+          (studentUser?.id && s.siswaId === studentUser.id) ||
+          (studentUser?.siswaProfile?.id && s.siswaId === studentUser.siswaProfile.id) ||
+          (studentNisn && s.nisn === studentNisn)
+      )
+
+      const submissionData: HomeworkSubmission & { siswaProfileId?: string; userId?: string; nisn?: string; nis?: string; siswaNama?: string } = {
         siswaId: studentId,
+        siswaProfileId: studentUser?.siswaProfile?.id || studentId,
+        userId: studentUser?.id || session.userId,
+        nisn: studentNisn,
+        nis: studentNis,
+        siswaNama: studentNama,
         submissionText: submissionText || 'Tugas telah dikerjakan dan diunggah.',
         fileUrl: fileUrl || '',
         submittedAt: new Date().toISOString(),
@@ -212,17 +268,20 @@ export async function POST(request: NextRequest) {
         id: `log-${Date.now()}`,
         userId: session.userId,
         action: 'SUBMIT_HOMEWORK',
-        detail: `Siswa ${session.namaLengkap || session.username} menginput tugas PR: ${pr.judul}`,
+        detail: `Siswa ${studentNama} menginput tugas PR: ${pr.judul}`,
         createdAt: new Date().toISOString(),
       })
 
       saveSchoolDb(db)
 
-      return NextResponse.json({
-        success: true,
-        message: 'Pekerjaan rumah berhasil dikumpulkan!',
-        data: submissionData,
-      })
+      return NextResponse.json(
+        {
+          success: true,
+          message: 'Pekerjaan rumah berhasil dikumpulkan!',
+          data: submissionData,
+        },
+        { headers: { 'Cache-Control': 'no-store, no-cache, must-revalidate' } }
+      )
     }
 
     // 3. GURU OR ADMIN CREATING HOMEWORK
@@ -255,20 +314,26 @@ export async function POST(request: NextRequest) {
 
     saveSchoolDb(db)
 
-    return NextResponse.json({
-      success: true,
-      message: 'Tugas berhasil dibuat dan dibagikan ke siswa',
-      data: newPr,
-    })
+    return NextResponse.json(
+      {
+        success: true,
+        message: 'Tugas berhasil dibuat dan dibagikan ke siswa',
+        data: newPr,
+      },
+      { headers: { 'Cache-Control': 'no-store, no-cache, must-revalidate' } }
+    )
   } catch (error: unknown) {
     const errMessage = error instanceof Error ? error.message : 'Server error'
-    return NextResponse.json({ success: false, message: errMessage }, { status: 500 })
+    return NextResponse.json(
+      { success: false, message: errMessage },
+      { status: 500, headers: { 'Cache-Control': 'no-store, no-cache, must-revalidate' } }
+    )
   }
 }
 
 export async function DELETE(request: NextRequest) {
   try {
-    const session = await getSession()
+    const session = await getSession(request)
     if (!session || (session.role !== 'GURU' && session.role !== 'ADMIN')) {
       return NextResponse.json({ success: false, message: 'Akses ditolak' }, { status: 403 })
     }
@@ -288,9 +353,15 @@ export async function DELETE(request: NextRequest) {
     db.pekerjaanRumah.splice(idx, 1)
     saveSchoolDb(db)
 
-    return NextResponse.json({ success: true, message: 'Tugas berhasil dihapus' })
+    return NextResponse.json(
+      { success: true, message: 'Tugas berhasil dihapus' },
+      { headers: { 'Cache-Control': 'no-store, no-cache, must-revalidate' } }
+    )
   } catch (error: unknown) {
     const errMessage = error instanceof Error ? error.message : 'Server error'
-    return NextResponse.json({ success: false, message: errMessage }, { status: 500 })
+    return NextResponse.json(
+      { success: false, message: errMessage },
+      { status: 500, headers: { 'Cache-Control': 'no-store, no-cache, must-revalidate' } }
+    )
   }
 }

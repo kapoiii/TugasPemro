@@ -2,9 +2,12 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getSchoolDb, saveSchoolDb, SesiAbsensi } from '@/lib/schoolStore'
 import { getSession } from '@/lib/auth'
 
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 export async function GET(request: NextRequest) {
   try {
-    const session = await getSession()
+    const session = await getSession(request)
 
     const { searchParams } = new URL(request.url)
     const kelasId = searchParams.get('kelasId')
@@ -47,7 +50,9 @@ export async function GET(request: NextRequest) {
           (d) =>
             d.siswaId === targetProfileId ||
             d.siswaId === targetUserId ||
-            (session.profileId && d.siswaId === session.profileId)
+            (session.profileId && d.siswaId === session.profileId) ||
+            (studentUser?.id && d.siswaId === studentUser.id) ||
+            (studentUser?.siswaProfile?.id && d.siswaId === studentUser.siswaProfile.id)
         )
 
         // Fallback: if student is enrolled in this class, record presence
@@ -92,7 +97,10 @@ export async function GET(request: NextRequest) {
         ALFA: detailsList.filter((d) => d.status === 'ALFA').length,
       }
 
-      return NextResponse.json({ success: true, data: { details: detailsList, summary } })
+      return NextResponse.json(
+        { success: true, data: { details: detailsList, summary } },
+        { headers: { 'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate' } }
+      )
     }
 
     // Role GURU or ADMIN
@@ -172,15 +180,21 @@ export async function GET(request: NextRequest) {
       }
     })
 
-    return NextResponse.json({
-      success: true,
-      data: populatedSesis,
-      rekap: rekapSiswa,
-      totalSesi,
-    })
+    return NextResponse.json(
+      {
+        success: true,
+        data: populatedSesis,
+        rekap: rekapSiswa,
+        totalSesi,
+      },
+      { headers: { 'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate' } }
+    )
   } catch (error: unknown) {
     const errMessage = error instanceof Error ? error.message : 'Server error'
-    return NextResponse.json({ success: false, message: errMessage }, { status: 500 })
+    return NextResponse.json(
+      { success: false, message: errMessage },
+      { status: 500, headers: { 'Cache-Control': 'no-store, no-cache, must-revalidate' } }
+    )
   }
 }
 
@@ -222,7 +236,7 @@ export async function POST(request: NextRequest) {
           existingId: db.absensi[existingIndex].id,
           message: `Presensi kelas ini pada tanggal ${targetDate} sudah pernah diinput sebelumnya. Silakan gunakan tombol perbarui data untuk memperbarui presensi.`,
         },
-        { status: 409 }
+        { status: 409, headers: { 'Cache-Control': 'no-store, no-cache, must-revalidate' } }
       )
     }
 
@@ -277,20 +291,26 @@ export async function POST(request: NextRequest) {
 
     saveSchoolDb(db)
 
-    return NextResponse.json({
-      success: true,
-      message: 'Presensi siswa berhasil disimpan ke sistem',
-      data: savedSesi,
-    })
+    return NextResponse.json(
+      {
+        success: true,
+        message: 'Presensi siswa berhasil disimpan ke sistem',
+        data: savedSesi,
+      },
+      { headers: { 'Cache-Control': 'no-store, no-cache, must-revalidate' } }
+    )
   } catch (error: unknown) {
     const errMessage = error instanceof Error ? error.message : 'Server error'
-    return NextResponse.json({ success: false, message: errMessage }, { status: 500 })
+    return NextResponse.json(
+      { success: false, message: errMessage },
+      { status: 500, headers: { 'Cache-Control': 'no-store, no-cache, must-revalidate' } }
+    )
   }
 }
 
 export async function DELETE(request: NextRequest) {
   try {
-    const session = await getSession()
+    const session = await getSession(request)
     if (!session || (session.role !== 'GURU' && session.role !== 'ADMIN')) {
       return NextResponse.json({ success: false, message: 'Akses ditolak' }, { status: 403 })
     }
@@ -310,9 +330,15 @@ export async function DELETE(request: NextRequest) {
     db.absensi.splice(idx, 1)
     saveSchoolDb(db)
 
-    return NextResponse.json({ success: true, message: 'Sesi absensi berhasil dihapus' })
+    return NextResponse.json(
+      { success: true, message: 'Sesi absensi berhasil dihapus' },
+      { headers: { 'Cache-Control': 'no-store, no-cache, must-revalidate' } }
+    )
   } catch (error: unknown) {
     const errMessage = error instanceof Error ? error.message : 'Server error'
-    return NextResponse.json({ success: false, message: errMessage }, { status: 500 })
+    return NextResponse.json(
+      { success: false, message: errMessage },
+      { status: 500, headers: { 'Cache-Control': 'no-store, no-cache, must-revalidate' } }
+    )
   }
 }
