@@ -158,7 +158,7 @@ export default function SiswaDashboardPage() {
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
 
   // Real-time synchronization states
-  const [lastSyncTime, setLastSyncTime] = useState<Date | null>(new Date())
+  const [lastSyncTime, setLastSyncTime] = useState<Date | null>(null)
   const [isLiveSyncing, setIsLiveSyncing] = useState(false)
 
   const showFeedback = (type: 'success' | 'error', message: string) => {

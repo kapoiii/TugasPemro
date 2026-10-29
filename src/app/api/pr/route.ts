@@ -2,8 +2,6 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getSchoolDb, saveSchoolDb, PekerjaanRumah, HomeworkSubmission } from '@/lib/schoolStore'
 import { getSession } from '@/lib/auth'
 
-
-
 export async function GET(request: NextRequest) {
   try {
     const session = await getSession(request)
